@@ -21,7 +21,7 @@ public class ModelSqlHelper {
 
         columns.add(Column.aliased("ml_task_id", table, columnPrefix + "_ml_task_id"));
         columns.add(Column.aliased("structure_id", table, columnPrefix + "_structure_id"));
-        columns.add(Column.aliased("type_id", table, columnPrefix + "_type_id"));
+        columns.add(Column.aliased("model_type_id", table, columnPrefix + "_model_type_id"));
         columns.add(Column.aliased("family_type_id", table, columnPrefix + "_family_type_id"));
         columns.add(Column.aliased("ensemble_type_id", table, columnPrefix + "_ensemble_type_id"));
         return columns;

@@ -35,7 +35,7 @@ public class ModelRowMapper implements BiFunction<Row, String, Model> {
         entity.setDecisionTree(converter.fromRow(row, prefix + "_decision_tree", Boolean.class));
         entity.setMlTaskId(converter.fromRow(row, prefix + "_ml_task_id", UUID.class));
         entity.setStructureId(converter.fromRow(row, prefix + "_structure_id", UUID.class));
-        entity.setModelTypeId(converter.fromRow(row, prefix + "_type_id", UUID.class));
+        entity.setModelTypeId(converter.fromRow(row, prefix + "_model_type_id", UUID.class));
         entity.setFamilyTypeId(converter.fromRow(row, prefix + "_family_type_id", UUID.class));
         entity.setEnsembleTypeId(converter.fromRow(row, prefix + "_ensemble_type_id", UUID.class));
         return entity;

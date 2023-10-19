@@ -53,7 +53,7 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
     private static final Table entityTable = Table.aliased("model", EntityManager.ENTITY_ALIAS);
     private static final Table mlTaskTable = Table.aliased("ml_task_type", "mlTask");
     private static final Table structureTable = Table.aliased("model_structure_type", "e_structure");
-    private static final Table typeTable = Table.aliased("model_type", "e_type");
+    private static final Table typeTable = Table.aliased("model_type", "model_type");
     private static final Table familyTypeTable = Table.aliased("model_family_type", "familyType");
     private static final Table ensembleTypeTable = Table.aliased("model_ensemble_type", "ensembleType");
 
@@ -101,7 +101,7 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
         List<Expression> columns = ModelSqlHelper.getColumns(entityTable, EntityManager.ENTITY_ALIAS);
         columns.addAll(MlTaskTypeSqlHelper.getColumns(mlTaskTable, "mlTask"));
         columns.addAll(ModelStructureTypeSqlHelper.getColumns(structureTable, "structure"));
-        columns.addAll(ModelTypeSqlHelper.getColumns(typeTable, "type"));
+        columns.addAll(ModelTypeSqlHelper.getColumns(typeTable, "modelType"));
         columns.addAll(ModelFamilyTypeSqlHelper.getColumns(familyTypeTable, "familyType"));
         columns.addAll(ModelEnsembleTypeSqlHelper.getColumns(ensembleTypeTable, "ensembleType"));
         SelectFromAndJoinCondition selectFrom = Select
@@ -115,7 +115,7 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
             .on(Column.create("structure_id", entityTable))
             .equals(Column.create("id", structureTable))
             .leftOuterJoin(typeTable)
-            .on(Column.create("type_id", entityTable))
+            .on(Column.create("model_type_id", entityTable))
             .equals(Column.create("id", typeTable))
             .leftOuterJoin(familyTypeTable)
             .on(Column.create("family_type_id", entityTable))
@@ -151,14 +151,15 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
 
     @Override
     public Flux<Model> findAllWithEagerRelationships(Pageable page) {
-        return findAllBy(page);
+        Flux<Model> models = findAllBy(page);
+        return models;
     }
 
     private Model process(Row row, RowMetadata metadata) {
         Model entity = modelMapper.apply(row, "e");
         entity.setMlTask(mltasktypeMapper.apply(row, "mlTask"));
         entity.setStructure(modelstructuretypeMapper.apply(row, "structure"));
-        entity.setType(modeltypeMapper.apply(row, "type"));
+        entity.setType(modeltypeMapper.apply(row, "modelType"));
         entity.setFamilyType(modelfamilytypeMapper.apply(row, "familyType"));
         entity.setEnsembleType(modelensembletypeMapper.apply(row, "ensembleType"));
         return entity;

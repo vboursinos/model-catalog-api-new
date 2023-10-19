@@ -1,5 +1,6 @@
 package ai.turintech.catalog.service;
 
+import ai.turintech.catalog.domain.Model;
 import ai.turintech.catalog.repository.ModelRepository;
 import ai.turintech.catalog.service.dto.ModelDTO;
 import ai.turintech.catalog.service.mapper.ModelMapper;
@@ -90,7 +91,12 @@ public class ModelService {
      * @return the list of entities.
      */
     public Flux<ModelDTO> findAllWithEagerRelationships(Pageable pageable) {
-        return modelRepository.findAllWithEagerRelationships(pageable).map(modelMapper::toDto);
+        Flux<ModelDTO> modelDTOs = modelRepository.findAllWithEagerRelationships(pageable).map(modelMapper::toDto);
+        modelDTOs.subscribe(modelDTO -> {
+            System.out.println("Model found: ");
+            System.out.println(modelDTO); // Print the ModelDTO when it's available
+        });
+        return modelDTOs;
     }
 
     /**
@@ -108,10 +114,30 @@ public class ModelService {
      * @param id the id of the entity.
      * @return the entity.
      */
+//    @Transactional(readOnly = true)
+//    public Mono<ModelDTO> findOne(UUID id) {
+//        log.debug("Request to get Model : {}", id);
+//        return modelRepository.findOneWithEagerRelationships(id).map(modelMapper::toDto);
+//    }
+
     @Transactional(readOnly = true)
     public Mono<ModelDTO> findOne(UUID id) {
         log.debug("Request to get Model : {}", id);
-        return modelRepository.findOneWithEagerRelationships(id).map(modelMapper::toDto);
+        // Retrieve the model entity from the repository
+        Mono<Model> modelMono = modelRepository.findOneWithEagerRelationships(id);
+        modelMono.subscribe(model -> {
+            System.out.println("Model found: ");
+            System.out.println(model); // Print the ModelDTO when it's available
+        });
+        // Map the model entity to a ModelDTO
+        Mono<ModelDTO> modelDTOMono = modelMono.map(model -> {
+            // Perform the mapping from the entity to DTO
+            ModelDTO modelDTO = modelMapper.toDto(model);
+            return modelDTO;
+        });
+
+        // Return the Mono containing the ModelDTO
+        return modelDTOMono;
     }
 
     /**
