@@ -30,6 +30,8 @@ public class ParameterDTO implements Serializable {
     @NotNull(message = "must not be null")
     private Integer ordering;
 
+    @NotNull
+    private UUID modelId;
     private ModelDTO model;
 
     public UUID getId() {
@@ -94,6 +96,14 @@ public class ParameterDTO implements Serializable {
 
     public void setModel(ModelDTO model) {
         this.model = model;
+    }
+
+    public UUID getModelId() {
+        return modelId;
+    }
+
+    public void setModelId(UUID modelId) {
+        this.modelId = modelId;
     }
 
     @Override

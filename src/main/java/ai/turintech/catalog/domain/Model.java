@@ -3,9 +3,8 @@ package ai.turintech.catalog.domain;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.*;
 import java.io.Serializable;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.domain.Persistable;
@@ -56,7 +55,7 @@ public class Model implements Serializable, Persistable<UUID> {
 
     @Transient
     @JsonIgnoreProperties(value = { "definitions", "model" }, allowSetters = true)
-    private Set<Parameter> parameters = new HashSet<>();
+    private List<Parameter> parameters = new ArrayList<>();
 
     @Transient
     @JsonIgnoreProperties(value = { "models" }, allowSetters = true)
@@ -218,11 +217,11 @@ public class Model implements Serializable, Persistable<UUID> {
         return this;
     }
 
-    public Set<Parameter> getParameters() {
+    public List<Parameter> getParameters() {
         return this.parameters;
     }
 
-    public void setParameters(Set<Parameter> parameters) {
+    public void setParameters(List<Parameter> parameters) {
         if (this.parameters != null) {
             this.parameters.forEach(i -> i.setModel(null));
         }
@@ -232,7 +231,7 @@ public class Model implements Serializable, Persistable<UUID> {
         this.parameters = parameters;
     }
 
-    public Model parameters(Set<Parameter> parameters) {
+    public Model parameters(List<Parameter> parameters) {
         this.setParameters(parameters);
         return this;
     }

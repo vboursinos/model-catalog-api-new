@@ -2,10 +2,7 @@ package ai.turintech.catalog.service.dto;
 
 import jakarta.validation.constraints.*;
 import java.io.Serializable;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * A DTO for the {@link ai.turintech.catalog.domain.Model} entity.
@@ -36,6 +33,8 @@ public class ModelDTO implements Serializable {
     private Set<ModelGroupTypeDTO> groups = new HashSet<>();
 
     private Set<MetricDTO> incompatibleMetrics = new HashSet<>();
+
+    private List<ParameterDTO> parameters = new ArrayList<>();
 
     private MlTaskTypeDTO mlTask;
 
@@ -167,6 +166,14 @@ public class ModelDTO implements Serializable {
         this.ensembleType = ensembleType;
     }
 
+    public List<ParameterDTO> getParameters() {
+        return parameters;
+    }
+
+    public void setParameters(List<ParameterDTO> parameters) {
+        this.parameters = parameters;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -189,24 +196,27 @@ public class ModelDTO implements Serializable {
     }
 
     // prettier-ignore
+
+
     @Override
     public String toString() {
         return "ModelDTO{" +
-            "id='" + getId() + "'" +
-            ", name='" + getName() + "'" +
-            ", displayName='" + getDisplayName() + "'" +
-            ", description='" + getDescription() + "'" +
-            ", advantages='" + getAdvantages() + "'" +
-            ", disadvantages='" + getDisadvantages() + "'" +
-            ", enabled='" + getEnabled() + "'" +
-            ", decisionTree='" + getDecisionTree() + "'" +
-            ", groups=" + getGroups() +
-            ", incompatibleMetrics=" + getIncompatibleMetrics() +
-            ", mlTask=" + getMlTask() +
-            ", structure=" + getStructure() +
-            ", type=" + getType() +
-            ", familyType=" + getFamilyType() +
-            ", ensembleType=" + getEnsembleType() +
-            "}";
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", displayName='" + displayName + '\'' +
+                ", description='" + description + '\'' +
+                ", advantages='" + advantages + '\'' +
+                ", disadvantages='" + disadvantages + '\'' +
+                ", enabled=" + enabled +
+                ", decisionTree=" + decisionTree +
+                ", groups=" + groups +
+                ", incompatibleMetrics=" + incompatibleMetrics +
+                ", parameters=" + parameters +
+                ", mlTask=" + mlTask +
+                ", structure=" + structure +
+                ", type=" + type +
+                ", familyType=" + familyType +
+                ", ensembleType=" + ensembleType +
+                '}';
     }
 }
