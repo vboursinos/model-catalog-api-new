@@ -1,0 +1,11 @@
+id;parameter_type_definition_id;is_left_open;is_right_open;left;right
+6eb7448-3ced-482f-845c-243bd028bea3;16eb7448-3ced-482f-845c-243bd028bea2;false;false;7,44;20,122
+6eb7448-3ced-482f-845c-243bd028bea4;16eb7448-3ced-482f-845c-243bd028bea2;false;true;6,463;13,732
+6eb7448-3ced-482f-845c-243bd028bea5;16eb7448-3ced-482f-845c-243bd028bea2;true;false;17,800;18,096
+6eb7448-3ced-482f-845c-243bd028bea6;16eb7448-3ced-482f-845c-243bd028bea2;false;false;9,566;23,810
+6eb7448-3ced-482f-845c-243bd028bea7;8c5c03b9-75cb-4144-87ef-956646cfaedb;true;false;16,010;99,87
+6eb7448-3ced-482f-845c-243bd028bea8;8c5c03b9-75cb-4144-87ef-956646cfaedb;false;true;2,018;3,972
+6eb7448-3ced-482f-845c-243bd028bea9;8c5c03b9-75cb-4144-87ef-956646cfaedb;false;false;19,800;30,401
+6eb7448-3ced-482f-845c-243bd028bea10;8c5c03b9-75cb-4144-87ef-956646cfaedb;false;false;8,618;44,17
+6eb7448-3ced-482f-845c-243bd028bea11;8c5c03b9-75cb-4144-87ef-956646cfaedb;false;false;1,405;2,591
+6eb7448-3ced-482f-845c-243bd028bea12;8c5c03b9-75cb-4144-87ef-956646cfaedb;false;true;2,2548;2,751

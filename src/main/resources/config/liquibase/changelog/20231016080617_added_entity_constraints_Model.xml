@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <!--
+        Added the constraints for entity Model.
+    -->
+    <changeSet id="20231016080617-2" author="jhipster">
+
+        <addForeignKeyConstraint baseColumnNames="model_id"
+                                 baseTableName="rel_model__groups"
+                                 constraintName="fk_rel_model__groups__model_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="model"
+                                 />
+
+        <addForeignKeyConstraint baseColumnNames="group_id"
+                                 baseTableName="rel_model__groups"
+                                 constraintName="fk_rel_model__groups__group_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="model_group_type"
+                                 />
+
+        <addForeignKeyConstraint baseColumnNames="model_id"
+                                 baseTableName="rel_model__incompatible_metrics"
+                                 constraintName="fk_rel_model__incompatible_metrics__model_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="model"
+                                 />
+
+        <addForeignKeyConstraint baseColumnNames="metric_id"
+                                 baseTableName="rel_model__incompatible_metrics"
+                                 constraintName="fk_rel_model__incompatible_metrics__metric_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="metric"
+                                 />
+
+        <addForeignKeyConstraint baseColumnNames="model_type_id"
+                                 baseTableName="model"
+                                 constraintName="fk_model__model_type_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="model_type"
+                                 />
+
+        <addForeignKeyConstraint baseColumnNames="ml_task_id"
+                                 baseTableName="model"
+                                 constraintName="fk_model__ml_task_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="ml_task_type"
+        />
+
+        <addForeignKeyConstraint baseColumnNames="structure_id"
+                                 baseTableName="model"
+                                 constraintName="fk_model__structure_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="model_structure_type"
+        />
+
+        <addForeignKeyConstraint baseColumnNames="ensemble_type_id"
+                                 baseTableName="model"
+                                 constraintName="fk_model__ensemble_type_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="model_ensemble_type"
+        />
+
+        <addForeignKeyConstraint baseColumnNames="family_type_id"
+                                 baseTableName="model"
+                                 constraintName="fk_model__family_type_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="model_family_type"
+        />
+
+    </changeSet>
+</databaseChangeLog>

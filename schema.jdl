@@ -1,0 +1,124 @@
+application {
+    config {
+        databaseType sql
+        prodDatabaseType postgresql
+        baseName model_catalog
+        buildTool maven
+        applicationType microservice
+        packageName ai.turintech.catalog
+        skipClient true
+        reactive true
+    }
+entities all
+dto * with mapstruct
+}
+
+entity ModelType(model_type) {
+    id UUID
+	name String required
+}
+entity MlTaskType(ml_task_type) {
+    id UUID
+	name String required
+}
+entity ModelStructureType(model_structure_type) {
+    id UUID
+    name String required
+}
+entity ModelGroupType(model_group_type) {
+    id UUID
+    name String required
+}
+entity ModelFamilyType(model_family_type) {
+    id UUID
+    name String required
+}
+entity ModelEnsembleType(model_ensemble_type) {
+    id UUID
+    name String required
+}
+entity Metric(metric) {
+    id UUID
+    metric String
+}
+entity Model(model) {
+    id UUID
+    name String required
+    displayName String required
+    description String
+    advantages String
+    disadvantages String
+    enabled Boolean required
+    decisionTree Boolean required
+}
+entity ParameterType(parameter_type) {
+    id UUID
+    name String required
+}
+entity ParameterDistributionType(parameter_distribution_type) {
+    id UUID
+    name String required
+}
+entity Parameter(parameter) {
+    id UUID
+    name String required
+    label String required
+    description String
+    enabled Boolean required
+    fixedValue Boolean required
+    ordering Integer required
+}
+entity ParameterTypeDefinition(parameter_type_definition) {
+    id UUID
+    ordering Integer required
+}
+entity CategoricalParameter(categorical_parameter) {
+    defaultValue String
+}
+entity CategoricalParameterValue(categorical_parameter_value) {
+    value String required
+}
+entity IntegerParameter(integer_parameter) {
+    defaultValue Integer
+}
+entity IntegerParameterValue(integer_parameter_value) {
+    lower Integer required
+    upper Integer required
+}
+entity FloatParameter(float_parameter) {
+    defaultValue Double
+}
+entity FloatParameterRange(float_parameter_range) {
+    isLeftOpen Boolean required
+    isRightOpen Boolean required
+    lower Double required
+    upper Double required
+}
+entity BooleanParameter(boolean_parameter) {
+    defaultValue Boolean
+}
+relationship ManyToMany {
+    Model{groups} to ModelGroupType{models}
+    Model{incompatibleMetrics} to Metric
+}
+relationship OneToMany {
+    MlTaskType{models} to Model{mlTask}
+    ModelStructureType{models} to Model{structure}
+    ModelType{models} to Model{type}
+    ModelFamilyType{models} to Model{familyType}
+    ModelEnsembleType{models} to Model{ensembleType}
+    Model{parameters} to Parameter{model}
+    ParameterDistributionType{definitions} to ParameterTypeDefinition{distribution}
+    Parameter{definitions} to ParameterTypeDefinition{parameter}
+    ParameterType{definitions} to ParameterTypeDefinition{type}
+    IntegerParameter to IntegerParameterValue
+    CategoricalParameter to CategoricalParameterValue
+    FloatParameter to FloatParameterRange
+}
+relationship OneToOne{
+    IntegerParameter to ParameterTypeDefinition
+    FloatParameter to ParameterTypeDefinition
+    CategoricalParameter to ParameterTypeDefinition
+    BooleanParameter to ParameterTypeDefinition
+}
+paginate Model, Parameter with pagination

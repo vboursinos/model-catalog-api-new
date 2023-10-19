@@ -1,0 +1,27 @@
+{
+  "global": {
+    "menu": {
+      "entities": {
+        "modelCatalogModelType": "Model Type",
+        "modelCatalogMlTaskType": "Ml Task Type",
+        "modelCatalogModelStructureType": "Model Structure Type",
+        "modelCatalogModelGroupType": "Model Group Type",
+        "modelCatalogModelFamilyType": "Model Family Type",
+        "modelCatalogModelEnsembleType": "Model Ensemble Type",
+        "modelCatalogMetric": "Metric",
+        "modelCatalogModel": "Model",
+        "modelCatalogParameterType": "Parameter Type",
+        "modelCatalogParameterDistributionType": "Parameter Distribution Type",
+        "modelCatalogParameter": "Parameter",
+        "modelCatalogParameterTypeDefinition": "Parameter Type Definition",
+        "modelCatalogCategoricalParameter": "Categorical Parameter",
+        "modelCatalogCategoricalParameterValue": "Categorical Parameter Value",
+        "modelCatalogIntegerParameter": "Integer Parameter",
+        "modelCatalogIntegerParameterValue": "Integer Parameter Value",
+        "modelCatalogFloatParameter": "Float Parameter",
+        "modelCatalogFloatParameterRange": "Float Parameter Range",
+        "modelCatalogBooleanParameter": "Boolean Parameter"
+      }
+    }
+  }
+}
