@@ -48,10 +48,6 @@ public class ParameterTypeDefinition implements Serializable, Persistable<UUID> 
     private ParameterDistributionType distribution;
 
     @Transient
-    @JsonIgnoreProperties(value = { "definitions", "model" }, allowSetters = true)
-    private Parameter parameter;
-
-    @Transient
     @JsonIgnoreProperties(value = { "definitions" }, allowSetters = true)
     private ParameterType type;
 
@@ -190,20 +186,6 @@ public class ParameterTypeDefinition implements Serializable, Persistable<UUID> 
 
     public ParameterTypeDefinition distribution(ParameterDistributionType parameterDistributionType) {
         this.setDistribution(parameterDistributionType);
-        return this;
-    }
-
-    public Parameter getParameter() {
-        return this.parameter;
-    }
-
-    public void setParameter(Parameter parameter) {
-        this.parameter = parameter;
-        this.parameterId = parameter != null ? parameter.getId() : null;
-    }
-
-    public ParameterTypeDefinition parameter(Parameter parameter) {
-        this.setParameter(parameter);
         return this;
     }
 

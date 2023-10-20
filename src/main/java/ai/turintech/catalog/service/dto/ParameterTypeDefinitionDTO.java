@@ -1,6 +1,7 @@
 package ai.turintech.catalog.service.dto;
 
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.NotNull;
+
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.UUID;
@@ -16,11 +17,19 @@ public class ParameterTypeDefinitionDTO implements Serializable {
     @NotNull(message = "must not be null")
     private Integer ordering;
 
-    private ParameterDistributionTypeDTO distribution;
+    @NotNull(message = "must not be null")
+    private UUID distributionId;
 
-    private ParameterDTO parameter;
+    @NotNull(message = "must not be null")
+    private UUID parameterId;
 
-    private ParameterTypeDTO type;
+    @NotNull(message = "must not be null")
+    private UUID typeId;
+//    private ParameterDistributionTypeDTO distribution;
+
+//    private ParameterDTO parameter;
+//
+//    private ParameterTypeDTO type;
 
     public UUID getId() {
         return id;
@@ -38,28 +47,28 @@ public class ParameterTypeDefinitionDTO implements Serializable {
         this.ordering = ordering;
     }
 
-    public ParameterDistributionTypeDTO getDistribution() {
-        return distribution;
+    public UUID getDistributionId() {
+        return distributionId;
     }
 
-    public void setDistribution(ParameterDistributionTypeDTO distribution) {
-        this.distribution = distribution;
+    public void setDistributionId(UUID distributionId) {
+        this.distributionId = distributionId;
     }
 
-    public ParameterDTO getParameter() {
-        return parameter;
+    public UUID getParameterId() {
+        return parameterId;
     }
 
-    public void setParameter(ParameterDTO parameter) {
-        this.parameter = parameter;
+    public void setParameterId(UUID parameterId) {
+        this.parameterId = parameterId;
     }
 
-    public ParameterTypeDTO getType() {
-        return type;
+    public UUID getTypeId() {
+        return typeId;
     }
 
-    public void setType(ParameterTypeDTO type) {
-        this.type = type;
+    public void setTypeId(UUID typeId) {
+        this.typeId = typeId;
     }
 
     @Override
@@ -84,14 +93,16 @@ public class ParameterTypeDefinitionDTO implements Serializable {
     }
 
     // prettier-ignore
+
+
     @Override
     public String toString() {
         return "ParameterTypeDefinitionDTO{" +
-            "id='" + getId() + "'" +
-            ", ordering=" + getOrdering() +
-            ", distribution=" + getDistribution() +
-            ", parameter=" + getParameter() +
-            ", type=" + getType() +
-            "}";
+                "id=" + id +
+                ", ordering=" + ordering +
+                ", distributionId=" + distributionId +
+                ", parameterId=" + parameterId +
+                ", typeId=" + typeId +
+                '}';
     }
 }

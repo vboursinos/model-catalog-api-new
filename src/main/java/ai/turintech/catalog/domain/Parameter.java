@@ -170,12 +170,6 @@ public class Parameter implements Serializable, Persistable<UUID> {
     }
 
     public void setDefinitions(List<ParameterTypeDefinition> parameterTypeDefinitions) {
-        if (this.definitions != null) {
-            this.definitions.forEach(i -> i.setParameter(null));
-        }
-        if (parameterTypeDefinitions != null) {
-            parameterTypeDefinitions.forEach(i -> i.setParameter(this));
-        }
         this.definitions = parameterTypeDefinitions;
     }
 
@@ -183,19 +177,6 @@ public class Parameter implements Serializable, Persistable<UUID> {
         this.setDefinitions(parameterTypeDefinitions);
         return this;
     }
-
-    public Parameter addDefinitions(ParameterTypeDefinition parameterTypeDefinition) {
-        this.definitions.add(parameterTypeDefinition);
-        parameterTypeDefinition.setParameter(this);
-        return this;
-    }
-
-    public Parameter removeDefinitions(ParameterTypeDefinition parameterTypeDefinition) {
-        this.definitions.remove(parameterTypeDefinition);
-        parameterTypeDefinition.setParameter(null);
-        return this;
-    }
-
     public UUID getModelId() {
         return this.modelId;
     }
