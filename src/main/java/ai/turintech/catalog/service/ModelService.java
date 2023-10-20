@@ -126,7 +126,7 @@ public class ModelService {
         // Retrieve the model entity from the repository
         Mono<Model> modelMono = modelRepository.findOneWithEagerRelationships(id);
         modelMono.subscribe(model -> {
-            System.out.println("Model found: ");
+            System.out.println("Model with parameters found: ");
             System.out.println(model); // Print the ModelDTO when it's available
         });
         // Map the model entity to a ModelDTO

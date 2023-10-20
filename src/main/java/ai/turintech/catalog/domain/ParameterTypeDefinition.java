@@ -265,11 +265,19 @@ public class ParameterTypeDefinition implements Serializable, Persistable<UUID> 
     }
 
     // prettier-ignore
+
     @Override
     public String toString() {
         return "ParameterTypeDefinition{" +
-            "id=" + getId() +
-            ", ordering=" + getOrdering() +
-            "}";
+                "id=" + id +
+                ", ordering=" + ordering +
+                ", integerParameter=" + integerParameter +
+                ", floatParameter=" + floatParameter +
+                ", categoricalParameter=" + categoricalParameter +
+                ", booleanParameter=" + booleanParameter +
+                ", distributionId=" + distributionId +
+                ", parameterId=" + parameterId +
+                ", typeId=" + typeId +
+                '}';
     }
 }
