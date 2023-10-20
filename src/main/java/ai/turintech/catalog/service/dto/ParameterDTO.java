@@ -37,7 +37,7 @@ public class ParameterDTO implements Serializable {
     private UUID modelId;
 
     @NotNull
-    private List<ParameterTypeDefinition> definitions = new ArrayList<>();
+    private List<ParameterTypeDefinitionDTO> definitions = new ArrayList<>();
 
 
     public UUID getId() {
@@ -104,11 +104,11 @@ public class ParameterDTO implements Serializable {
         this.modelId = modelId;
     }
 
-    public List<ParameterTypeDefinition> getDefinitions() {
+    public List<ParameterTypeDefinitionDTO> getDefinitions() {
         return definitions;
     }
 
-    public void setDefinitions(List<ParameterTypeDefinition> definitions) {
+    public void setDefinitions(List<ParameterTypeDefinitionDTO> definitions) {
         this.definitions = definitions;
     }
 

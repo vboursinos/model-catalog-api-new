@@ -410,17 +410,26 @@ public class Model implements Serializable, Persistable<UUID> {
     }
 
     // prettier-ignore
+
     @Override
     public String toString() {
         return "Model{" +
-            "id=" + getId() +
-            ", name='" + getName() + "'" +
-            ", displayName='" + getDisplayName() + "'" +
-            ", description='" + getDescription() + "'" +
-            ", advantages='" + getAdvantages() + "'" +
-            ", disadvantages='" + getDisadvantages() + "'" +
-            ", enabled='" + getEnabled() + "'" +
-            ", decisionTree='" + getDecisionTree() + "'" +
-            "}";
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", displayName='" + displayName + '\'' +
+                ", description='" + description + '\'' +
+                ", advantages='" + advantages + '\'' +
+                ", disadvantages='" + disadvantages + '\'' +
+                ", enabled=" + enabled +
+                ", decisionTree=" + decisionTree +
+                ", parameters=" + parameters +
+                ", groups=" + groups +
+                ", incompatibleMetrics=" + incompatibleMetrics +
+                ", mlTaskId=" + mlTaskId +
+                ", structureId=" + structureId +
+                ", modelTypeId=" + modelTypeId +
+                ", familyTypeId=" + familyTypeId +
+                ", ensembleTypeId=" + ensembleTypeId +
+                '}';
     }
 }
