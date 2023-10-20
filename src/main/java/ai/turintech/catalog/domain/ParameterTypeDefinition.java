@@ -55,13 +55,13 @@ public class ParameterTypeDefinition implements Serializable, Persistable<UUID> 
     @JsonIgnoreProperties(value = { "definitions" }, allowSetters = true)
     private ParameterType type;
 
-    @Column("distribution_id")
+    @Column("parameter_distribution_type_id")
     private UUID distributionId;
 
     @Column("parameter_id")
     private UUID parameterId;
 
-    @Column("type_id")
+    @Column("parameter_type_id")
     private UUID typeId;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here

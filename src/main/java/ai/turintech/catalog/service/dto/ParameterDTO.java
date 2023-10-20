@@ -1,7 +1,10 @@
 package ai.turintech.catalog.service.dto;
 
+import ai.turintech.catalog.domain.ParameterTypeDefinition;
 import jakarta.validation.constraints.*;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -32,6 +35,10 @@ public class ParameterDTO implements Serializable {
 
     @NotNull
     private UUID modelId;
+
+    @NotNull
+    private List<ParameterTypeDefinition> definitions = new ArrayList<>();
+
 
     public UUID getId() {
         return id;
@@ -97,6 +104,14 @@ public class ParameterDTO implements Serializable {
         this.modelId = modelId;
     }
 
+    public List<ParameterTypeDefinition> getDefinitions() {
+        return definitions;
+    }
+
+    public void setDefinitions(List<ParameterTypeDefinition> definitions) {
+        this.definitions = definitions;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -130,6 +145,7 @@ public class ParameterDTO implements Serializable {
                 ", fixedValue=" + fixedValue +
                 ", ordering=" + ordering +
                 ", modelId=" + modelId +
+                ", definitions=" + definitions +
                 '}';
     }
 }

@@ -13,9 +13,9 @@ public class ParameterTypeDefinitionSqlHelper {
         columns.add(Column.aliased("id", table, columnPrefix + "_id"));
         columns.add(Column.aliased("ordering", table, columnPrefix + "_ordering"));
 
-        columns.add(Column.aliased("distribution_id", table, columnPrefix + "_distribution_id"));
+        columns.add(Column.aliased("parameter_distribution_type_id", table, columnPrefix + "_parameter_distribution_type_id"));
         columns.add(Column.aliased("parameter_id", table, columnPrefix + "_parameter_id"));
-        columns.add(Column.aliased("type_id", table, columnPrefix + "_type_id"));
+        columns.add(Column.aliased("parameter_type_id", table, columnPrefix + "_parameter_type_id"));
         return columns;
     }
 }

@@ -1,16 +1,12 @@
 package ai.turintech.catalog.repository;
 
-import ai.turintech.catalog.domain.Metric;
-import ai.turintech.catalog.domain.Model;
-import ai.turintech.catalog.domain.ModelGroupType;
-import ai.turintech.catalog.domain.Parameter;
+import ai.turintech.catalog.domain.*;
 import ai.turintech.catalog.repository.rowmapper.*;
 import io.r2dbc.spi.Row;
 import io.r2dbc.spi.RowMetadata;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.r2dbc.convert.R2dbcConverter;
@@ -48,6 +44,7 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
     private final ModelEnsembleTypeRowMapper modelensembletypeMapper;
     private final ModelRowMapper modelMapper;
     private final ParameterRowMapper parameterMapper;
+    private final ParameterTypeDefinitionRowMapper parametertypedefinitionMapper;
     private static final Table entityTable = Table.aliased("model", EntityManager.ENTITY_ALIAS);
     private static final Table mlTaskTable = Table.aliased("ml_task_type", "mlTask");
     private static final Table structureTable = Table.aliased("model_structure_type", "e_structure");
@@ -55,6 +52,7 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
     private static final Table familyTypeTable = Table.aliased("model_family_type", "familyType");
     private static final Table ensembleTypeTable = Table.aliased("model_ensemble_type", "ensembleType");
     private static final Table parameterTable = Table.aliased("parameter", "parameter");
+    private static final Table parameterTypeDefinitionTable = Table.aliased("parameter_type_definition", "parameterTypeDefinition");
     private static final EntityManager.LinkTable groupsLink = new EntityManager.LinkTable("rel_model__groups", "model_id", "groups_id");
     private static final EntityManager.LinkTable incompatibleMetricsLink = new EntityManager.LinkTable(
         "rel_model__incompatible_metrics",
@@ -72,6 +70,7 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
         ModelEnsembleTypeRowMapper modelensembletypeMapper,
         ModelRowMapper modelMapper,
         ParameterRowMapper parameterMapper,
+        ParameterTypeDefinitionRowMapper parameterTypeDefinitionMapper,
         R2dbcEntityOperations entityOperations,
         R2dbcConverter converter
     ) {
@@ -90,6 +89,7 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
         this.modelensembletypeMapper = modelensembletypeMapper;
         this.modelMapper = modelMapper;
         this.parameterMapper = parameterMapper;
+        this.parametertypedefinitionMapper = parameterTypeDefinitionMapper;
     }
 
     @Override
@@ -149,6 +149,27 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
         return mappedResults;
     }
 
+    RowsFetchSpec<ParameterTypeDefinition> createParameterTypeDefinitionQuery(Pageable pageable, Condition whereClause) {
+        List<Expression> columns = new ArrayList<>();
+//        columns.addAll(ParameterSqlHelper.getColumns(parameterTable, "parameter"));
+        columns.addAll(ParameterTypeDefinitionSqlHelper.getColumns(parameterTypeDefinitionTable, "parameterTypeDefinition"));
+        SelectFromAndJoinCondition selectFrom = Select
+                .builder()
+                .select(columns)
+                .from(parameterTable)
+                .leftOuterJoin(parameterTypeDefinitionTable)
+                .on(Column.create("parameter_id", parameterTypeDefinitionTable))
+                .equals(Column.create("id", parameterTable));
+        String select = entityManager.createSelect(selectFrom, ParameterTypeDefinition.class, pageable, whereClause);
+        RowsFetchSpec<ParameterTypeDefinition> mappedResults = db.sql(select).map(this::processParameterTypeDefinition);
+        Flux<ParameterTypeDefinition> parameterTypeDefinitionFlux = mappedResults.all();
+        parameterTypeDefinitionFlux.subscribe(parameter -> {
+            System.out.println("Parameter type definition found: ");
+            System.out.println(parameter); // Print the ModelDTO when it's available
+        });
+        return mappedResults;
+    }
+
     @Override
     public Flux<Model> findAll() {
         return findAllBy(null);
@@ -159,10 +180,17 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
         Comparison whereClause = Conditions.isEqual(entityTable.column("id"), Conditions.just(StringUtils.wrap(id.toString(), "'")));
         Mono<Model> model = createQuery(null, whereClause).one();
         Mono<List<Parameter>> parameters = createParameterQuery(null, whereClause).all().collectList();
+
+        Map<UUID, Mono<List<ParameterTypeDefinition>>> paramTypeDefMap = new HashMap<>();
+
         Mono<Model> modelWithParameters = parameters.flatMap(parameterList ->
                 model.doOnNext(m -> {
                     m.setParameters(parameterList); // set the list of parameters
-
+                    // Fetch ParameterTypeDefinition for each Parameter.
+                    for (Parameter p : parameterList) {
+                        Comparison whereClauseForPTD = Conditions.isEqual(parameterTypeDefinitionTable.column("parameter_id"), Conditions.just(StringUtils.wrap(p.getId().toString(), "'")));
+                        paramTypeDefMap.put(p.getId(), createParameterTypeDefinitionQuery(null, whereClauseForPTD).all().collectList());
+                    }
                     // Print size of the list.
                     System.out.println("Size: " + parameterList.size());
 
@@ -172,11 +200,29 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
                     }
                 })
         );
+
         modelWithParameters.subscribe(
-                result -> System.out.println("Model obtained: " + result),
+                result -> {
+                    System.out.println("Model obtained: " + result);
+
+                    // Print ParameterTypeDefinition for each Parameter.
+                    for (Map.Entry<UUID, Mono<List<ParameterTypeDefinition>>> entry : paramTypeDefMap.entrySet()) {
+                        entry.getValue().subscribe(
+                                parameterTypeDefinitions -> {
+                                    System.out.println("Parameter ID: " + entry.getKey());
+                                    for (ParameterTypeDefinition ptd : parameterTypeDefinitions) {
+                                        System.out.println(ptd); // Assuming ParameterTypeDefinition class has a suitable toString() method.
+                                    }
+                                },
+                                error -> System.out.println("Error: " + error.getMessage()),
+                                () -> System.out.println("Completed ParameterTypeDefinition fetch!")
+                        );
+                    }
+                },
                 error -> System.out.println("Error: " + error.getMessage()),
                 () -> System.out.println("Completed!")
         );
+
         return modelWithParameters;
     }
 
@@ -219,6 +265,10 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
         return parameter;
     }
 
+    private ParameterTypeDefinition processParameterTypeDefinition(Row row, RowMetadata metadata) {
+        ParameterTypeDefinition parameterTypeDefinition = parametertypedefinitionMapper.apply(row, "parametertypedefinition");
+        return parameterTypeDefinition;
+    }
     @Override
     public <S extends Model> Mono<S> save(S entity) {
         return super.save(entity).flatMap((S e) -> updateRelations(e));

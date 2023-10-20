@@ -3,9 +3,8 @@ package ai.turintech.catalog.domain;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.*;
 import java.io.Serializable;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.domain.Persistable;
@@ -57,7 +56,7 @@ public class Parameter implements Serializable, Persistable<UUID> {
         value = { "integerParameter", "floatParameter", "categoricalParameter", "booleanParameter", "distribution", "parameter", "type" },
         allowSetters = true
     )
-    private Set<ParameterTypeDefinition> definitions = new HashSet<>();
+    private List<ParameterTypeDefinition> definitions = new ArrayList<>();
 
     @Column("model_id")
     private UUID modelId;
@@ -166,11 +165,11 @@ public class Parameter implements Serializable, Persistable<UUID> {
         return this;
     }
 
-    public Set<ParameterTypeDefinition> getDefinitions() {
+    public List<ParameterTypeDefinition> getDefinitions() {
         return this.definitions;
     }
 
-    public void setDefinitions(Set<ParameterTypeDefinition> parameterTypeDefinitions) {
+    public void setDefinitions(List<ParameterTypeDefinition> parameterTypeDefinitions) {
         if (this.definitions != null) {
             this.definitions.forEach(i -> i.setParameter(null));
         }
@@ -180,7 +179,7 @@ public class Parameter implements Serializable, Persistable<UUID> {
         this.definitions = parameterTypeDefinitions;
     }
 
-    public Parameter definitions(Set<ParameterTypeDefinition> parameterTypeDefinitions) {
+    public Parameter definitions(List<ParameterTypeDefinition> parameterTypeDefinitions) {
         this.setDefinitions(parameterTypeDefinitions);
         return this;
     }
@@ -228,13 +227,15 @@ public class Parameter implements Serializable, Persistable<UUID> {
     @Override
     public String toString() {
         return "Parameter{" +
-            "id=" + getId() +
-            ", name='" + getName() + "'" +
-            ", label='" + getLabel() + "'" +
-            ", description='" + getDescription() + "'" +
-            ", enabled='" + getEnabled() + "'" +
-            ", fixedValue='" + getFixedValue() + "'" +
-            ", ordering=" + getOrdering() +
-            "}";
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", label='" + label + '\'' +
+                ", description='" + description + '\'' +
+                ", enabled=" + enabled +
+                ", fixedValue=" + fixedValue +
+                ", ordering=" + ordering +
+                ", definitions=" + definitions +
+                ", modelId=" + modelId +
+                '}';
     }
 }
