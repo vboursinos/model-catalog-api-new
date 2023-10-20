@@ -6,6 +6,7 @@ import io.r2dbc.spi.Row;
 import io.r2dbc.spi.RowMetadata;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Pageable;
@@ -183,42 +184,50 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
 
         Map<UUID, Mono<List<ParameterTypeDefinition>>> paramTypeDefMap = new HashMap<>();
 
-        Mono<Model> modelWithParameters = parameters.flatMap(parameterList ->
-                model.doOnNext(m -> {
-                    m.setParameters(parameterList); // set the list of parameters
-                    // Fetch ParameterTypeDefinition for each Parameter.
-                    for (Parameter p : parameterList) {
-                        Comparison whereClauseForPTD = Conditions.isEqual(parameterTypeDefinitionTable.column("parameter_id"), Conditions.just(StringUtils.wrap(p.getId().toString(), "'")));
-                        paramTypeDefMap.put(p.getId(), createParameterTypeDefinitionQuery(null, whereClauseForPTD).all().collectList());
-                    }
-                    // Print size of the list.
-                    System.out.println("Size: " + parameterList.size());
+        Mono<Model> modelWithParameters = parameters.flatMap(parameterList -> {
+            // Fetch ParameterTypeDefinition for each Parameter and then proceed with setting parameters.
+            List<Mono<Parameter>> parametersWithDefinitions = parameterList.stream().map(parameter -> {
+                Comparison whereClauseForPTD = Conditions.isEqual(parameterTypeDefinitionTable.column("parameter_id"),
+                        Conditions.just(StringUtils.wrap(parameter.getId().toString(), "'")));
 
-                    // Print all elements of the list.
-                    for (Parameter p : parameterList) {
-                        System.out.println(p.toString()); // Assuming Parameter class has a proper toString() method.
-                    }
-                })
-        );
+                return createParameterTypeDefinitionQuery(null, whereClauseForPTD).all().collectList()
+                        .doOnNext(parameterTypeDefinitions -> {
+                            parameter.setDefinitions(parameterTypeDefinitions); // set the list of parameter type definitions
+                        })
+                        .thenReturn(parameter);
+            }).collect(Collectors.toList());
 
-        modelWithParameters.subscribe(
-                result -> {
-                    System.out.println("Model obtained: " + result);
-
-                    // Print ParameterTypeDefinition for each Parameter.
-                    for (Map.Entry<UUID, Mono<List<ParameterTypeDefinition>>> entry : paramTypeDefMap.entrySet()) {
-                        entry.getValue().subscribe(
-                                parameterTypeDefinitions -> {
-                                    System.out.println("Parameter ID: " + entry.getKey());
-                                    for (ParameterTypeDefinition ptd : parameterTypeDefinitions) {
-                                        System.out.println(ptd); // Assuming ParameterTypeDefinition class has a suitable toString() method.
-                                    }
-                                },
+            parametersWithDefinitions.stream().forEach(
+                    parameterMono -> {
+                        parameterMono.subscribe(
+                                result -> System.out.println("Parameter **************** obtained: " + result),
                                 error -> System.out.println("Error: " + error.getMessage()),
-                                () -> System.out.println("Completed ParameterTypeDefinition fetch!")
+                                () -> System.out.println("Completed!")
                         );
                     }
-                },
+            );
+
+            return Flux.fromIterable(parametersWithDefinitions)
+                    .flatMap(mono -> mono)
+                    .collectList()
+                    .flatMap(updatedParameters -> {
+                        // Now it's the time to proceed with setting parameters.
+                        return model.doOnNext(m -> {
+                            m.setParameters(updatedParameters); // set the list of parameters
+
+                            // Print size of the list.
+                            System.out.println("Size: " + updatedParameters.size());
+
+                            // Print all elements of the list.
+                            for (Parameter p : updatedParameters) {
+                                System.out.println(p.toString()); // Assuming Parameter class has a proper toString() method.
+                            }
+                        });
+                    });
+        });
+
+        modelWithParameters.subscribe(
+                result -> System.out.println("Model obtained: " + result),
                 error -> System.out.println("Error: " + error.getMessage()),
                 () -> System.out.println("Completed!")
         );
