@@ -8,14 +8,16 @@ import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.UUID;
+
 /**
  * Spring Data R2DBC repository for the BooleanParameter entity.
  */
 @SuppressWarnings("unused")
 @Repository
-public interface BooleanParameterRepository extends ReactiveCrudRepository<BooleanParameter, Long>, BooleanParameterRepositoryInternal {
+public interface BooleanParameterRepository extends ReactiveCrudRepository<BooleanParameter, UUID>, BooleanParameterRepositoryInternal {
     @Query("SELECT * FROM boolean_parameter entity WHERE entity.parameter_type_definition_id = :id")
-    Flux<BooleanParameter> findByParameterTypeDefinition(Long id);
+    Flux<BooleanParameter> findByParameterTypeDefinition(UUID id);
 
     @Query("SELECT * FROM boolean_parameter entity WHERE entity.parameter_type_definition_id IS NULL")
     Flux<BooleanParameter> findAllWhereParameterTypeDefinitionIsNull();
@@ -27,10 +29,10 @@ public interface BooleanParameterRepository extends ReactiveCrudRepository<Boole
     Flux<BooleanParameter> findAll();
 
     @Override
-    Mono<BooleanParameter> findById(Long id);
+    Mono<BooleanParameter> findById(UUID id);
 
     @Override
-    Mono<Void> deleteById(Long id);
+    Mono<Void> deleteById(UUID id);
 }
 
 interface BooleanParameterRepositoryInternal {

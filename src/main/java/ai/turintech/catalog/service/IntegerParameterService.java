@@ -10,6 +10,8 @@ import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.UUID;
+
 /**
  * Service Implementation for managing {@link ai.turintech.catalog.domain.IntegerParameter}.
  */
@@ -60,7 +62,7 @@ public class IntegerParameterService {
         log.debug("Request to partially update IntegerParameter : {}", integerParameterDTO);
 
         return integerParameterRepository
-            .findById(integerParameterDTO.getId())
+            .findById(integerParameterDTO.getParameterTypeDefinitionId())
             .map(existingIntegerParameter -> {
                 integerParameterMapper.partialUpdate(existingIntegerParameter, integerParameterDTO);
 
@@ -97,7 +99,7 @@ public class IntegerParameterService {
      * @return the entity.
      */
     @Transactional(readOnly = true)
-    public Mono<IntegerParameterDTO> findOne(Long id) {
+    public Mono<IntegerParameterDTO> findOne(UUID id) {
         log.debug("Request to get IntegerParameter : {}", id);
         return integerParameterRepository.findById(id).map(integerParameterMapper::toDto);
     }
@@ -108,7 +110,7 @@ public class IntegerParameterService {
      * @param id the id of the entity.
      * @return a Mono to signal the deletion
      */
-    public Mono<Void> delete(Long id) {
+    public Mono<Void> delete(UUID id) {
         log.debug("Request to delete IntegerParameter : {}", id);
         return integerParameterRepository.deleteById(id);
     }

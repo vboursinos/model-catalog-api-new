@@ -20,35 +20,21 @@ public class FloatParameter implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Id
-    @Column("id")
-    private Long id;
+    @Column("parameter_type_definition_id")
+    private UUID parameterTypeDefinitionId;
 
     @Column("default_value")
     private Double defaultValue;
 
     @Transient
-    private ParameterTypeDefinition parameterTypeDefinition;
-
-    @Transient
     @JsonIgnoreProperties(value = { "floatParameter" }, allowSetters = true)
     private Set<FloatParameterRange> floatParameterRanges = new HashSet<>();
 
-    @Column("parameter_type_definition_id")
-    private UUID parameterTypeDefinitionId;
-
     // jhipster-needle-entity-add-field - JHipster will add fields here
 
-    public Long getId() {
-        return this.id;
-    }
-
-    public FloatParameter id(Long id) {
-        this.setId(id);
+    public FloatParameter id(UUID id) {
+        this.setParameterTypeDefinitionId(id);
         return this;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public Double getDefaultValue() {
@@ -62,20 +48,6 @@ public class FloatParameter implements Serializable {
 
     public void setDefaultValue(Double defaultValue) {
         this.defaultValue = defaultValue;
-    }
-
-    public ParameterTypeDefinition getParameterTypeDefinition() {
-        return this.parameterTypeDefinition;
-    }
-
-    public void setParameterTypeDefinition(ParameterTypeDefinition parameterTypeDefinition) {
-        this.parameterTypeDefinition = parameterTypeDefinition;
-        this.parameterTypeDefinitionId = parameterTypeDefinition != null ? parameterTypeDefinition.getId() : null;
-    }
-
-    public FloatParameter parameterTypeDefinition(ParameterTypeDefinition parameterTypeDefinition) {
-        this.setParameterTypeDefinition(parameterTypeDefinition);
-        return this;
     }
 
     public Set<FloatParameterRange> getFloatParameterRanges() {
@@ -127,7 +99,7 @@ public class FloatParameter implements Serializable {
         if (!(o instanceof FloatParameter)) {
             return false;
         }
-        return getId() != null && getId().equals(((FloatParameter) o).getId());
+        return getParameterTypeDefinitionId() != null && getParameterTypeDefinitionId().equals(((FloatParameter) o).getParameterTypeDefinitionId());
     }
 
     @Override
@@ -140,7 +112,7 @@ public class FloatParameter implements Serializable {
     @Override
     public String toString() {
         return "FloatParameter{" +
-            "id=" + getId() +
+            "parameterTypeDefinitionId=" + getParameterTypeDefinitionId() +
             ", defaultValue=" + getDefaultValue() +
             "}";
     }

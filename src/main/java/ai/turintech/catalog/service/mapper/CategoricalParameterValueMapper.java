@@ -16,6 +16,5 @@ public interface CategoricalParameterValueMapper extends EntityMapper<Categorica
 
     @Named("categoricalParameterId")
     @BeanMapping(ignoreByDefault = true)
-    @Mapping(target = "id", source = "id")
     CategoricalParameterDTO toDtoCategoricalParameterId(CategoricalParameter categoricalParameter);
 }

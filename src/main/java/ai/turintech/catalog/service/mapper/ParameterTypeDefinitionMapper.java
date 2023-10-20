@@ -19,6 +19,10 @@ public interface ParameterTypeDefinitionMapper extends EntityMapper<ParameterTyp
     @Mapping(target = "parameterId", source = "parameterId")
     @Mapping(target = "distribution", source = "distribution")
     @Mapping(target = "type", source = "type")
+    @Mapping(target = "categoricalParameter", source = "categoricalParameter")
+    @Mapping(target = "booleanParameter", source = "booleanParameter")
+    @Mapping(target = "floatParameter", source = "floatParameter")
+    @Mapping(target = "integerParameter", source = "integerParameter")
     ParameterTypeDefinitionDTO toDto(ParameterTypeDefinition s);
 
     @Named("parameterDistributionTypeId")

@@ -16,6 +16,5 @@ public interface IntegerParameterValueMapper extends EntityMapper<IntegerParamet
 
     @Named("integerParameterId")
     @BeanMapping(ignoreByDefault = true)
-    @Mapping(target = "id", source = "id")
     IntegerParameterDTO toDtoIntegerParameterId(IntegerParameter integerParameter);
 }

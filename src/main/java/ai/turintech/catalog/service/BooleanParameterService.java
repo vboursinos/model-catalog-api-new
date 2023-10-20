@@ -10,6 +10,8 @@ import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.UUID;
+
 /**
  * Service Implementation for managing {@link ai.turintech.catalog.domain.BooleanParameter}.
  */
@@ -60,7 +62,7 @@ public class BooleanParameterService {
         log.debug("Request to partially update BooleanParameter : {}", booleanParameterDTO);
 
         return booleanParameterRepository
-            .findById(booleanParameterDTO.getId())
+            .findById(booleanParameterDTO.getParameterTypeDefinitionId())
             .map(existingBooleanParameter -> {
                 booleanParameterMapper.partialUpdate(existingBooleanParameter, booleanParameterDTO);
 
@@ -108,7 +110,7 @@ public class BooleanParameterService {
      * @param id the id of the entity.
      * @return a Mono to signal the deletion
      */
-    public Mono<Void> delete(Long id) {
+    public Mono<Void> delete(UUID id) {
         log.debug("Request to delete BooleanParameter : {}", id);
         return booleanParameterRepository.deleteById(id);
     }

@@ -8,6 +8,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -55,7 +57,7 @@ public class FloatParameterResource {
     public Mono<ResponseEntity<FloatParameterDTO>> createFloatParameter(@RequestBody FloatParameterDTO floatParameterDTO)
         throws URISyntaxException {
         log.debug("REST request to save FloatParameter : {}", floatParameterDTO);
-        if (floatParameterDTO.getId() != null) {
+        if (floatParameterDTO.getParameterTypeDefinitionId() != null) {
             throw new BadRequestAlertException("A new floatParameter cannot already have an ID", ENTITY_NAME, "idexists");
         }
         return floatParameterService
@@ -63,8 +65,8 @@ public class FloatParameterResource {
             .map(result -> {
                 try {
                     return ResponseEntity
-                        .created(new URI("/api/float-parameters/" + result.getId()))
-                        .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
+                        .created(new URI("/api/float-parameters/" + result.getParameterTypeDefinitionId()))
+                        .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getParameterTypeDefinitionId().toString()))
                         .body(result);
                 } catch (URISyntaxException e) {
                     throw new RuntimeException(e);
@@ -84,14 +86,14 @@ public class FloatParameterResource {
      */
     @PutMapping("/float-parameters/{id}")
     public Mono<ResponseEntity<FloatParameterDTO>> updateFloatParameter(
-        @PathVariable(value = "id", required = false) final Long id,
+        @PathVariable(value = "id", required = false) final UUID id,
         @RequestBody FloatParameterDTO floatParameterDTO
     ) throws URISyntaxException {
         log.debug("REST request to update FloatParameter : {}, {}", id, floatParameterDTO);
-        if (floatParameterDTO.getId() == null) {
+        if (floatParameterDTO.getParameterTypeDefinitionId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
-        if (!Objects.equals(id, floatParameterDTO.getId())) {
+        if (!Objects.equals(id, floatParameterDTO.getParameterTypeDefinitionId())) {
             throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
         }
 
@@ -108,7 +110,7 @@ public class FloatParameterResource {
                     .map(result ->
                         ResponseEntity
                             .ok()
-                            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
+                            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, result.getParameterTypeDefinitionId().toString()))
                             .body(result)
                     );
             });
@@ -127,14 +129,14 @@ public class FloatParameterResource {
      */
     @PatchMapping(value = "/float-parameters/{id}", consumes = { "application/json", "application/merge-patch+json" })
     public Mono<ResponseEntity<FloatParameterDTO>> partialUpdateFloatParameter(
-        @PathVariable(value = "id", required = false) final Long id,
+        @PathVariable(value = "id", required = false) final UUID id,
         @RequestBody FloatParameterDTO floatParameterDTO
     ) throws URISyntaxException {
         log.debug("REST request to partial update FloatParameter partially : {}, {}", id, floatParameterDTO);
-        if (floatParameterDTO.getId() == null) {
+        if (floatParameterDTO.getParameterTypeDefinitionId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
-        if (!Objects.equals(id, floatParameterDTO.getId())) {
+        if (!Objects.equals(id, floatParameterDTO.getParameterTypeDefinitionId())) {
             throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
         }
 
@@ -152,7 +154,7 @@ public class FloatParameterResource {
                     .map(res ->
                         ResponseEntity
                             .ok()
-                            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, res.getId().toString()))
+                            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, res.getParameterTypeDefinitionId().toString()))
                             .body(res)
                     );
             });
@@ -186,7 +188,7 @@ public class FloatParameterResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the floatParameterDTO, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/float-parameters/{id}")
-    public Mono<ResponseEntity<FloatParameterDTO>> getFloatParameter(@PathVariable Long id) {
+    public Mono<ResponseEntity<FloatParameterDTO>> getFloatParameter(@PathVariable UUID id) {
         log.debug("REST request to get FloatParameter : {}", id);
         Mono<FloatParameterDTO> floatParameterDTO = floatParameterService.findOne(id);
         return ResponseUtil.wrapOrNotFound(floatParameterDTO);
@@ -199,7 +201,7 @@ public class FloatParameterResource {
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
     @DeleteMapping("/float-parameters/{id}")
-    public Mono<ResponseEntity<Void>> deleteFloatParameter(@PathVariable Long id) {
+    public Mono<ResponseEntity<Void>> deleteFloatParameter(@PathVariable UUID id) {
         log.debug("REST request to delete FloatParameter : {}", id);
         return floatParameterService
             .delete(id)

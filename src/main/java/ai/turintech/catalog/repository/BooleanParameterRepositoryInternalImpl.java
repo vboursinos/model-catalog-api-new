@@ -96,7 +96,7 @@ class BooleanParameterRepositoryInternalImpl
 
     private BooleanParameter process(Row row, RowMetadata metadata) {
         BooleanParameter entity = booleanparameterMapper.apply(row, "e");
-        entity.setParameterTypeDefinition(parametertypedefinitionMapper.apply(row, "parameterTypeDefinition"));
+//        entity.setParameterTypeDefinition(parametertypedefinitionMapper.apply(row, "parameterTypeDefinition"));
         return entity;
     }
 

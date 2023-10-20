@@ -104,12 +104,6 @@ public class ParameterTypeDefinition implements Serializable, Persistable<UUID> 
     }
 
     public void setIntegerParameter(IntegerParameter integerParameter) {
-        if (this.integerParameter != null) {
-            this.integerParameter.setParameterTypeDefinition(null);
-        }
-        if (integerParameter != null) {
-            integerParameter.setParameterTypeDefinition(this);
-        }
         this.integerParameter = integerParameter;
     }
 
@@ -123,12 +117,6 @@ public class ParameterTypeDefinition implements Serializable, Persistable<UUID> 
     }
 
     public void setFloatParameter(FloatParameter floatParameter) {
-        if (this.floatParameter != null) {
-            this.floatParameter.setParameterTypeDefinition(null);
-        }
-        if (floatParameter != null) {
-            floatParameter.setParameterTypeDefinition(this);
-        }
         this.floatParameter = floatParameter;
     }
 
@@ -142,12 +130,6 @@ public class ParameterTypeDefinition implements Serializable, Persistable<UUID> 
     }
 
     public void setCategoricalParameter(CategoricalParameter categoricalParameter) {
-        if (this.categoricalParameter != null) {
-            this.categoricalParameter.setParameterTypeDefinition(null);
-        }
-        if (categoricalParameter != null) {
-            categoricalParameter.setParameterTypeDefinition(this);
-        }
         this.categoricalParameter = categoricalParameter;
     }
 
@@ -161,12 +143,6 @@ public class ParameterTypeDefinition implements Serializable, Persistable<UUID> 
     }
 
     public void setBooleanParameter(BooleanParameter booleanParameter) {
-        if (this.booleanParameter != null) {
-            this.booleanParameter.setParameterTypeDefinition(null);
-        }
-        if (booleanParameter != null) {
-            booleanParameter.setParameterTypeDefinition(this);
-        }
         this.booleanParameter = booleanParameter;
     }
 

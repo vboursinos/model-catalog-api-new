@@ -2,6 +2,8 @@ package ai.turintech.catalog.repository.rowmapper;
 
 import ai.turintech.catalog.domain.IntegerParameterValue;
 import io.r2dbc.spi.Row;
+
+import java.util.UUID;
 import java.util.function.BiFunction;
 import org.springframework.stereotype.Service;
 
@@ -27,7 +29,7 @@ public class IntegerParameterValueRowMapper implements BiFunction<Row, String, I
         entity.setId(converter.fromRow(row, prefix + "_id", Long.class));
         entity.setLower(converter.fromRow(row, prefix + "_lower", Integer.class));
         entity.setUpper(converter.fromRow(row, prefix + "_upper", Integer.class));
-        entity.setIntegerParameterId(converter.fromRow(row, prefix + "_integer_parameter_id", Long.class));
+        entity.setIntegerParameterId(converter.fromRow(row, prefix + "_integer_parameter_id", UUID.class));
         return entity;
     }
 }

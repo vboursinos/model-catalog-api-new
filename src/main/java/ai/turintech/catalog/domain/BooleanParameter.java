@@ -17,31 +17,17 @@ public class BooleanParameter implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Id
-    @Column("id")
-    private Long id;
+    @Column("parameter_type_definition_id")
+    private UUID parameterTypeDefinitionId;
 
     @Column("default_value")
     private Boolean defaultValue;
 
-    @Transient
-    private ParameterTypeDefinition parameterTypeDefinition;
-
-    @Column("parameter_type_definition_id")
-    private UUID parameterTypeDefinitionId;
-
     // jhipster-needle-entity-add-field - JHipster will add fields here
 
-    public Long getId() {
-        return this.id;
-    }
-
-    public BooleanParameter id(Long id) {
-        this.setId(id);
+    public BooleanParameter id(UUID id) {
+        this.setParameterTypeDefinitionId(id);
         return this;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public Boolean getDefaultValue() {
@@ -55,20 +41,6 @@ public class BooleanParameter implements Serializable {
 
     public void setDefaultValue(Boolean defaultValue) {
         this.defaultValue = defaultValue;
-    }
-
-    public ParameterTypeDefinition getParameterTypeDefinition() {
-        return this.parameterTypeDefinition;
-    }
-
-    public void setParameterTypeDefinition(ParameterTypeDefinition parameterTypeDefinition) {
-        this.parameterTypeDefinition = parameterTypeDefinition;
-        this.parameterTypeDefinitionId = parameterTypeDefinition != null ? parameterTypeDefinition.getId() : null;
-    }
-
-    public BooleanParameter parameterTypeDefinition(ParameterTypeDefinition parameterTypeDefinition) {
-        this.setParameterTypeDefinition(parameterTypeDefinition);
-        return this;
     }
 
     public UUID getParameterTypeDefinitionId() {
@@ -89,7 +61,7 @@ public class BooleanParameter implements Serializable {
         if (!(o instanceof BooleanParameter)) {
             return false;
         }
-        return getId() != null && getId().equals(((BooleanParameter) o).getId());
+        return getParameterTypeDefinitionId() != null && getParameterTypeDefinitionId().equals(((BooleanParameter) o).getParameterTypeDefinitionId());
     }
 
     @Override
@@ -102,7 +74,7 @@ public class BooleanParameter implements Serializable {
     @Override
     public String toString() {
         return "BooleanParameter{" +
-            "id=" + getId() +
+            "parameterTypeDefinitionId=" + getParameterTypeDefinitionId() +
             ", defaultValue='" + getDefaultValue() + "'" +
             "}";
     }

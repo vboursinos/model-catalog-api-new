@@ -3,6 +3,8 @@ package ai.turintech.catalog.domain;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.*;
 import java.io.Serializable;
+import java.util.UUID;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
@@ -42,7 +44,7 @@ public class FloatParameterRange implements Serializable {
     private FloatParameter floatParameter;
 
     @Column("float_parameter_id")
-    private Long floatParameterId;
+    private UUID floatParameterId;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here
 
@@ -117,7 +119,7 @@ public class FloatParameterRange implements Serializable {
 
     public void setFloatParameter(FloatParameter floatParameter) {
         this.floatParameter = floatParameter;
-        this.floatParameterId = floatParameter != null ? floatParameter.getId() : null;
+        this.floatParameterId = floatParameter != null ? floatParameter.getParameterTypeDefinitionId() : null;
     }
 
     public FloatParameterRange floatParameter(FloatParameter floatParameter) {
@@ -125,15 +127,14 @@ public class FloatParameterRange implements Serializable {
         return this;
     }
 
-    public Long getFloatParameterId() {
-        return this.floatParameterId;
+    public UUID getFloatParameterId() {
+        return floatParameterId;
     }
 
-    public void setFloatParameterId(Long floatParameter) {
-        this.floatParameterId = floatParameter;
+    public void setFloatParameterId(UUID floatParameterId) {
+        this.floatParameterId = floatParameterId;
     }
-
-    // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
+// jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
 
     @Override
     public boolean equals(Object o) {

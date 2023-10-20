@@ -8,6 +8,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -58,7 +60,7 @@ public class IntegerParameterResource {
     public Mono<ResponseEntity<IntegerParameterDTO>> createIntegerParameter(@RequestBody IntegerParameterDTO integerParameterDTO)
         throws URISyntaxException {
         log.debug("REST request to save IntegerParameter : {}", integerParameterDTO);
-        if (integerParameterDTO.getId() != null) {
+        if (integerParameterDTO.getParameterTypeDefinitionId() != null) {
             throw new BadRequestAlertException("A new integerParameter cannot already have an ID", ENTITY_NAME, "idexists");
         }
         return integerParameterService
@@ -66,8 +68,8 @@ public class IntegerParameterResource {
             .map(result -> {
                 try {
                     return ResponseEntity
-                        .created(new URI("/api/integer-parameters/" + result.getId()))
-                        .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
+                        .created(new URI("/api/integer-parameters/" + result.getParameterTypeDefinitionId()))
+                        .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getParameterTypeDefinitionId().toString()))
                         .body(result);
                 } catch (URISyntaxException e) {
                     throw new RuntimeException(e);
@@ -87,14 +89,14 @@ public class IntegerParameterResource {
      */
     @PutMapping("/integer-parameters/{id}")
     public Mono<ResponseEntity<IntegerParameterDTO>> updateIntegerParameter(
-        @PathVariable(value = "id", required = false) final Long id,
+        @PathVariable(value = "id", required = false) final UUID id,
         @RequestBody IntegerParameterDTO integerParameterDTO
     ) throws URISyntaxException {
         log.debug("REST request to update IntegerParameter : {}, {}", id, integerParameterDTO);
-        if (integerParameterDTO.getId() == null) {
+        if (integerParameterDTO.getParameterTypeDefinitionId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
-        if (!Objects.equals(id, integerParameterDTO.getId())) {
+        if (!Objects.equals(id, integerParameterDTO.getParameterTypeDefinitionId())) {
             throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
         }
 
@@ -111,7 +113,7 @@ public class IntegerParameterResource {
                     .map(result ->
                         ResponseEntity
                             .ok()
-                            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
+                            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, result.getParameterTypeDefinitionId().toString()))
                             .body(result)
                     );
             });
@@ -130,14 +132,14 @@ public class IntegerParameterResource {
      */
     @PatchMapping(value = "/integer-parameters/{id}", consumes = { "application/json", "application/merge-patch+json" })
     public Mono<ResponseEntity<IntegerParameterDTO>> partialUpdateIntegerParameter(
-        @PathVariable(value = "id", required = false) final Long id,
+        @PathVariable(value = "id", required = false) final UUID id,
         @RequestBody IntegerParameterDTO integerParameterDTO
     ) throws URISyntaxException {
         log.debug("REST request to partial update IntegerParameter partially : {}, {}", id, integerParameterDTO);
-        if (integerParameterDTO.getId() == null) {
+        if (integerParameterDTO.getParameterTypeDefinitionId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
-        if (!Objects.equals(id, integerParameterDTO.getId())) {
+        if (!Objects.equals(id, integerParameterDTO.getParameterTypeDefinitionId())) {
             throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
         }
 
@@ -155,7 +157,7 @@ public class IntegerParameterResource {
                     .map(res ->
                         ResponseEntity
                             .ok()
-                            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, res.getId().toString()))
+                            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, res.getParameterTypeDefinitionId().toString()))
                             .body(res)
                     );
             });
@@ -189,7 +191,7 @@ public class IntegerParameterResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the integerParameterDTO, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/integer-parameters/{id}")
-    public Mono<ResponseEntity<IntegerParameterDTO>> getIntegerParameter(@PathVariable Long id) {
+    public Mono<ResponseEntity<IntegerParameterDTO>> getIntegerParameter(@PathVariable UUID id) {
         log.debug("REST request to get IntegerParameter : {}", id);
         Mono<IntegerParameterDTO> integerParameterDTO = integerParameterService.findOne(id);
         return ResponseUtil.wrapOrNotFound(integerParameterDTO);
@@ -202,7 +204,7 @@ public class IntegerParameterResource {
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
     @DeleteMapping("/integer-parameters/{id}")
-    public Mono<ResponseEntity<Void>> deleteIntegerParameter(@PathVariable Long id) {
+    public Mono<ResponseEntity<Void>> deleteIntegerParameter(@PathVariable UUID id) {
         log.debug("REST request to delete IntegerParameter : {}", id);
         return integerParameterService
             .delete(id)

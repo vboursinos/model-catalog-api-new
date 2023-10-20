@@ -2,6 +2,7 @@ package ai.turintech.catalog.service.dto;
 
 import java.io.Serializable;
 import java.util.Objects;
+import java.util.UUID;
 
 /**
  * A DTO for the {@link ai.turintech.catalog.domain.IntegerParameter} entity.
@@ -9,18 +10,16 @@ import java.util.Objects;
 @SuppressWarnings("common-java:DuplicatedBlocks")
 public class IntegerParameterDTO implements Serializable {
 
-    private Long id;
+    private UUID parameterTypeDefinitionId;
 
     private Integer defaultValue;
 
-    private ParameterTypeDefinitionDTO parameterTypeDefinition;
-
-    public Long getId() {
-        return id;
+    public UUID getParameterTypeDefinitionId() {
+        return parameterTypeDefinitionId;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setParameterTypeDefinitionId(UUID parameterTypeDefinitionId) {
+        this.parameterTypeDefinitionId = parameterTypeDefinitionId;
     }
 
     public Integer getDefaultValue() {
@@ -29,14 +28,6 @@ public class IntegerParameterDTO implements Serializable {
 
     public void setDefaultValue(Integer defaultValue) {
         this.defaultValue = defaultValue;
-    }
-
-    public ParameterTypeDefinitionDTO getParameterTypeDefinition() {
-        return parameterTypeDefinition;
-    }
-
-    public void setParameterTypeDefinition(ParameterTypeDefinitionDTO parameterTypeDefinition) {
-        this.parameterTypeDefinition = parameterTypeDefinition;
     }
 
     @Override
@@ -49,24 +40,23 @@ public class IntegerParameterDTO implements Serializable {
         }
 
         IntegerParameterDTO integerParameterDTO = (IntegerParameterDTO) o;
-        if (this.id == null) {
+        if (this.parameterTypeDefinitionId == null) {
             return false;
         }
-        return Objects.equals(this.id, integerParameterDTO.id);
+        return Objects.equals(this.parameterTypeDefinitionId, integerParameterDTO.parameterTypeDefinitionId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.id);
+        return Objects.hash(this.parameterTypeDefinitionId);
     }
 
     // prettier-ignore
     @Override
     public String toString() {
         return "IntegerParameterDTO{" +
-            "id=" + getId() +
+            "parameterTypeDefinitionId" + getParameterTypeDefinitionId() +
             ", defaultValue=" + getDefaultValue() +
-            ", parameterTypeDefinition=" + getParameterTypeDefinition() +
             "}";
     }
 }

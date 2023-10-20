@@ -96,7 +96,6 @@ class IntegerParameterRepositoryInternalImpl
 
     private IntegerParameter process(Row row, RowMetadata metadata) {
         IntegerParameter entity = integerparameterMapper.apply(row, "e");
-        entity.setParameterTypeDefinition(parametertypedefinitionMapper.apply(row, "parameterTypeDefinition"));
         return entity;
     }
 

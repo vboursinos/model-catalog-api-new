@@ -3,6 +3,8 @@ package ai.turintech.catalog.domain;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.*;
 import java.io.Serializable;
+import java.util.UUID;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
@@ -30,7 +32,7 @@ public class CategoricalParameterValue implements Serializable {
     private CategoricalParameter categoricalParameter;
 
     @Column("categorical_parameter_id")
-    private Long categoricalParameterId;
+    private UUID categoricalParameterId;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here
 
@@ -66,7 +68,7 @@ public class CategoricalParameterValue implements Serializable {
 
     public void setCategoricalParameter(CategoricalParameter categoricalParameter) {
         this.categoricalParameter = categoricalParameter;
-        this.categoricalParameterId = categoricalParameter != null ? categoricalParameter.getId() : null;
+        this.categoricalParameterId = categoricalParameter != null ? categoricalParameter.getParameterTypeDefinitionId() : null;
     }
 
     public CategoricalParameterValue categoricalParameter(CategoricalParameter categoricalParameter) {
@@ -74,15 +76,14 @@ public class CategoricalParameterValue implements Serializable {
         return this;
     }
 
-    public Long getCategoricalParameterId() {
-        return this.categoricalParameterId;
+    public UUID getCategoricalParameterId() {
+        return categoricalParameterId;
     }
 
-    public void setCategoricalParameterId(Long categoricalParameter) {
-        this.categoricalParameterId = categoricalParameter;
+    public void setCategoricalParameterId(UUID categoricalParameterId) {
+        this.categoricalParameterId = categoricalParameterId;
     }
-
-    // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
+// jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
 
     @Override
     public boolean equals(Object o) {

@@ -8,15 +8,17 @@ import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.UUID;
+
 /**
  * Spring Data R2DBC repository for the CategoricalParameter entity.
  */
 @SuppressWarnings("unused")
 @Repository
 public interface CategoricalParameterRepository
-    extends ReactiveCrudRepository<CategoricalParameter, Long>, CategoricalParameterRepositoryInternal {
+    extends ReactiveCrudRepository<CategoricalParameter, UUID>, CategoricalParameterRepositoryInternal {
     @Query("SELECT * FROM categorical_parameter entity WHERE entity.parameter_type_definition_id = :id")
-    Flux<CategoricalParameter> findByParameterTypeDefinition(Long id);
+    Flux<CategoricalParameter> findByParameterTypeDefinition(UUID id);
 
     @Query("SELECT * FROM categorical_parameter entity WHERE entity.parameter_type_definition_id IS NULL")
     Flux<CategoricalParameter> findAllWhereParameterTypeDefinitionIsNull();
@@ -28,10 +30,10 @@ public interface CategoricalParameterRepository
     Flux<CategoricalParameter> findAll();
 
     @Override
-    Mono<CategoricalParameter> findById(Long id);
+    Mono<CategoricalParameter> findById(UUID id);
 
     @Override
-    Mono<Void> deleteById(Long id);
+    Mono<Void> deleteById(UUID id);
 }
 
 interface CategoricalParameterRepositoryInternal {

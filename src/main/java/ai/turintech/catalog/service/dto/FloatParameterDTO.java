@@ -2,6 +2,7 @@ package ai.turintech.catalog.service.dto;
 
 import java.io.Serializable;
 import java.util.Objects;
+import java.util.UUID;
 
 /**
  * A DTO for the {@link ai.turintech.catalog.domain.FloatParameter} entity.
@@ -9,19 +10,9 @@ import java.util.Objects;
 @SuppressWarnings("common-java:DuplicatedBlocks")
 public class FloatParameterDTO implements Serializable {
 
-    private Long id;
+    private UUID parameterTypeDefinitionId;
 
     private Double defaultValue;
-
-    private ParameterTypeDefinitionDTO parameterTypeDefinition;
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
 
     public Double getDefaultValue() {
         return defaultValue;
@@ -31,14 +22,13 @@ public class FloatParameterDTO implements Serializable {
         this.defaultValue = defaultValue;
     }
 
-    public ParameterTypeDefinitionDTO getParameterTypeDefinition() {
-        return parameterTypeDefinition;
+    public UUID getParameterTypeDefinitionId() {
+        return parameterTypeDefinitionId;
     }
 
-    public void setParameterTypeDefinition(ParameterTypeDefinitionDTO parameterTypeDefinition) {
-        this.parameterTypeDefinition = parameterTypeDefinition;
+    public void setParameterTypeDefinitionId(UUID parameterTypeDefinitionId) {
+        this.parameterTypeDefinitionId = parameterTypeDefinitionId;
     }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -49,24 +39,23 @@ public class FloatParameterDTO implements Serializable {
         }
 
         FloatParameterDTO floatParameterDTO = (FloatParameterDTO) o;
-        if (this.id == null) {
+        if (this.parameterTypeDefinitionId == null) {
             return false;
         }
-        return Objects.equals(this.id, floatParameterDTO.id);
+        return Objects.equals(this.parameterTypeDefinitionId, floatParameterDTO.parameterTypeDefinitionId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.id);
+        return Objects.hash(this.parameterTypeDefinitionId);
     }
 
     // prettier-ignore
     @Override
     public String toString() {
         return "FloatParameterDTO{" +
-            "id=" + getId() +
+            "parameterTypeDefinitionId=" + getParameterTypeDefinitionId() +
             ", defaultValue=" + getDefaultValue() +
-            ", parameterTypeDefinition=" + getParameterTypeDefinition() +
             "}";
     }
 }

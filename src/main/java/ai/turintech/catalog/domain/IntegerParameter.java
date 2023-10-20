@@ -20,35 +20,21 @@ public class IntegerParameter implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Id
-    @Column("id")
-    private Long id;
+    @Column("parameter_type_definition_id")
+    private UUID parameterTypeDefinitionId;
 
     @Column("default_value")
     private Integer defaultValue;
 
     @Transient
-    private ParameterTypeDefinition parameterTypeDefinition;
-
-    @Transient
     @JsonIgnoreProperties(value = { "integerParameter" }, allowSetters = true)
     private Set<IntegerParameterValue> integerParameterValues = new HashSet<>();
 
-    @Column("parameter_type_definition_id")
-    private UUID parameterTypeDefinitionId;
-
     // jhipster-needle-entity-add-field - JHipster will add fields here
 
-    public Long getId() {
-        return this.id;
-    }
-
-    public IntegerParameter id(Long id) {
-        this.setId(id);
+    public IntegerParameter id(UUID id) {
+        this.setParameterTypeDefinitionId(id);
         return this;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public Integer getDefaultValue() {
@@ -62,20 +48,6 @@ public class IntegerParameter implements Serializable {
 
     public void setDefaultValue(Integer defaultValue) {
         this.defaultValue = defaultValue;
-    }
-
-    public ParameterTypeDefinition getParameterTypeDefinition() {
-        return this.parameterTypeDefinition;
-    }
-
-    public void setParameterTypeDefinition(ParameterTypeDefinition parameterTypeDefinition) {
-        this.parameterTypeDefinition = parameterTypeDefinition;
-        this.parameterTypeDefinitionId = parameterTypeDefinition != null ? parameterTypeDefinition.getId() : null;
-    }
-
-    public IntegerParameter parameterTypeDefinition(ParameterTypeDefinition parameterTypeDefinition) {
-        this.setParameterTypeDefinition(parameterTypeDefinition);
-        return this;
     }
 
     public Set<IntegerParameterValue> getIntegerParameterValues() {
@@ -127,7 +99,7 @@ public class IntegerParameter implements Serializable {
         if (!(o instanceof IntegerParameter)) {
             return false;
         }
-        return getId() != null && getId().equals(((IntegerParameter) o).getId());
+        return getParameterTypeDefinitionId() != null && getParameterTypeDefinitionId().equals(((IntegerParameter) o).getParameterTypeDefinitionId());
     }
 
     @Override
@@ -140,7 +112,7 @@ public class IntegerParameter implements Serializable {
     @Override
     public String toString() {
         return "IntegerParameter{" +
-            "id=" + getId() +
+            "parameterTypeDefinitionId=" + getParameterTypeDefinitionId() +
             ", defaultValue=" + getDefaultValue() +
             "}";
     }

@@ -25,9 +25,8 @@ public class FloatParameterRowMapper implements BiFunction<Row, String, FloatPar
     @Override
     public FloatParameter apply(Row row, String prefix) {
         FloatParameter entity = new FloatParameter();
-        entity.setId(converter.fromRow(row, prefix + "_id", Long.class));
+        entity.setParameterTypeDefinitionId(converter.fromRow(row, prefix + "_id", UUID.class));
         entity.setDefaultValue(converter.fromRow(row, prefix + "_default_value", Double.class));
-        entity.setParameterTypeDefinitionId(converter.fromRow(row, prefix + "_parameter_type_definition_id", UUID.class));
         return entity;
     }
 }

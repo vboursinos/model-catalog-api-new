@@ -8,6 +8,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -58,7 +60,7 @@ public class BooleanParameterResource {
     public Mono<ResponseEntity<BooleanParameterDTO>> createBooleanParameter(@RequestBody BooleanParameterDTO booleanParameterDTO)
         throws URISyntaxException {
         log.debug("REST request to save BooleanParameter : {}", booleanParameterDTO);
-        if (booleanParameterDTO.getId() != null) {
+        if (booleanParameterDTO.getParameterTypeDefinitionId() != null) {
             throw new BadRequestAlertException("A new booleanParameter cannot already have an ID", ENTITY_NAME, "idexists");
         }
         return booleanParameterService
@@ -66,8 +68,8 @@ public class BooleanParameterResource {
             .map(result -> {
                 try {
                     return ResponseEntity
-                        .created(new URI("/api/boolean-parameters/" + result.getId()))
-                        .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
+                        .created(new URI("/api/boolean-parameters/" + result.getParameterTypeDefinitionId()))
+                        .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getParameterTypeDefinitionId().toString()))
                         .body(result);
                 } catch (URISyntaxException e) {
                     throw new RuntimeException(e);
@@ -87,14 +89,14 @@ public class BooleanParameterResource {
      */
     @PutMapping("/boolean-parameters/{id}")
     public Mono<ResponseEntity<BooleanParameterDTO>> updateBooleanParameter(
-        @PathVariable(value = "id", required = false) final Long id,
+        @PathVariable(value = "id", required = false) final UUID id,
         @RequestBody BooleanParameterDTO booleanParameterDTO
     ) throws URISyntaxException {
         log.debug("REST request to update BooleanParameter : {}, {}", id, booleanParameterDTO);
-        if (booleanParameterDTO.getId() == null) {
+        if (booleanParameterDTO.getParameterTypeDefinitionId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
-        if (!Objects.equals(id, booleanParameterDTO.getId())) {
+        if (!Objects.equals(id, booleanParameterDTO.getParameterTypeDefinitionId())) {
             throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
         }
 
@@ -111,7 +113,7 @@ public class BooleanParameterResource {
                     .map(result ->
                         ResponseEntity
                             .ok()
-                            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
+                            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, result.getParameterTypeDefinitionId().toString()))
                             .body(result)
                     );
             });
@@ -130,14 +132,14 @@ public class BooleanParameterResource {
      */
     @PatchMapping(value = "/boolean-parameters/{id}", consumes = { "application/json", "application/merge-patch+json" })
     public Mono<ResponseEntity<BooleanParameterDTO>> partialUpdateBooleanParameter(
-        @PathVariable(value = "id", required = false) final Long id,
+        @PathVariable(value = "id", required = false) final UUID id,
         @RequestBody BooleanParameterDTO booleanParameterDTO
     ) throws URISyntaxException {
         log.debug("REST request to partial update BooleanParameter partially : {}, {}", id, booleanParameterDTO);
-        if (booleanParameterDTO.getId() == null) {
+        if (booleanParameterDTO.getParameterTypeDefinitionId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
-        if (!Objects.equals(id, booleanParameterDTO.getId())) {
+        if (!Objects.equals(id, booleanParameterDTO.getParameterTypeDefinitionId())) {
             throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
         }
 
@@ -155,7 +157,7 @@ public class BooleanParameterResource {
                     .map(res ->
                         ResponseEntity
                             .ok()
-                            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, res.getId().toString()))
+                            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, res.getParameterTypeDefinitionId().toString()))
                             .body(res)
                     );
             });
@@ -202,7 +204,7 @@ public class BooleanParameterResource {
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
     @DeleteMapping("/boolean-parameters/{id}")
-    public Mono<ResponseEntity<Void>> deleteBooleanParameter(@PathVariable Long id) {
+    public Mono<ResponseEntity<Void>> deleteBooleanParameter(@PathVariable UUID id) {
         log.debug("REST request to delete BooleanParameter : {}", id);
         return booleanParameterService
             .delete(id)

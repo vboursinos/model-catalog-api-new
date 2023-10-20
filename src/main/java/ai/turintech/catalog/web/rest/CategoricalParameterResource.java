@@ -8,6 +8,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -59,7 +61,7 @@ public class CategoricalParameterResource {
         @RequestBody CategoricalParameterDTO categoricalParameterDTO
     ) throws URISyntaxException {
         log.debug("REST request to save CategoricalParameter : {}", categoricalParameterDTO);
-        if (categoricalParameterDTO.getId() != null) {
+        if (categoricalParameterDTO.getParameterTypeDefinitionId() != null) {
             throw new BadRequestAlertException("A new categoricalParameter cannot already have an ID", ENTITY_NAME, "idexists");
         }
         return categoricalParameterService
@@ -67,8 +69,8 @@ public class CategoricalParameterResource {
             .map(result -> {
                 try {
                     return ResponseEntity
-                        .created(new URI("/api/categorical-parameters/" + result.getId()))
-                        .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
+                        .created(new URI("/api/categorical-parameters/" + result.getParameterTypeDefinitionId()))
+                        .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getParameterTypeDefinitionId().toString()))
                         .body(result);
                 } catch (URISyntaxException e) {
                     throw new RuntimeException(e);
@@ -88,14 +90,14 @@ public class CategoricalParameterResource {
      */
     @PutMapping("/categorical-parameters/{id}")
     public Mono<ResponseEntity<CategoricalParameterDTO>> updateCategoricalParameter(
-        @PathVariable(value = "id", required = false) final Long id,
+        @PathVariable(value = "id", required = false) final UUID id,
         @RequestBody CategoricalParameterDTO categoricalParameterDTO
     ) throws URISyntaxException {
         log.debug("REST request to update CategoricalParameter : {}, {}", id, categoricalParameterDTO);
-        if (categoricalParameterDTO.getId() == null) {
+        if (categoricalParameterDTO.getParameterTypeDefinitionId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
-        if (!Objects.equals(id, categoricalParameterDTO.getId())) {
+        if (!Objects.equals(id, categoricalParameterDTO.getParameterTypeDefinitionId())) {
             throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
         }
 
@@ -112,7 +114,7 @@ public class CategoricalParameterResource {
                     .map(result ->
                         ResponseEntity
                             .ok()
-                            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
+                            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, result.getParameterTypeDefinitionId().toString()))
                             .body(result)
                     );
             });
@@ -131,14 +133,14 @@ public class CategoricalParameterResource {
      */
     @PatchMapping(value = "/categorical-parameters/{id}", consumes = { "application/json", "application/merge-patch+json" })
     public Mono<ResponseEntity<CategoricalParameterDTO>> partialUpdateCategoricalParameter(
-        @PathVariable(value = "id", required = false) final Long id,
+        @PathVariable(value = "id", required = false) final UUID id,
         @RequestBody CategoricalParameterDTO categoricalParameterDTO
     ) throws URISyntaxException {
         log.debug("REST request to partial update CategoricalParameter partially : {}, {}", id, categoricalParameterDTO);
-        if (categoricalParameterDTO.getId() == null) {
+        if (categoricalParameterDTO.getParameterTypeDefinitionId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
-        if (!Objects.equals(id, categoricalParameterDTO.getId())) {
+        if (!Objects.equals(id, categoricalParameterDTO.getParameterTypeDefinitionId())) {
             throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
         }
 
@@ -156,7 +158,7 @@ public class CategoricalParameterResource {
                     .map(res ->
                         ResponseEntity
                             .ok()
-                            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, res.getId().toString()))
+                            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, res.getParameterTypeDefinitionId().toString()))
                             .body(res)
                     );
             });
@@ -190,7 +192,7 @@ public class CategoricalParameterResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the categoricalParameterDTO, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/categorical-parameters/{id}")
-    public Mono<ResponseEntity<CategoricalParameterDTO>> getCategoricalParameter(@PathVariable Long id) {
+    public Mono<ResponseEntity<CategoricalParameterDTO>> getCategoricalParameter(@PathVariable UUID id) {
         log.debug("REST request to get CategoricalParameter : {}", id);
         Mono<CategoricalParameterDTO> categoricalParameterDTO = categoricalParameterService.findOne(id);
         return ResponseUtil.wrapOrNotFound(categoricalParameterDTO);
@@ -203,7 +205,7 @@ public class CategoricalParameterResource {
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
     @DeleteMapping("/categorical-parameters/{id}")
-    public Mono<ResponseEntity<Void>> deleteCategoricalParameter(@PathVariable Long id) {
+    public Mono<ResponseEntity<Void>> deleteCategoricalParameter(@PathVariable UUID id) {
         log.debug("REST request to delete CategoricalParameter : {}", id);
         return categoricalParameterService
             .delete(id)

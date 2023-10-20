@@ -3,6 +3,8 @@ package ai.turintech.catalog.domain;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.*;
 import java.io.Serializable;
+import java.util.UUID;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
@@ -34,7 +36,7 @@ public class IntegerParameterValue implements Serializable {
     private IntegerParameter integerParameter;
 
     @Column("integer_parameter_id")
-    private Long integerParameterId;
+    private UUID integerParameterId;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here
 
@@ -83,7 +85,7 @@ public class IntegerParameterValue implements Serializable {
 
     public void setIntegerParameter(IntegerParameter integerParameter) {
         this.integerParameter = integerParameter;
-        this.integerParameterId = integerParameter != null ? integerParameter.getId() : null;
+        this.integerParameterId = integerParameter != null ? integerParameter.getParameterTypeDefinitionId() : null;
     }
 
     public IntegerParameterValue integerParameter(IntegerParameter integerParameter) {
@@ -91,11 +93,11 @@ public class IntegerParameterValue implements Serializable {
         return this;
     }
 
-    public Long getIntegerParameterId() {
+    public UUID getIntegerParameterId() {
         return this.integerParameterId;
     }
 
-    public void setIntegerParameterId(Long integerParameter) {
+    public void setIntegerParameterId(UUID integerParameter) {
         this.integerParameterId = integerParameter;
     }
 

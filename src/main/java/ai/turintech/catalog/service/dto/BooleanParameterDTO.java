@@ -2,6 +2,7 @@ package ai.turintech.catalog.service.dto;
 
 import java.io.Serializable;
 import java.util.Objects;
+import java.util.UUID;
 
 /**
  * A DTO for the {@link ai.turintech.catalog.domain.BooleanParameter} entity.
@@ -9,18 +10,16 @@ import java.util.Objects;
 @SuppressWarnings("common-java:DuplicatedBlocks")
 public class BooleanParameterDTO implements Serializable {
 
-    private Long id;
+    private UUID parameterTypeDefinitionId;
 
     private Boolean defaultValue;
 
-    private ParameterTypeDefinitionDTO parameterTypeDefinition;
-
-    public Long getId() {
-        return id;
+    public UUID getParameterTypeDefinitionId() {
+        return parameterTypeDefinitionId;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setParameterTypeDefinitionId(UUID parameterTypeDefinitionId) {
+        this.parameterTypeDefinitionId = parameterTypeDefinitionId;
     }
 
     public Boolean getDefaultValue() {
@@ -29,14 +28,6 @@ public class BooleanParameterDTO implements Serializable {
 
     public void setDefaultValue(Boolean defaultValue) {
         this.defaultValue = defaultValue;
-    }
-
-    public ParameterTypeDefinitionDTO getParameterTypeDefinition() {
-        return parameterTypeDefinition;
-    }
-
-    public void setParameterTypeDefinition(ParameterTypeDefinitionDTO parameterTypeDefinition) {
-        this.parameterTypeDefinition = parameterTypeDefinition;
     }
 
     @Override
@@ -49,24 +40,23 @@ public class BooleanParameterDTO implements Serializable {
         }
 
         BooleanParameterDTO booleanParameterDTO = (BooleanParameterDTO) o;
-        if (this.id == null) {
+        if (this.getParameterTypeDefinitionId() == null) {
             return false;
         }
-        return Objects.equals(this.id, booleanParameterDTO.id);
+        return Objects.equals(this.parameterTypeDefinitionId, booleanParameterDTO.parameterTypeDefinitionId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.id);
+        return Objects.hash(this.parameterTypeDefinitionId);
     }
 
     // prettier-ignore
     @Override
     public String toString() {
         return "BooleanParameterDTO{" +
-            "id=" + getId() +
-            ", defaultValue='" + getDefaultValue() + "'" +
-            ", parameterTypeDefinition=" + getParameterTypeDefinition() +
-            "}";
+                "parameterTypeDefinitionId=" + parameterTypeDefinitionId +
+                ", defaultValue=" + defaultValue +
+                '}';
     }
 }

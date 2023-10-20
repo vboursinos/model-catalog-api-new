@@ -4,14 +4,18 @@ import ai.turintech.catalog.domain.IntegerParameter;
 import ai.turintech.catalog.domain.ParameterTypeDefinition;
 import ai.turintech.catalog.service.dto.IntegerParameterDTO;
 import ai.turintech.catalog.service.dto.ParameterTypeDefinitionDTO;
-import org.mapstruct.*;
+import org.mapstruct.BeanMapping;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 
 /**
  * Mapper for the entity {@link IntegerParameter} and its DTO {@link IntegerParameterDTO}.
  */
 @Mapper(componentModel = "spring")
 public interface IntegerParameterMapper extends EntityMapper<IntegerParameterDTO, IntegerParameter> {
-    @Mapping(target = "parameterTypeDefinition", source = "parameterTypeDefinition", qualifiedByName = "parameterTypeDefinitionId")
+    @Mapping(target = "parameterTypeDefinitionId", source = "parameterTypeDefinitionId")
+    @Mapping(target = "defaultValue", source = "defaultValue")
     IntegerParameterDTO toDto(IntegerParameter s);
 
     @Named("parameterTypeDefinitionId")

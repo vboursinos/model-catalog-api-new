@@ -8,16 +8,18 @@ import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.UUID;
+
 /**
  * Spring Data R2DBC repository for the IntegerParameter entity.
  */
 @SuppressWarnings("unused")
 @Repository
-public interface IntegerParameterRepository extends ReactiveCrudRepository<IntegerParameter, Long>, IntegerParameterRepositoryInternal {
+public interface IntegerParameterRepository extends ReactiveCrudRepository<IntegerParameter, UUID>, IntegerParameterRepositoryInternal {
     @Query("SELECT * FROM integer_parameter entity WHERE entity.parameter_type_definition_id = :id")
-    Flux<IntegerParameter> findByParameterTypeDefinition(Long id);
+    Flux<IntegerParameter> findByParameterTypeDefinition(UUID id);
 
-    @Query("SELECT * FROM integer_parameter entity WHERE entity.parameter_type_definition_id IS NULL")
+    @Query("SELECT * FROM integer_parameter entity WHERE en tity.parameter_type_definition_id IS NULL")
     Flux<IntegerParameter> findAllWhereParameterTypeDefinitionIsNull();
 
     @Override
@@ -27,10 +29,10 @@ public interface IntegerParameterRepository extends ReactiveCrudRepository<Integ
     Flux<IntegerParameter> findAll();
 
     @Override
-    Mono<IntegerParameter> findById(Long id);
+    Mono<IntegerParameter> findById(UUID id);
 
     @Override
-    Mono<Void> deleteById(Long id);
+    Mono<Void> deleteById(UUID id);
 }
 
 interface IntegerParameterRepositoryInternal {

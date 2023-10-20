@@ -119,7 +119,6 @@ class ParameterTypeDefinitionRepositoryInternalImpl
     private ParameterTypeDefinition process(Row row, RowMetadata metadata) {
         ParameterTypeDefinition entity = parametertypedefinitionMapper.apply(row, "e");
         entity.setDistribution(parameterdistributiontypeMapper.apply(row, "distribution"));
-        entity.setParameter(parameterMapper.apply(row, "parameter"));
         entity.setType(parametertypeMapper.apply(row, "type"));
         return entity;
     }

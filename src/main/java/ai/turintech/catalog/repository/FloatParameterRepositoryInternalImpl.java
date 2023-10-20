@@ -94,7 +94,6 @@ class FloatParameterRepositoryInternalImpl extends SimpleR2dbcRepository<FloatPa
 
     private FloatParameter process(Row row, RowMetadata metadata) {
         FloatParameter entity = floatparameterMapper.apply(row, "e");
-        entity.setParameterTypeDefinition(parametertypedefinitionMapper.apply(row, "parameterTypeDefinition"));
         return entity;
     }
 

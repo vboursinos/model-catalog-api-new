@@ -16,6 +16,5 @@ public interface FloatParameterRangeMapper extends EntityMapper<FloatParameterRa
 
     @Named("floatParameterId")
     @BeanMapping(ignoreByDefault = true)
-    @Mapping(target = "id", source = "id")
     FloatParameterDTO toDtoFloatParameterId(FloatParameter floatParameter);
 }

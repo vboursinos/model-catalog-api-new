@@ -96,7 +96,6 @@ class CategoricalParameterRepositoryInternalImpl
 
     private CategoricalParameter process(Row row, RowMetadata metadata) {
         CategoricalParameter entity = categoricalparameterMapper.apply(row, "e");
-        entity.setParameterTypeDefinition(parametertypedefinitionMapper.apply(row, "parameterTypeDefinition"));
         return entity;
     }
 

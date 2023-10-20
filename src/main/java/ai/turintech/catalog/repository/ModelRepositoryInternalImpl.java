@@ -47,6 +47,11 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
     private final ParameterRowMapper parameterMapper;
     private final ParameterTypeDefinitionRowMapper parametertypedefinitionMapper;
     private final ParameterDistributionTypeRowMapper parameterdistributiontypeMapper;
+
+    private final CategoricalParameterRowMapper categoricalParameterMapper;
+    private final BooleanParameterRowMapper booleanParameterMapper;
+    private final IntegerParameterRowMapper integerParameterMapper;
+    private final FloatParameterRowMapper flaotParameterMapper;
     private final ParameterTypeRowMapper parametertypeMapper;
     private static final Table entityTable = Table.aliased("model", EntityManager.ENTITY_ALIAS);
     private static final Table mlTaskTable = Table.aliased("ml_task_type", "mlTask");
@@ -58,6 +63,10 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
     private static final Table parameterTypeDefinitionTable = Table.aliased("parameter_type_definition", "parameterTypeDefinition");
     private static final Table parameterDistributionTypeTable = Table.aliased("parameter_distribution_type", "parameterDistributionType");
     private static final Table parameterTypeTable = Table.aliased("parameter_type", "parameterType");
+    private static final Table categoricalParameterTable = Table.aliased("categorical_parameter", "categoricalParameter");
+    private static final Table booleanParameterTable = Table.aliased("boolean_parameter", "booleanParameter");
+    private static final Table integerParameterTable = Table.aliased("integer_parameter", "integerParameter");
+    private static final Table floatParameterTable = Table.aliased("float_parameter", "floatParameter");
     private static final EntityManager.LinkTable groupsLink = new EntityManager.LinkTable("rel_model__groups", "model_id", "groups_id");
     private static final EntityManager.LinkTable incompatibleMetricsLink = new EntityManager.LinkTable(
         "rel_model__incompatible_metrics",
@@ -78,6 +87,10 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
         ParameterTypeDefinitionRowMapper parameterTypeDefinitionMapper,
         ParameterDistributionTypeRowMapper parameterDistributionTypeMapper,
         ParameterTypeRowMapper parameterTypeMapper,
+        CategoricalParameterRowMapper categoricalParameterMapper,
+        BooleanParameterRowMapper booleanParameterMapper,
+        IntegerParameterRowMapper integerParameterMapper,
+        FloatParameterRowMapper flaotParameterMapper,
         R2dbcEntityOperations entityOperations,
         R2dbcConverter converter
     ) {
@@ -99,6 +112,10 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
         this.parametertypedefinitionMapper = parameterTypeDefinitionMapper;
         this.parameterdistributiontypeMapper = parameterDistributionTypeMapper;
         this.parametertypeMapper = parameterTypeMapper;
+        this.categoricalParameterMapper = categoricalParameterMapper;
+        this.booleanParameterMapper = booleanParameterMapper;
+        this.integerParameterMapper = integerParameterMapper;
+        this.flaotParameterMapper = flaotParameterMapper;
     }
 
     @Override
@@ -183,6 +200,10 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
         columns.addAll(ParameterTypeDefinitionSqlHelper.getColumns(parameterTypeDefinitionTable, "parameterTypeDefinition"));
         columns.addAll(ParameterTypeSqlHelper.getColumns(parameterTypeTable, "parameterType"));
         columns.addAll(ParameterDistributionTypeSqlHelper.getColumns(parameterDistributionTypeTable, "parameterDistributionType"));
+        columns.addAll(CategoricalParameterSqlHelper.getColumns(categoricalParameterTable, "categoricalParameter"));
+        columns.addAll(BooleanParameterSqlHelper.getColumns(booleanParameterTable, "booleanParameter"));
+        columns.addAll(IntegerParameterSqlHelper.getColumns(integerParameterTable, "integerParameter"));
+        columns.addAll(FloatParameterSqlHelper.getColumns(floatParameterTable, "floatParameter"));
         SelectFromAndJoinCondition selectFrom = Select
                 .builder()
                 .select(columns)
@@ -192,7 +213,19 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
                 .equals(Column.create("id", parameterTypeTable))
                 .leftOuterJoin(parameterDistributionTypeTable)
                 .on(Column.create("parameter_distribution_type_id", parameterTypeDefinitionTable))
-                .equals(Column.create("id", parameterDistributionTypeTable));
+                .equals(Column.create("id", parameterDistributionTypeTable))
+                .leftOuterJoin(categoricalParameterTable)
+                .on(Column.create("id", parameterTypeDefinitionTable))
+                .equals(Column.create("parameter_type_definition_id", categoricalParameterTable))
+                .leftOuterJoin(booleanParameterTable)
+                .on(Column.create("id", parameterTypeDefinitionTable))
+                .equals(Column.create("parameter_type_definition_id", booleanParameterTable))
+                .leftOuterJoin(integerParameterTable)
+                .on(Column.create("id", parameterTypeDefinitionTable))
+                .equals(Column.create("parameter_type_definition_id", integerParameterTable))
+                .leftOuterJoin(floatParameterTable)
+                .on(Column.create("id", parameterTypeDefinitionTable))
+                .equals(Column.create("parameter_type_definition_id", floatParameterTable));
         String select = entityManager.createSelect(selectFrom, ParameterTypeDefinition.class, pageable, whereClause);
         RowsFetchSpec<ParameterTypeDefinition> mappedResults = db.sql(select).map(this::processParameterType);
         return mappedResults;
@@ -310,8 +343,13 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
         ParameterTypeDefinition parameterTypeDefinition = parametertypedefinitionMapper.apply(row, "parametertypedefinition");
         parameterTypeDefinition.setType(parametertypeMapper.apply(row, "parametertype"));
         parameterTypeDefinition.setDistribution(parameterdistributiontypeMapper.apply(row, "parameterdistributiontype"));
+        parameterTypeDefinition.setCategoricalParameter(categoricalParameterMapper.apply(row, "categoricalparameter"));
+        parameterTypeDefinition.setBooleanParameter(booleanParameterMapper.apply(row, "booleanparameter"));
+        parameterTypeDefinition.setIntegerParameter(integerParameterMapper.apply(row, "integerparameter"));
+        parameterTypeDefinition.setFloatParameter(flaotParameterMapper.apply(row, "floatparameter"));
         return parameterTypeDefinition;
     }
+
     @Override
     public <S extends Model> Mono<S> save(S entity) {
         return super.save(entity).flatMap((S e) -> updateRelations(e));

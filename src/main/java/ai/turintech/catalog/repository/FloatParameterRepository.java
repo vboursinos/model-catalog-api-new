@@ -8,14 +8,16 @@ import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.UUID;
+
 /**
  * Spring Data R2DBC repository for the FloatParameter entity.
  */
 @SuppressWarnings("unused")
 @Repository
-public interface FloatParameterRepository extends ReactiveCrudRepository<FloatParameter, Long>, FloatParameterRepositoryInternal {
+public interface FloatParameterRepository extends ReactiveCrudRepository<FloatParameter, UUID>, FloatParameterRepositoryInternal {
     @Query("SELECT * FROM float_parameter entity WHERE entity.parameter_type_definition_id = :id")
-    Flux<FloatParameter> findByParameterTypeDefinition(Long id);
+    Flux<FloatParameter> findByParameterTypeDefinition(UUID id);
 
     @Query("SELECT * FROM float_parameter entity WHERE entity.parameter_type_definition_id IS NULL")
     Flux<FloatParameter> findAllWhereParameterTypeDefinitionIsNull();
@@ -27,10 +29,10 @@ public interface FloatParameterRepository extends ReactiveCrudRepository<FloatPa
     Flux<FloatParameter> findAll();
 
     @Override
-    Mono<FloatParameter> findById(Long id);
+    Mono<FloatParameter> findById(UUID id);
 
     @Override
-    Mono<Void> deleteById(Long id);
+    Mono<Void> deleteById(UUID id);
 }
 
 interface FloatParameterRepositoryInternal {

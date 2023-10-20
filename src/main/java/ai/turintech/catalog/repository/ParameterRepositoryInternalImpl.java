@@ -96,7 +96,6 @@ class ParameterRepositoryInternalImpl extends SimpleR2dbcRepository<Parameter, U
 
     private Parameter process(Row row, RowMetadata metadata) {
         Parameter entity = parameterMapper.apply(row, "e");
-        entity.setModel(modelMapper.apply(row, "model"));
         return entity;
     }
 
