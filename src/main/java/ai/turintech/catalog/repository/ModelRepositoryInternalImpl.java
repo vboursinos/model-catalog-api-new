@@ -46,6 +46,8 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
     private final ModelRowMapper modelMapper;
     private final ParameterRowMapper parameterMapper;
     private final ParameterTypeDefinitionRowMapper parametertypedefinitionMapper;
+    private final ParameterDistributionTypeRowMapper parameterdistributiontypeMapper;
+    private final ParameterTypeRowMapper parametertypeMapper;
     private static final Table entityTable = Table.aliased("model", EntityManager.ENTITY_ALIAS);
     private static final Table mlTaskTable = Table.aliased("ml_task_type", "mlTask");
     private static final Table structureTable = Table.aliased("model_structure_type", "e_structure");
@@ -54,6 +56,8 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
     private static final Table ensembleTypeTable = Table.aliased("model_ensemble_type", "ensembleType");
     private static final Table parameterTable = Table.aliased("parameter", "parameter");
     private static final Table parameterTypeDefinitionTable = Table.aliased("parameter_type_definition", "parameterTypeDefinition");
+    private static final Table parameterDistributionTypeTable = Table.aliased("parameter_distribution_type", "parameterDistributionType");
+    private static final Table parameterTypeTable = Table.aliased("parameter_type", "parameterType");
     private static final EntityManager.LinkTable groupsLink = new EntityManager.LinkTable("rel_model__groups", "model_id", "groups_id");
     private static final EntityManager.LinkTable incompatibleMetricsLink = new EntityManager.LinkTable(
         "rel_model__incompatible_metrics",
@@ -72,6 +76,8 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
         ModelRowMapper modelMapper,
         ParameterRowMapper parameterMapper,
         ParameterTypeDefinitionRowMapper parameterTypeDefinitionMapper,
+        ParameterDistributionTypeRowMapper parameterDistributionTypeMapper,
+        ParameterTypeRowMapper parameterTypeMapper,
         R2dbcEntityOperations entityOperations,
         R2dbcConverter converter
     ) {
@@ -91,6 +97,8 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
         this.modelMapper = modelMapper;
         this.parameterMapper = parameterMapper;
         this.parametertypedefinitionMapper = parameterTypeDefinitionMapper;
+        this.parameterdistributiontypeMapper = parameterDistributionTypeMapper;
+        this.parametertypeMapper = parameterTypeMapper;
     }
 
     @Override
@@ -152,7 +160,6 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
 
     RowsFetchSpec<ParameterTypeDefinition> createParameterTypeDefinitionQuery(Pageable pageable, Condition whereClause) {
         List<Expression> columns = new ArrayList<>();
-//        columns.addAll(ParameterSqlHelper.getColumns(parameterTable, "parameter"));
         columns.addAll(ParameterTypeDefinitionSqlHelper.getColumns(parameterTypeDefinitionTable, "parameterTypeDefinition"));
         SelectFromAndJoinCondition selectFrom = Select
                 .builder()
@@ -171,6 +178,26 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
         return mappedResults;
     }
 
+    RowsFetchSpec<ParameterTypeDefinition> createParameterDistributionTypeQuery(Pageable pageable, Condition whereClause) {
+        List<Expression> columns = new ArrayList<>();
+        columns.addAll(ParameterTypeDefinitionSqlHelper.getColumns(parameterTypeDefinitionTable, "parameterTypeDefinition"));
+        columns.addAll(ParameterTypeSqlHelper.getColumns(parameterTypeTable, "parameterType"));
+        columns.addAll(ParameterDistributionTypeSqlHelper.getColumns(parameterDistributionTypeTable, "parameterDistributionType"));
+        SelectFromAndJoinCondition selectFrom = Select
+                .builder()
+                .select(columns)
+                .from(parameterTypeDefinitionTable)
+                .leftOuterJoin(parameterTypeTable)
+                .on(Column.create("parameter_type_id", parameterTypeDefinitionTable))
+                .equals(Column.create("id", parameterTypeTable))
+                .leftOuterJoin(parameterDistributionTypeTable)
+                .on(Column.create("parameter_distribution_type_id", parameterTypeDefinitionTable))
+                .equals(Column.create("id", parameterDistributionTypeTable));
+        String select = entityManager.createSelect(selectFrom, ParameterTypeDefinition.class, pageable, whereClause);
+        RowsFetchSpec<ParameterTypeDefinition> mappedResults = db.sql(select).map(this::processParameterType);
+        return mappedResults;
+    }
+
     @Override
     public Flux<Model> findAll() {
         return findAllBy(null);
@@ -182,8 +209,6 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
         Mono<Model> model = createQuery(null, whereClause).one();
         Mono<List<Parameter>> parameters = createParameterQuery(null, whereClause).all().collectList();
 
-        Map<UUID, Mono<List<ParameterTypeDefinition>>> paramTypeDefMap = new HashMap<>();
-
         Mono<Model> modelWithParameters = parameters.flatMap(parameterList -> {
             // Fetch ParameterTypeDefinition for each Parameter and then proceed with setting parameters.
             List<Mono<Parameter>> parametersWithDefinitions = parameterList.stream().map(parameter -> {
@@ -191,21 +216,22 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
                         Conditions.just(StringUtils.wrap(parameter.getId().toString(), "'")));
 
                 return createParameterTypeDefinitionQuery(null, whereClauseForPTD).all().collectList()
-                        .doOnNext(parameterTypeDefinitions -> {
-                            parameter.setDefinitions(parameterTypeDefinitions); // set the list of parameter type definitions
+                        .flatMap(parameterTypeDefinitions -> {
+                            List<Mono<ParameterTypeDefinition>> defsDistribution = parameterTypeDefinitions.stream().map(def -> {
+                                Comparison whereClauseForDist = Conditions.isEqual(parameterTypeDefinitionTable.column("id"),
+                                        Conditions.just(StringUtils.wrap(def.getId().toString(), "'")));
+                                return createParameterDistributionTypeQuery(null, whereClauseForDist).one();
+                            }).collect(Collectors.toList());
+
+                            return Flux.fromIterable(defsDistribution)
+                                    .flatMap(mono -> mono)
+                                    .collectList()
+                                    .doOnNext(updatedDefs -> {
+                                        parameter.setDefinitions(updatedDefs);
+                                    });
                         })
                         .thenReturn(parameter);
             }).collect(Collectors.toList());
-
-            parametersWithDefinitions.stream().forEach(
-                    parameterMono -> {
-                        parameterMono.subscribe(
-                                result -> System.out.println("Parameter **************** obtained: " + result),
-                                error -> System.out.println("Error: " + error.getMessage()),
-                                () -> System.out.println("Completed!")
-                        );
-                    }
-            );
 
             return Flux.fromIterable(parametersWithDefinitions)
                     .flatMap(mono -> mono)
@@ -213,7 +239,7 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
                     .flatMap(updatedParameters -> {
                         // Now it's the time to proceed with setting parameters.
                         return model.doOnNext(m -> {
-                            m.setParameters(updatedParameters); // set the list of parameters
+                            m.setParameters(updatedParameters);  // set the list of parameters.
 
                             // Print size of the list.
                             System.out.println("Size: " + updatedParameters.size());
@@ -263,6 +289,7 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
 
     private Parameter processParameters(Row row, RowMetadata metadata) {
         Parameter parameter = parameterMapper.apply(row, "parameter");
+        //todo check if this is needed
         parameter.setModelId(row.get("parameter_model_id", UUID.class));
         parameter.setFixedValue(row.get("parameter_fixed_value", Boolean.class));
         parameter.setOrdering(row.get("parameter_ordering", Integer.class));
@@ -276,6 +303,13 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
 
     private ParameterTypeDefinition processParameterTypeDefinition(Row row, RowMetadata metadata) {
         ParameterTypeDefinition parameterTypeDefinition = parametertypedefinitionMapper.apply(row, "parametertypedefinition");
+        return parameterTypeDefinition;
+    }
+
+    private ParameterTypeDefinition processParameterType(Row row, RowMetadata metadata) {
+        ParameterTypeDefinition parameterTypeDefinition = parametertypedefinitionMapper.apply(row, "parametertypedefinition");
+        parameterTypeDefinition.setType(parametertypeMapper.apply(row, "parametertype"));
+        parameterTypeDefinition.setDistribution(parameterdistributiontypeMapper.apply(row, "parameterdistributiontype"));
         return parameterTypeDefinition;
     }
     @Override

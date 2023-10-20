@@ -253,10 +253,13 @@ public class ParameterTypeDefinition implements Serializable, Persistable<UUID> 
         return "ParameterTypeDefinition{" +
                 "id=" + id +
                 ", ordering=" + ordering +
+                ", isPersisted=" + isPersisted +
                 ", integerParameter=" + integerParameter +
                 ", floatParameter=" + floatParameter +
                 ", categoricalParameter=" + categoricalParameter +
                 ", booleanParameter=" + booleanParameter +
+                ", distribution=" + distribution +
+                ", type=" + type +
                 ", distributionId=" + distributionId +
                 ", parameterId=" + parameterId +
                 ", typeId=" + typeId +

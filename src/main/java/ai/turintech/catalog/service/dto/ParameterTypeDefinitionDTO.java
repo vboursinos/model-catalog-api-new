@@ -25,11 +25,11 @@ public class ParameterTypeDefinitionDTO implements Serializable {
 
     @NotNull(message = "must not be null")
     private UUID typeId;
-//    private ParameterDistributionTypeDTO distribution;
+    private ParameterDistributionTypeDTO distribution;
 
 //    private ParameterDTO parameter;
 //
-//    private ParameterTypeDTO type;
+    private ParameterTypeDTO type;
 
     public UUID getId() {
         return id;
@@ -71,6 +71,22 @@ public class ParameterTypeDefinitionDTO implements Serializable {
         this.typeId = typeId;
     }
 
+    public ParameterDistributionTypeDTO getDistribution() {
+        return distribution;
+    }
+
+    public void setDistribution(ParameterDistributionTypeDTO distribution) {
+        this.distribution = distribution;
+    }
+
+    public ParameterTypeDTO getType() {
+        return type;
+    }
+
+    public void setType(ParameterTypeDTO type) {
+        this.type = type;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -103,6 +119,8 @@ public class ParameterTypeDefinitionDTO implements Serializable {
                 ", distributionId=" + distributionId +
                 ", parameterId=" + parameterId +
                 ", typeId=" + typeId +
+                ", distribution=" + distribution +
+                ", type=" + type +
                 '}';
     }
 }

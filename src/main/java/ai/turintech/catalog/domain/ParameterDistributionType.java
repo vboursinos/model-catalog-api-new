@@ -33,13 +33,6 @@ public class ParameterDistributionType implements Serializable, Persistable<UUID
     @Transient
     private boolean isPersisted;
 
-    @Transient
-    @JsonIgnoreProperties(
-        value = { "integerParameter", "floatParameter", "categoricalParameter", "booleanParameter", "distribution", "parameter", "type" },
-        allowSetters = true
-    )
-    private Set<ParameterTypeDefinition> definitions = new HashSet<>();
-
     // jhipster-needle-entity-add-field - JHipster will add fields here
 
     public UUID getId() {
@@ -76,37 +69,6 @@ public class ParameterDistributionType implements Serializable, Persistable<UUID
 
     public ParameterDistributionType setIsPersisted() {
         this.isPersisted = true;
-        return this;
-    }
-
-    public Set<ParameterTypeDefinition> getDefinitions() {
-        return this.definitions;
-    }
-
-    public void setDefinitions(Set<ParameterTypeDefinition> parameterTypeDefinitions) {
-        if (this.definitions != null) {
-            this.definitions.forEach(i -> i.setDistribution(null));
-        }
-        if (parameterTypeDefinitions != null) {
-            parameterTypeDefinitions.forEach(i -> i.setDistribution(this));
-        }
-        this.definitions = parameterTypeDefinitions;
-    }
-
-    public ParameterDistributionType definitions(Set<ParameterTypeDefinition> parameterTypeDefinitions) {
-        this.setDefinitions(parameterTypeDefinitions);
-        return this;
-    }
-
-    public ParameterDistributionType addDefinitions(ParameterTypeDefinition parameterTypeDefinition) {
-        this.definitions.add(parameterTypeDefinition);
-        parameterTypeDefinition.setDistribution(this);
-        return this;
-    }
-
-    public ParameterDistributionType removeDefinitions(ParameterTypeDefinition parameterTypeDefinition) {
-        this.definitions.remove(parameterTypeDefinition);
-        parameterTypeDefinition.setDistribution(null);
         return this;
     }
 

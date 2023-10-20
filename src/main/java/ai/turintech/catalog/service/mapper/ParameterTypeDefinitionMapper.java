@@ -17,6 +17,8 @@ import org.mapstruct.*;
 public interface ParameterTypeDefinitionMapper extends EntityMapper<ParameterTypeDefinitionDTO, ParameterTypeDefinition> {
     @Mapping(target = "distributionId", source = "distributionId")
     @Mapping(target = "parameterId", source = "parameterId")
+    @Mapping(target = "distribution", source = "distribution")
+    @Mapping(target = "type", source = "type")
     ParameterTypeDefinitionDTO toDto(ParameterTypeDefinition s);
 
     @Named("parameterDistributionTypeId")
