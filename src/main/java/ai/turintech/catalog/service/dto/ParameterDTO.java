@@ -32,7 +32,6 @@ public class ParameterDTO implements Serializable {
 
     @NotNull
     private UUID modelId;
-    private ModelDTO model;
 
     public UUID getId() {
         return id;
@@ -90,14 +89,6 @@ public class ParameterDTO implements Serializable {
         this.ordering = ordering;
     }
 
-    public ModelDTO getModel() {
-        return model;
-    }
-
-    public void setModel(ModelDTO model) {
-        this.model = model;
-    }
-
     public UUID getModelId() {
         return modelId;
     }
@@ -131,14 +122,14 @@ public class ParameterDTO implements Serializable {
     @Override
     public String toString() {
         return "ParameterDTO{" +
-            "id='" + getId() + "'" +
-            ", name='" + getName() + "'" +
-            ", label='" + getLabel() + "'" +
-            ", description='" + getDescription() + "'" +
-            ", enabled='" + getEnabled() + "'" +
-            ", fixedValue='" + getFixedValue() + "'" +
-            ", ordering=" + getOrdering() +
-            ", model=" + getModel() +
-            "}";
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", label='" + label + '\'' +
+                ", description='" + description + '\'' +
+                ", enabled=" + enabled +
+                ", fixedValue=" + fixedValue +
+                ", ordering=" + ordering +
+                ", modelId=" + modelId +
+                '}';
     }
 }

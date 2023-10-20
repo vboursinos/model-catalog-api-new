@@ -59,13 +59,6 @@ public class Parameter implements Serializable, Persistable<UUID> {
     )
     private Set<ParameterTypeDefinition> definitions = new HashSet<>();
 
-    @Transient
-    @JsonIgnoreProperties(
-        value = { "parameters", "groups", "incompatibleMetrics", "mlTask", "structure", "type", "familyType", "ensembleType" },
-        allowSetters = true
-    )
-    private Model model;
-
     @Column("model_id")
     private UUID modelId;
 
@@ -201,20 +194,6 @@ public class Parameter implements Serializable, Persistable<UUID> {
     public Parameter removeDefinitions(ParameterTypeDefinition parameterTypeDefinition) {
         this.definitions.remove(parameterTypeDefinition);
         parameterTypeDefinition.setParameter(null);
-        return this;
-    }
-
-    public Model getModel() {
-        return this.model;
-    }
-
-    public void setModel(Model model) {
-        this.model = model;
-        this.modelId = model != null ? model.getId() : null;
-    }
-
-    public Parameter model(Model model) {
-        this.setModel(model);
         return this;
     }
 

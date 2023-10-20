@@ -222,29 +222,11 @@ public class Model implements Serializable, Persistable<UUID> {
     }
 
     public void setParameters(List<Parameter> parameters) {
-        if (this.parameters != null) {
-            this.parameters.forEach(i -> i.setModel(null));
-        }
-        if (parameters != null) {
-            parameters.forEach(i -> i.setModel(this));
-        }
         this.parameters = parameters;
     }
 
     public Model parameters(List<Parameter> parameters) {
         this.setParameters(parameters);
-        return this;
-    }
-
-    public Model addParameters(Parameter parameter) {
-        this.parameters.add(parameter);
-        parameter.setModel(this);
-        return this;
-    }
-
-    public Model removeParameters(Parameter parameter) {
-        this.parameters.remove(parameter);
-        parameter.setModel(null);
         return this;
     }
 

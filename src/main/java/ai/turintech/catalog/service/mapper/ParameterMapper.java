@@ -12,7 +12,6 @@ import org.mapstruct.*;
 @Mapper(componentModel = "spring")
 public interface ParameterMapper extends EntityMapper<ParameterDTO, Parameter> {
     @Mapping(target = "modelId", source = "modelId")
-    @Mapping(ignore = true, target = "model")
     ParameterDTO toDto(Parameter s);
 
     @Named("modelId")
