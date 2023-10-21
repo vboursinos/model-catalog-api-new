@@ -11,7 +11,6 @@ import org.mapstruct.*;
  */
 @Mapper(componentModel = "spring")
 public interface FloatParameterRangeMapper extends EntityMapper<FloatParameterRangeDTO, FloatParameterRange> {
-    @Mapping(target = "floatParameter", source = "floatParameter", qualifiedByName = "floatParameterId")
     FloatParameterRangeDTO toDto(FloatParameterRange s);
 
     @Named("floatParameterId")

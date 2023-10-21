@@ -10,6 +10,8 @@ import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.UUID;
+
 /**
  * Service Implementation for managing {@link ai.turintech.catalog.domain.CategoricalParameterValue}.
  */
@@ -104,7 +106,7 @@ public class CategoricalParameterValueService {
      * @return the entity.
      */
     @Transactional(readOnly = true)
-    public Mono<CategoricalParameterValueDTO> findOne(Long id) {
+    public Mono<CategoricalParameterValueDTO> findOne(UUID id) {
         log.debug("Request to get CategoricalParameterValue : {}", id);
         return categoricalParameterValueRepository.findById(id).map(categoricalParameterValueMapper::toDto);
     }
@@ -115,7 +117,7 @@ public class CategoricalParameterValueService {
      * @param id the id of the entity.
      * @return a Mono to signal the deletion
      */
-    public Mono<Void> delete(Long id) {
+    public Mono<Void> delete(UUID id) {
         log.debug("Request to delete CategoricalParameterValue : {}", id);
         return categoricalParameterValueRepository.deleteById(id);
     }

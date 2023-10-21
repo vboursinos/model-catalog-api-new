@@ -26,12 +26,12 @@ public class FloatParameterRangeRowMapper implements BiFunction<Row, String, Flo
     @Override
     public FloatParameterRange apply(Row row, String prefix) {
         FloatParameterRange entity = new FloatParameterRange();
-        entity.setId(converter.fromRow(row, prefix + "_id", Long.class));
+        entity.setId(converter.fromRow(row, prefix + "_id", UUID.class));
         entity.setIsLeftOpen(converter.fromRow(row, prefix + "_is_left_open", Boolean.class));
         entity.setIsRightOpen(converter.fromRow(row, prefix + "_is_right_open", Boolean.class));
         entity.setLower(converter.fromRow(row, prefix + "_lower", Double.class));
         entity.setUpper(converter.fromRow(row, prefix + "_upper", Double.class));
-        entity.setFloatParameterId(converter.fromRow(row, prefix + "_float_parameter_id", UUID.class));
+        entity.setParameterTypeDefinitionId(converter.fromRow(row, prefix + "_parameter_type_definition_id", UUID.class));
         return entity;
     }
 }

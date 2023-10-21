@@ -14,7 +14,7 @@ public class IntegerParameterValueSqlHelper {
         columns.add(Column.aliased("lower", table, columnPrefix + "_lower"));
         columns.add(Column.aliased("upper", table, columnPrefix + "_upper"));
 
-        columns.add(Column.aliased("integer_parameter_id", table, columnPrefix + "_integer_parameter_id"));
+        columns.add(Column.aliased("parameter_type_definition_id", table, columnPrefix + "_parameter_type_definition_id"));
         return columns;
     }
 }

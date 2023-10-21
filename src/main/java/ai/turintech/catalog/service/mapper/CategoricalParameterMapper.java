@@ -17,6 +17,7 @@ public interface CategoricalParameterMapper extends EntityMapper<CategoricalPara
     //    @Mapping(target = "parameterTypeDefinition", source = "parameterTypeDefinition", qualifiedByName = "parameterTypeDefinitionId")
     @Mapping(target = "parameterTypeDefinitionId", source = "parameterTypeDefinitionId")
     @Mapping(target = "defaultValue", source = "defaultValue")
+    @Mapping(target = "categoricalParameterValues", source = "categoricalParameterValues")
     CategoricalParameterDTO toDto(CategoricalParameter s);
 
     @Named("parameterTypeDefinitionId")

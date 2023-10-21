@@ -10,6 +10,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -90,7 +92,7 @@ public class FloatParameterRangeResource {
      */
     @PutMapping("/float-parameter-ranges/{id}")
     public Mono<ResponseEntity<FloatParameterRangeDTO>> updateFloatParameterRange(
-        @PathVariable(value = "id", required = false) final Long id,
+        @PathVariable(value = "id", required = false) final UUID id,
         @Valid @RequestBody FloatParameterRangeDTO floatParameterRangeDTO
     ) throws URISyntaxException {
         log.debug("REST request to update FloatParameterRange : {}, {}", id, floatParameterRangeDTO);
@@ -133,7 +135,7 @@ public class FloatParameterRangeResource {
      */
     @PatchMapping(value = "/float-parameter-ranges/{id}", consumes = { "application/json", "application/merge-patch+json" })
     public Mono<ResponseEntity<FloatParameterRangeDTO>> partialUpdateFloatParameterRange(
-        @PathVariable(value = "id", required = false) final Long id,
+        @PathVariable(value = "id", required = false) final UUID id,
         @NotNull @RequestBody FloatParameterRangeDTO floatParameterRangeDTO
     ) throws URISyntaxException {
         log.debug("REST request to partial update FloatParameterRange partially : {}, {}", id, floatParameterRangeDTO);
@@ -192,7 +194,7 @@ public class FloatParameterRangeResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the floatParameterRangeDTO, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/float-parameter-ranges/{id}")
-    public Mono<ResponseEntity<FloatParameterRangeDTO>> getFloatParameterRange(@PathVariable Long id) {
+    public Mono<ResponseEntity<FloatParameterRangeDTO>> getFloatParameterRange(@PathVariable UUID id) {
         log.debug("REST request to get FloatParameterRange : {}", id);
         Mono<FloatParameterRangeDTO> floatParameterRangeDTO = floatParameterRangeService.findOne(id);
         return ResponseUtil.wrapOrNotFound(floatParameterRangeDTO);
@@ -205,7 +207,7 @@ public class FloatParameterRangeResource {
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
     @DeleteMapping("/float-parameter-ranges/{id}")
-    public Mono<ResponseEntity<Void>> deleteFloatParameterRange(@PathVariable Long id) {
+    public Mono<ResponseEntity<Void>> deleteFloatParameterRange(@PathVariable UUID id) {
         log.debug("REST request to delete FloatParameterRange : {}", id);
         return floatParameterRangeService
             .delete(id)

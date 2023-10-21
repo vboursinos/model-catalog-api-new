@@ -11,7 +11,6 @@ import org.mapstruct.*;
  */
 @Mapper(componentModel = "spring")
 public interface CategoricalParameterValueMapper extends EntityMapper<CategoricalParameterValueDTO, CategoricalParameterValue> {
-    @Mapping(target = "categoricalParameter", source = "categoricalParameter", qualifiedByName = "categoricalParameterId")
     CategoricalParameterValueDTO toDto(CategoricalParameterValue s);
 
     @Named("categoricalParameterId")

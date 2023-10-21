@@ -2,9 +2,8 @@ package ai.turintech.catalog.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.io.Serializable;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
@@ -28,7 +27,7 @@ public class IntegerParameter implements Serializable {
 
     @Transient
     @JsonIgnoreProperties(value = { "integerParameter" }, allowSetters = true)
-    private Set<IntegerParameterValue> integerParameterValues = new HashSet<>();
+    private List<IntegerParameterValue> integerParameterValues = new ArrayList<>();
 
     // jhipster-needle-entity-add-field - JHipster will add fields here
 
@@ -50,34 +49,16 @@ public class IntegerParameter implements Serializable {
         this.defaultValue = defaultValue;
     }
 
-    public Set<IntegerParameterValue> getIntegerParameterValues() {
+    public List<IntegerParameterValue> getIntegerParameterValues() {
         return this.integerParameterValues;
     }
 
-    public void setIntegerParameterValues(Set<IntegerParameterValue> integerParameterValues) {
-        if (this.integerParameterValues != null) {
-            this.integerParameterValues.forEach(i -> i.setIntegerParameter(null));
-        }
-        if (integerParameterValues != null) {
-            integerParameterValues.forEach(i -> i.setIntegerParameter(this));
-        }
+    public void setIntegerParameterValues(List<IntegerParameterValue> integerParameterValues) {
         this.integerParameterValues = integerParameterValues;
     }
 
-    public IntegerParameter integerParameterValues(Set<IntegerParameterValue> integerParameterValues) {
+    public IntegerParameter integerParameterValues(List<IntegerParameterValue> integerParameterValues) {
         this.setIntegerParameterValues(integerParameterValues);
-        return this;
-    }
-
-    public IntegerParameter addIntegerParameterValue(IntegerParameterValue integerParameterValue) {
-        this.integerParameterValues.add(integerParameterValue);
-        integerParameterValue.setIntegerParameter(this);
-        return this;
-    }
-
-    public IntegerParameter removeIntegerParameterValue(IntegerParameterValue integerParameterValue) {
-        this.integerParameterValues.remove(integerParameterValue);
-        integerParameterValue.setIntegerParameter(null);
         return this;
     }
 
@@ -112,8 +93,9 @@ public class IntegerParameter implements Serializable {
     @Override
     public String toString() {
         return "IntegerParameter{" +
-            "parameterTypeDefinitionId=" + getParameterTypeDefinitionId() +
-            ", defaultValue=" + getDefaultValue() +
-            "}";
+                "parameterTypeDefinitionId=" + parameterTypeDefinitionId +
+                ", defaultValue=" + defaultValue +
+                ", integerParameterValues=" + integerParameterValues +
+                '}';
     }
 }

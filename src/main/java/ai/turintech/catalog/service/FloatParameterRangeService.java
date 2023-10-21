@@ -10,6 +10,8 @@ import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.UUID;
+
 /**
  * Service Implementation for managing {@link ai.turintech.catalog.domain.FloatParameterRange}.
  */
@@ -104,7 +106,7 @@ public class FloatParameterRangeService {
      * @return the entity.
      */
     @Transactional(readOnly = true)
-    public Mono<FloatParameterRangeDTO> findOne(Long id) {
+    public Mono<FloatParameterRangeDTO> findOne(UUID id) {
         log.debug("Request to get FloatParameterRange : {}", id);
         return floatParameterRangeRepository.findById(id).map(floatParameterRangeMapper::toDto);
     }
@@ -115,7 +117,7 @@ public class FloatParameterRangeService {
      * @param id the id of the entity.
      * @return a Mono to signal the deletion
      */
-    public Mono<Void> delete(Long id) {
+    public Mono<Void> delete(UUID id) {
         log.debug("Request to delete FloatParameterRange : {}", id);
         return floatParameterRangeRepository.deleteById(id);
     }

@@ -8,15 +8,17 @@ import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.UUID;
+
 /**
  * Spring Data R2DBC repository for the FloatParameterRange entity.
  */
 @SuppressWarnings("unused")
 @Repository
 public interface FloatParameterRangeRepository
-    extends ReactiveCrudRepository<FloatParameterRange, Long>, FloatParameterRangeRepositoryInternal {
+    extends ReactiveCrudRepository<FloatParameterRange, UUID>, FloatParameterRangeRepositoryInternal {
     @Query("SELECT * FROM float_parameter_range entity WHERE entity.float_parameter_id = :id")
-    Flux<FloatParameterRange> findByFloatParameter(Long id);
+    Flux<FloatParameterRange> findByFloatParameter(UUID id);
 
     @Query("SELECT * FROM float_parameter_range entity WHERE entity.float_parameter_id IS NULL")
     Flux<FloatParameterRange> findAllWhereFloatParameterIsNull();
@@ -28,10 +30,10 @@ public interface FloatParameterRangeRepository
     Flux<FloatParameterRange> findAll();
 
     @Override
-    Mono<FloatParameterRange> findById(Long id);
+    Mono<FloatParameterRange> findById(UUID id);
 
     @Override
-    Mono<Void> deleteById(Long id);
+    Mono<Void> deleteById(UUID id);
 }
 
 interface FloatParameterRangeRepositoryInternal {
@@ -41,7 +43,7 @@ interface FloatParameterRangeRepositoryInternal {
 
     Flux<FloatParameterRange> findAll();
 
-    Mono<FloatParameterRange> findById(Long id);
+    Mono<FloatParameterRange> findById(UUID id);
     // this is not supported at the moment because of https://github.com/jhipster/generator-jhipster/issues/18269
     // Flux<FloatParameterRange> findAllBy(Pageable pageable, Criteria criteria);
 }

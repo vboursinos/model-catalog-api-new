@@ -10,6 +10,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -90,7 +92,7 @@ public class CategoricalParameterValueResource {
      */
     @PutMapping("/categorical-parameter-values/{id}")
     public Mono<ResponseEntity<CategoricalParameterValueDTO>> updateCategoricalParameterValue(
-        @PathVariable(value = "id", required = false) final Long id,
+        @PathVariable(value = "id", required = false) final UUID id,
         @Valid @RequestBody CategoricalParameterValueDTO categoricalParameterValueDTO
     ) throws URISyntaxException {
         log.debug("REST request to update CategoricalParameterValue : {}, {}", id, categoricalParameterValueDTO);
@@ -133,7 +135,7 @@ public class CategoricalParameterValueResource {
      */
     @PatchMapping(value = "/categorical-parameter-values/{id}", consumes = { "application/json", "application/merge-patch+json" })
     public Mono<ResponseEntity<CategoricalParameterValueDTO>> partialUpdateCategoricalParameterValue(
-        @PathVariable(value = "id", required = false) final Long id,
+        @PathVariable(value = "id", required = false) final UUID id,
         @NotNull @RequestBody CategoricalParameterValueDTO categoricalParameterValueDTO
     ) throws URISyntaxException {
         log.debug("REST request to partial update CategoricalParameterValue partially : {}, {}", id, categoricalParameterValueDTO);
@@ -192,7 +194,7 @@ public class CategoricalParameterValueResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the categoricalParameterValueDTO, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/categorical-parameter-values/{id}")
-    public Mono<ResponseEntity<CategoricalParameterValueDTO>> getCategoricalParameterValue(@PathVariable Long id) {
+    public Mono<ResponseEntity<CategoricalParameterValueDTO>> getCategoricalParameterValue(@PathVariable UUID id) {
         log.debug("REST request to get CategoricalParameterValue : {}", id);
         Mono<CategoricalParameterValueDTO> categoricalParameterValueDTO = categoricalParameterValueService.findOne(id);
         return ResponseUtil.wrapOrNotFound(categoricalParameterValueDTO);
@@ -205,7 +207,7 @@ public class CategoricalParameterValueResource {
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
     @DeleteMapping("/categorical-parameter-values/{id}")
-    public Mono<ResponseEntity<Void>> deleteCategoricalParameterValue(@PathVariable Long id) {
+    public Mono<ResponseEntity<Void>> deleteCategoricalParameterValue(@PathVariable UUID id) {
         log.debug("REST request to delete CategoricalParameterValue : {}", id);
         return categoricalParameterValueService
             .delete(id)

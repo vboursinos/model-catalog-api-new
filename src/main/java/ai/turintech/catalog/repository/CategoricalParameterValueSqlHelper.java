@@ -13,7 +13,7 @@ public class CategoricalParameterValueSqlHelper {
         columns.add(Column.aliased("id", table, columnPrefix + "_id"));
         columns.add(Column.aliased("value", table, columnPrefix + "_value"));
 
-        columns.add(Column.aliased("categorical_parameter_id", table, columnPrefix + "_categorical_parameter_id"));
+        columns.add(Column.aliased("parameter_type_definition_id", table, columnPrefix + "_parameter_type_definition_id"));
         return columns;
     }
 }

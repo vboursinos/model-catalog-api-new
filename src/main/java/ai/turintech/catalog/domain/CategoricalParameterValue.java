@@ -21,33 +21,39 @@ public class CategoricalParameterValue implements Serializable {
 
     @Id
     @Column("id")
-    private Long id;
+    private UUID id;
 
     @NotNull(message = "must not be null")
     @Column("value")
     private String value;
 
-    @Transient
-    @JsonIgnoreProperties(value = { "parameterTypeDefinition", "categoricalParameterValues" }, allowSetters = true)
-    private CategoricalParameter categoricalParameter;
-
-    @Column("categorical_parameter_id")
-    private UUID categoricalParameterId;
+    @Column("parameter_type_definition_id")
+    private UUID parameterTypeDefinitionId;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here
 
-    public Long getId() {
-        return this.id;
+
+    public UUID getId() {
+        return id;
     }
 
-    public CategoricalParameterValue id(Long id) {
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
+    public UUID getParameterTypeDefinitionId() {
+        return parameterTypeDefinitionId;
+    }
+
+    public void setParameterTypeDefinitionId(UUID parameterTypeDefinitionId) {
+        this.parameterTypeDefinitionId = parameterTypeDefinitionId;
+    }
+
+    public CategoricalParameterValue id(UUID id) {
         this.setId(id);
         return this;
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
 
     public String getValue() {
         return this.value;
@@ -62,27 +68,8 @@ public class CategoricalParameterValue implements Serializable {
         this.value = value;
     }
 
-    public CategoricalParameter getCategoricalParameter() {
-        return this.categoricalParameter;
-    }
 
-    public void setCategoricalParameter(CategoricalParameter categoricalParameter) {
-        this.categoricalParameter = categoricalParameter;
-        this.categoricalParameterId = categoricalParameter != null ? categoricalParameter.getParameterTypeDefinitionId() : null;
-    }
 
-    public CategoricalParameterValue categoricalParameter(CategoricalParameter categoricalParameter) {
-        this.setCategoricalParameter(categoricalParameter);
-        return this;
-    }
-
-    public UUID getCategoricalParameterId() {
-        return categoricalParameterId;
-    }
-
-    public void setCategoricalParameterId(UUID categoricalParameterId) {
-        this.categoricalParameterId = categoricalParameterId;
-    }
 // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
 
     @Override
@@ -103,11 +90,13 @@ public class CategoricalParameterValue implements Serializable {
     }
 
     // prettier-ignore
+
     @Override
     public String toString() {
         return "CategoricalParameterValue{" +
-            "id=" + getId() +
-            ", value='" + getValue() + "'" +
-            "}";
+                "id=" + id +
+                ", value='" + value + '\'' +
+                ", parameterTypeDefinitionId=" + parameterTypeDefinitionId +
+                '}';
     }
 }

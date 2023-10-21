@@ -1,6 +1,8 @@
 package ai.turintech.catalog.service.dto;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -14,8 +16,7 @@ public class CategoricalParameterDTO implements Serializable {
 
     private String defaultValue;
 
-//    private ParameterTypeDefinitionDTO parameterTypeDefinition;
-
+    private List<CategoricalParameterValueDTO> categoricalParameterValues = new ArrayList<>();;
 
     public String getDefaultValue() {
         return defaultValue;
@@ -31,6 +32,14 @@ public class CategoricalParameterDTO implements Serializable {
 
     public void setParameterTypeDefinitionId(UUID parameterTypeDefinitionId) {
         this.parameterTypeDefinitionId = parameterTypeDefinitionId;
+    }
+
+    public List<CategoricalParameterValueDTO> getCategoricalParameterValues() {
+        return categoricalParameterValues;
+    }
+
+    public void setCategoricalParameterValues(List<CategoricalParameterValueDTO> categoricalParameterValues) {
+        this.categoricalParameterValues = categoricalParameterValues;
     }
 
     @Override

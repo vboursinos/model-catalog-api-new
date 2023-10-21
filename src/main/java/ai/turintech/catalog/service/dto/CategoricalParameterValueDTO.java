@@ -3,6 +3,7 @@ package ai.turintech.catalog.service.dto;
 import jakarta.validation.constraints.*;
 import java.io.Serializable;
 import java.util.Objects;
+import java.util.UUID;
 
 /**
  * A DTO for the {@link ai.turintech.catalog.domain.CategoricalParameterValue} entity.
@@ -10,18 +11,15 @@ import java.util.Objects;
 @SuppressWarnings("common-java:DuplicatedBlocks")
 public class CategoricalParameterValueDTO implements Serializable {
 
-    private Long id;
-
+    private UUID id;
     @NotNull(message = "must not be null")
     private String value;
 
-    private CategoricalParameterDTO categoricalParameter;
-
-    public Long getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 
@@ -33,13 +31,6 @@ public class CategoricalParameterValueDTO implements Serializable {
         this.value = value;
     }
 
-    public CategoricalParameterDTO getCategoricalParameter() {
-        return categoricalParameter;
-    }
-
-    public void setCategoricalParameter(CategoricalParameterDTO categoricalParameter) {
-        this.categoricalParameter = categoricalParameter;
-    }
 
     @Override
     public boolean equals(Object o) {
@@ -68,7 +59,6 @@ public class CategoricalParameterValueDTO implements Serializable {
         return "CategoricalParameterValueDTO{" +
             "id=" + getId() +
             ", value='" + getValue() + "'" +
-            ", categoricalParameter=" + getCategoricalParameter() +
             "}";
     }
 }

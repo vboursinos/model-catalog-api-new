@@ -6,6 +6,8 @@ import ai.turintech.catalog.repository.rowmapper.FloatParameterRowMapper;
 import io.r2dbc.spi.Row;
 import io.r2dbc.spi.RowMetadata;
 import java.util.List;
+import java.util.UUID;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.r2dbc.convert.R2dbcConverter;
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations;
@@ -30,7 +32,7 @@ import reactor.core.publisher.Mono;
  */
 @SuppressWarnings("unused")
 class FloatParameterRangeRepositoryInternalImpl
-    extends SimpleR2dbcRepository<FloatParameterRange, Long>
+    extends SimpleR2dbcRepository<FloatParameterRange, UUID>
     implements FloatParameterRangeRepositoryInternal {
 
     private final DatabaseClient db;
@@ -89,14 +91,13 @@ class FloatParameterRangeRepositoryInternalImpl
     }
 
     @Override
-    public Mono<FloatParameterRange> findById(Long id) {
+    public Mono<FloatParameterRange> findById(UUID id) {
         Comparison whereClause = Conditions.isEqual(entityTable.column("id"), Conditions.just(id.toString()));
         return createQuery(null, whereClause).one();
     }
 
     private FloatParameterRange process(Row row, RowMetadata metadata) {
         FloatParameterRange entity = floatparameterrangeMapper.apply(row, "e");
-        entity.setFloatParameter(floatparameterMapper.apply(row, "floatParameter"));
         return entity;
     }
 

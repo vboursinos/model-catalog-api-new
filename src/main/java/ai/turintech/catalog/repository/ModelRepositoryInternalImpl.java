@@ -32,7 +32,6 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
     private final DatabaseClient db;
     private final R2dbcEntityTemplate r2dbcEntityTemplate;
     private final EntityManager entityManager;
-
     private final MlTaskTypeRowMapper mltasktypeMapper;
     private final ModelStructureTypeRowMapper modelstructuretypeMapper;
     private final ModelTypeRowMapper modeltypeMapper;
@@ -48,9 +47,12 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
     private final CategoricalParameterRowMapper categoricalParameterMapper;
     private final BooleanParameterRowMapper booleanParameterMapper;
     private final IntegerParameterRowMapper integerParameterMapper;
-    private final FloatParameterRowMapper flaotParameterMapper;
+    private final FloatParameterRowMapper floatParameterMapper;
     private final ParameterTypeRowMapper parametertypeMapper;
 
+    private final CategoricalParameterValueRowMapper categoricalparametervalueMapper;
+    private final IntegerParameterValueRowMapper integerparametervalueMapper;
+    private final FloatParameterRangeRowMapper floatparameterrangeMapper;
     private static final Table entityTable = Table.aliased("model", EntityManager.ENTITY_ALIAS);
     private static final Table mlTaskTable = Table.aliased("ml_task_type", "mlTask");
     private static final Table structureTable = Table.aliased("model_structure_type", "e_structure");
@@ -62,10 +64,12 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
     private static final Table parameterDistributionTypeTable = Table.aliased("parameter_distribution_type", "parameterDistributionType");
     private static final Table parameterTypeTable = Table.aliased("parameter_type", "parameterType");
     private static final Table categoricalParameterTable = Table.aliased("categorical_parameter", "categoricalParameter");
+    private static final Table categoricalParameterValueTable = Table.aliased("categorical_parameter_value", "categoricalParameterValue");
     private static final Table booleanParameterTable = Table.aliased("boolean_parameter", "booleanParameter");
     private static final Table integerParameterTable = Table.aliased("integer_parameter", "integerParameter");
+    private static final Table integerParameterValueTable = Table.aliased("integer_parameter_value", "integerParameterValue");
     private static final Table floatParameterTable = Table.aliased("float_parameter", "floatParameter");
-
+    private static final Table floatParameterRangeTable = Table.aliased("float_parameter_range", "floatParameterRange");
     private static final Table groupTable = Table.aliased("model_group_type", "modelGroup");
     private static final Table modelGroupTable = Table.aliased("rel_model__groups", "rel_model__groups");
     private static final Table metricTable = Table.aliased("metric", "metric");
@@ -92,9 +96,12 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
         ParameterDistributionTypeRowMapper parameterDistributionTypeMapper,
         ParameterTypeRowMapper parameterTypeMapper,
         CategoricalParameterRowMapper categoricalParameterMapper,
+        CategoricalParameterValueRowMapper categoricalParameterValueMapper,
         BooleanParameterRowMapper booleanParameterMapper,
         IntegerParameterRowMapper integerParameterMapper,
-        FloatParameterRowMapper flaotParameterMapper,
+        IntegerParameterValueRowMapper integerParameterValueMapper,
+        FloatParameterRowMapper floatParameterMapper,
+        FloatParameterRangeRowMapper floatParameterRangeMapper,
         ModelGroupTypeRowMapper modelGroupTypeMapper,
         MetricRowMapper metricMapper,
         R2dbcEntityOperations entityOperations,
@@ -119,9 +126,12 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
         this.parameterdistributiontypeMapper = parameterDistributionTypeMapper;
         this.parametertypeMapper = parameterTypeMapper;
         this.categoricalParameterMapper = categoricalParameterMapper;
+        this.categoricalparametervalueMapper = categoricalParameterValueMapper;
         this.booleanParameterMapper = booleanParameterMapper;
         this.integerParameterMapper = integerParameterMapper;
-        this.flaotParameterMapper = flaotParameterMapper;
+        this.integerparametervalueMapper = integerParameterValueMapper;
+        this.floatParameterMapper = floatParameterMapper;
+        this.floatparameterrangeMapper = floatParameterRangeMapper;
         this.modelGroupTypeMapper = modelGroupTypeMapper;
         this.metricMapper = metricMapper;
     }
@@ -276,6 +286,51 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
         return mappedResults;
     }
 
+    RowsFetchSpec<CategoricalParameterValue> createCategoricalValuesJoinQuery(Pageable pageable, Condition whereClause) {
+        List<Expression> columns = new ArrayList<>();
+        columns.addAll(CategoricalParameterValueSqlHelper.getColumns(categoricalParameterValueTable, "categoricalparametervalue"));
+        SelectFromAndJoinCondition selectFrom = Select
+                .builder()
+                .select(columns)
+                .from(categoricalParameterTable)
+                .leftOuterJoin(categoricalParameterValueTable)
+                .on(Column.create("parameter_type_definition_id", categoricalParameterTable))
+                .equals(Column.create("parameter_type_definition_id", categoricalParameterValueTable));
+        String select = entityManager.createSelect(selectFrom, Model.class, pageable, whereClause);
+        RowsFetchSpec<CategoricalParameterValue> mappedResults = db.sql(select).map(this::processCategoricalParameterValue);
+        return mappedResults;
+    }
+
+    RowsFetchSpec<IntegerParameterValue> createIntegerValuesJoinQuery(Pageable pageable, Condition whereClause) {
+        List<Expression> columns = new ArrayList<>();
+        columns.addAll(IntegerParameterValueSqlHelper.getColumns(integerParameterValueTable, "integerparametervalue"));
+        SelectFromAndJoinCondition selectFrom = Select
+                .builder()
+                .select(columns)
+                .from(integerParameterTable)
+                .leftOuterJoin(integerParameterValueTable)
+                .on(Column.create("parameter_type_definition_id", integerParameterTable))
+                .equals(Column.create("parameter_type_definition_id", integerParameterValueTable));
+        String select = entityManager.createSelect(selectFrom, Model.class, pageable, whereClause);
+        RowsFetchSpec<IntegerParameterValue> mappedResults = db.sql(select).map(this::processIntegerParameterValue);
+        return mappedResults;
+    }
+
+    RowsFetchSpec<FloatParameterRange> createFloatValuesJoinQuery(Pageable pageable, Condition whereClause) {
+        List<Expression> columns = new ArrayList<>();
+        columns.addAll(FloatParameterRangeSqlHelper.getColumns(floatParameterRangeTable, "floatparameterrange"));
+        SelectFromAndJoinCondition selectFrom = Select
+                .builder()
+                .select(columns)
+                .from(floatParameterTable)
+                .leftOuterJoin(floatParameterRangeTable)
+                .on(Column.create("parameter_type_definition_id", floatParameterTable))
+                .equals(Column.create("parameter_type_definition_id", floatParameterRangeTable));
+        String select = entityManager.createSelect(selectFrom, Model.class, pageable, whereClause);
+        RowsFetchSpec<FloatParameterRange> mappedResults = db.sql(select).map(this::processFloatParameterValue);
+        return mappedResults;
+    }
+
     @Override
     public Flux<Model> findAll() {
         return findAllBy(null);
@@ -288,7 +343,7 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
         Mono<List<Parameter>> parameters = createParameterQuery(null, whereClause).all().collectList();
         Mono<List<ModelGroupType>> groups = createModelGroupJoinQuery(null, whereClause).all().collectList();
         Mono<List<Metric>> metrics = createModelMetricJoinQuery(null, whereClause).all().collectList();
-
+//        Mono<List<CategoricalParameterValue>> categoricalParameterValues = createCategoricalValuesJoinQuery(null, whereClause).all().collectList();
 
         Mono<Model> modelWithParameters = parameters.flatMap(parameterList -> {
             // Fetch ParameterTypeDefinition for each Parameter and then proceed with setting parameters.
@@ -298,6 +353,7 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
 
                 return createParameterTypeDefinitionQuery(null, whereClauseForPTD).all().collectList()
                         .flatMap(parameterTypeDefinitions -> {
+                            // Fetch ParameterDistributionType for each ParameterTypeDefinition
                             List<Mono<ParameterTypeDefinition>> defsDistribution = parameterTypeDefinitions.stream().map(def -> {
                                 Comparison whereClauseForDist = Conditions.isEqual(parameterTypeDefinitionTable.column("id"),
                                         Conditions.just(StringUtils.wrap(def.getId().toString(), "'")));
@@ -318,28 +374,53 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
                     .flatMap(mono -> mono)
                     .collectList()
                     .flatMap(updatedParameters -> {
-                        // Now it's the time to proceed with setting parameters.
                         return model.doOnNext(m -> {
-                            m.setParameters(updatedParameters);  // set the list of parameters.
-
-                            // Print size of the list.
-                            System.out.println("Size: " + updatedParameters.size());
-
-                            // Print all elements of the list.
-                            for (Parameter p : updatedParameters) {
-                                System.out.println(p.toString()); // Assuming Parameter class has a proper toString() method.
-                            }
+                            m.setParameters(updatedParameters);
                         });
                     });
-        }).zipWith(groups).zipWith(metrics).map(tuple -> {
+        }).zipWith(groups).zipWith(metrics).flatMap(tuple -> {
             Model mod = tuple.getT1().getT1();
             List<ModelGroupType> modelGroupTypes = tuple.getT1().getT2();
             List<Metric> modelMetrics = tuple.getT2();
 
             mod.setGroups(modelGroupTypes);
-            mod.setIncompatibleMetrics(modelMetrics);  // Assuming Model class has a setMetrics() method
+            mod.setIncompatibleMetrics(modelMetrics);
 
-            return mod;
+            // Fetch and set CategoricalParameterValue for each Parameter -> ParameterTypeDefinition
+            List<Mono<Parameter>> parametersWithValues = mod.getParameters().stream().map(parameter -> {
+                return Flux.fromIterable(parameter.getDefinitions()).flatMap(def -> {
+                            if (def.getCategoricalParameter() != null) {
+                                Comparison whereClauseForValues = Conditions.isEqual(categoricalParameterTable.column("parameter_type_definition_id"),
+                                        Conditions.just(StringUtils.wrap(def.getId().toString(), "'")));
+                                return createCategoricalValuesJoinQuery(null, whereClauseForValues).all()
+                                        .collectList()
+                                        .doOnNext(categoricalParameterValues -> {
+                                            def.getCategoricalParameter().setCategoricalParameterValues(categoricalParameterValues);
+                                            System.out.println("Categorical Parameter Values fetched: " + categoricalParameterValues);  // Added print
+                                        })
+                                        .thenReturn(def);
+                            } else {
+                                return Flux.just(def);
+                            }
+                        }).collectList()
+                        .doOnNext(updatedDefs -> {
+                            parameter.setDefinitions(updatedDefs);
+                            updatedDefs.forEach(def -> {
+                                if (def.getCategoricalParameter() != null) {
+                                    System.out.println("After set: " + def.getCategoricalParameter()); // Print after set
+                                }
+                            });
+                        })
+                        .thenReturn(parameter);
+            }).collect(Collectors.toList());
+
+            return Flux.fromIterable(parametersWithValues)
+                    .flatMap(mono -> mono)
+                    .collectList()
+                    .doOnNext(updatedParameters -> {
+                        mod.setParameters(updatedParameters);
+                    })
+                    .thenReturn(mod);
         });
 
         modelWithParameters.subscribe(
@@ -413,8 +494,23 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
         parameterTypeDefinition.setCategoricalParameter(categoricalParameterMapper.apply(row, "categoricalparameter"));
         parameterTypeDefinition.setBooleanParameter(booleanParameterMapper.apply(row, "booleanparameter"));
         parameterTypeDefinition.setIntegerParameter(integerParameterMapper.apply(row, "integerparameter"));
-        parameterTypeDefinition.setFloatParameter(flaotParameterMapper.apply(row, "floatparameter"));
+        parameterTypeDefinition.setFloatParameter(floatParameterMapper.apply(row, "floatparameter"));
         return parameterTypeDefinition;
+    }
+
+    private CategoricalParameterValue processCategoricalParameterValue(Row row, RowMetadata metadata) {
+        CategoricalParameterValue categoricalParameterValue = categoricalparametervalueMapper.apply(row, "categoricalparametervalue");
+        return categoricalParameterValue;
+    }
+
+    private IntegerParameterValue processIntegerParameterValue(Row row, RowMetadata metadata) {
+        IntegerParameterValue integerParameterValue = integerparametervalueMapper.apply(row, "integerparametervalue");
+        return integerParameterValue;
+    }
+
+    private FloatParameterRange processFloatParameterValue(Row row, RowMetadata metadata) {
+        FloatParameterRange floatParameterRange = floatparameterrangeMapper.apply(row, "floatparameterrange");
+        return floatParameterRange;
     }
 
     @Override

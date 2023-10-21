@@ -2,9 +2,8 @@ package ai.turintech.catalog.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.io.Serializable;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
@@ -28,7 +27,7 @@ public class CategoricalParameter implements Serializable {
 
     @Transient
     @JsonIgnoreProperties(value = { "categoricalParameter" }, allowSetters = true)
-    private Set<CategoricalParameterValue> categoricalParameterValues = new HashSet<>();
+    private List<CategoricalParameterValue> categoricalParameterValues = new ArrayList<>();
     // jhipster-needle-entity-add-field - JHipster will add fields here
 
 
@@ -51,34 +50,16 @@ public class CategoricalParameter implements Serializable {
         this.defaultValue = defaultValue;
     }
 
-    public Set<CategoricalParameterValue> getCategoricalParameterValues() {
+    public List<CategoricalParameterValue> getCategoricalParameterValues() {
         return this.categoricalParameterValues;
     }
 
-    public void setCategoricalParameterValues(Set<CategoricalParameterValue> categoricalParameterValues) {
-        if (this.categoricalParameterValues != null) {
-            this.categoricalParameterValues.forEach(i -> i.setCategoricalParameter(null));
-        }
-        if (categoricalParameterValues != null) {
-            categoricalParameterValues.forEach(i -> i.setCategoricalParameter(this));
-        }
+    public void setCategoricalParameterValues(List<CategoricalParameterValue> categoricalParameterValues) {
         this.categoricalParameterValues = categoricalParameterValues;
     }
 
-    public CategoricalParameter categoricalParameterValues(Set<CategoricalParameterValue> categoricalParameterValues) {
+    public CategoricalParameter categoricalParameterValues(List<CategoricalParameterValue> categoricalParameterValues) {
         this.setCategoricalParameterValues(categoricalParameterValues);
-        return this;
-    }
-
-    public CategoricalParameter addCategoricalParameterValue(CategoricalParameterValue categoricalParameterValue) {
-        this.categoricalParameterValues.add(categoricalParameterValue);
-        categoricalParameterValue.setCategoricalParameter(this);
-        return this;
-    }
-
-    public CategoricalParameter removeCategoricalParameterValue(CategoricalParameterValue categoricalParameterValue) {
-        this.categoricalParameterValues.remove(categoricalParameterValue);
-        categoricalParameterValue.setCategoricalParameter(null);
         return this;
     }
 
@@ -110,11 +91,13 @@ public class CategoricalParameter implements Serializable {
     }
 
     // prettier-ignore
+
     @Override
     public String toString() {
         return "CategoricalParameter{" +
-            "parameterTypeDefinitionId=" + getParameterTypeDefinitionId() +
-            ", defaultValue='" + getDefaultValue() + "'" +
-            "}";
+                "parameterTypeDefinitionId=" + parameterTypeDefinitionId +
+                ", defaultValue='" + defaultValue + '\'' +
+                ", categoricalParameterValues=" + categoricalParameterValues +
+                '}';
     }
 }

@@ -21,7 +21,7 @@ public class IntegerParameterValue implements Serializable {
 
     @Id
     @Column("id")
-    private Long id;
+    private UUID id;
 
     @NotNull(message = "must not be null")
     @Column("lower")
@@ -31,25 +31,21 @@ public class IntegerParameterValue implements Serializable {
     @Column("upper")
     private Integer upper;
 
-    @Transient
-    @JsonIgnoreProperties(value = { "parameterTypeDefinition", "integerParameterValues" }, allowSetters = true)
-    private IntegerParameter integerParameter;
-
-    @Column("integer_parameter_id")
-    private UUID integerParameterId;
+    @Column("parameter_type_definition_id")
+    private UUID parameterTypeDefinitionId;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here
 
-    public Long getId() {
+    public UUID getId() {
         return this.id;
     }
 
-    public IntegerParameterValue id(Long id) {
+    public IntegerParameterValue id(UUID id) {
         this.setId(id);
         return this;
     }
 
-    public void setId(Long id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 
@@ -79,26 +75,12 @@ public class IntegerParameterValue implements Serializable {
         this.upper = upper;
     }
 
-    public IntegerParameter getIntegerParameter() {
-        return this.integerParameter;
+    public UUID getParameterTypeDefinitionId() {
+        return parameterTypeDefinitionId;
     }
 
-    public void setIntegerParameter(IntegerParameter integerParameter) {
-        this.integerParameter = integerParameter;
-        this.integerParameterId = integerParameter != null ? integerParameter.getParameterTypeDefinitionId() : null;
-    }
-
-    public IntegerParameterValue integerParameter(IntegerParameter integerParameter) {
-        this.setIntegerParameter(integerParameter);
-        return this;
-    }
-
-    public UUID getIntegerParameterId() {
-        return this.integerParameterId;
-    }
-
-    public void setIntegerParameterId(UUID integerParameter) {
-        this.integerParameterId = integerParameter;
+    public void setParameterTypeDefinitionId(UUID parameterTypeDefinitionId) {
+        this.parameterTypeDefinitionId = parameterTypeDefinitionId;
     }
 
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
@@ -121,12 +103,14 @@ public class IntegerParameterValue implements Serializable {
     }
 
     // prettier-ignore
+
     @Override
     public String toString() {
         return "IntegerParameterValue{" +
-            "id=" + getId() +
-            ", lower=" + getLower() +
-            ", upper=" + getUpper() +
-            "}";
+                "id=" + id +
+                ", lower=" + lower +
+                ", upper=" + upper +
+                ", parameterTypeDefinitionId=" + parameterTypeDefinitionId +
+                '}';
     }
 }

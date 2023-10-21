@@ -21,7 +21,7 @@ public class FloatParameterRange implements Serializable {
 
     @Id
     @Column("id")
-    private Long id;
+    private UUID id;
 
     @NotNull(message = "must not be null")
     @Column("is_left_open")
@@ -39,25 +39,21 @@ public class FloatParameterRange implements Serializable {
     @Column("upper")
     private Double upper;
 
-    @Transient
-    @JsonIgnoreProperties(value = { "parameterTypeDefinition", "floatParameterRanges" }, allowSetters = true)
-    private FloatParameter floatParameter;
-
-    @Column("float_parameter_id")
-    private UUID floatParameterId;
+    @Column("parameter_type_definition_id")
+    private UUID parameterTypeDefinitionId;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here
 
-    public Long getId() {
+    public UUID getId() {
         return this.id;
     }
 
-    public FloatParameterRange id(Long id) {
+    public FloatParameterRange id(UUID id) {
         this.setId(id);
         return this;
     }
 
-    public void setId(Long id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 
@@ -113,27 +109,14 @@ public class FloatParameterRange implements Serializable {
         this.upper = upper;
     }
 
-    public FloatParameter getFloatParameter() {
-        return this.floatParameter;
+    public UUID getParameterTypeDefinitionId() {
+        return parameterTypeDefinitionId;
     }
 
-    public void setFloatParameter(FloatParameter floatParameter) {
-        this.floatParameter = floatParameter;
-        this.floatParameterId = floatParameter != null ? floatParameter.getParameterTypeDefinitionId() : null;
+    public void setParameterTypeDefinitionId(UUID parameterTypeDefinitionId) {
+        this.parameterTypeDefinitionId = parameterTypeDefinitionId;
     }
 
-    public FloatParameterRange floatParameter(FloatParameter floatParameter) {
-        this.setFloatParameter(floatParameter);
-        return this;
-    }
-
-    public UUID getFloatParameterId() {
-        return floatParameterId;
-    }
-
-    public void setFloatParameterId(UUID floatParameterId) {
-        this.floatParameterId = floatParameterId;
-    }
 // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
 
     @Override
@@ -157,11 +140,12 @@ public class FloatParameterRange implements Serializable {
     @Override
     public String toString() {
         return "FloatParameterRange{" +
-            "id=" + getId() +
-            ", isLeftOpen='" + getIsLeftOpen() + "'" +
-            ", isRightOpen='" + getIsRightOpen() + "'" +
-            ", lower=" + getLower() +
-            ", upper=" + getUpper() +
-            "}";
+                "id=" + id +
+                ", isLeftOpen=" + isLeftOpen +
+                ", isRightOpen=" + isRightOpen +
+                ", lower=" + lower +
+                ", upper=" + upper +
+                ", parameterTypeDefinitionId=" + parameterTypeDefinitionId +
+                '}';
     }
 }

@@ -6,6 +6,8 @@ import ai.turintech.catalog.repository.rowmapper.IntegerParameterValueRowMapper;
 import io.r2dbc.spi.Row;
 import io.r2dbc.spi.RowMetadata;
 import java.util.List;
+import java.util.UUID;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.r2dbc.convert.R2dbcConverter;
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations;
@@ -30,7 +32,7 @@ import reactor.core.publisher.Mono;
  */
 @SuppressWarnings("unused")
 class IntegerParameterValueRepositoryInternalImpl
-    extends SimpleR2dbcRepository<IntegerParameterValue, Long>
+    extends SimpleR2dbcRepository<IntegerParameterValue, UUID>
     implements IntegerParameterValueRepositoryInternal {
 
     private final DatabaseClient db;
@@ -89,14 +91,13 @@ class IntegerParameterValueRepositoryInternalImpl
     }
 
     @Override
-    public Mono<IntegerParameterValue> findById(Long id) {
+    public Mono<IntegerParameterValue> findById(UUID id) {
         Comparison whereClause = Conditions.isEqual(entityTable.column("id"), Conditions.just(id.toString()));
         return createQuery(null, whereClause).one();
     }
 
     private IntegerParameterValue process(Row row, RowMetadata metadata) {
         IntegerParameterValue entity = integerparametervalueMapper.apply(row, "e");
-        entity.setIntegerParameter(integerparameterMapper.apply(row, "integerParameter"));
         return entity;
     }
 

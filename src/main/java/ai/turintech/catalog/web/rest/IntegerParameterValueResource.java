@@ -10,6 +10,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -90,7 +92,7 @@ public class IntegerParameterValueResource {
      */
     @PutMapping("/integer-parameter-values/{id}")
     public Mono<ResponseEntity<IntegerParameterValueDTO>> updateIntegerParameterValue(
-        @PathVariable(value = "id", required = false) final Long id,
+        @PathVariable(value = "id", required = false) final UUID id,
         @Valid @RequestBody IntegerParameterValueDTO integerParameterValueDTO
     ) throws URISyntaxException {
         log.debug("REST request to update IntegerParameterValue : {}, {}", id, integerParameterValueDTO);
@@ -133,7 +135,7 @@ public class IntegerParameterValueResource {
      */
     @PatchMapping(value = "/integer-parameter-values/{id}", consumes = { "application/json", "application/merge-patch+json" })
     public Mono<ResponseEntity<IntegerParameterValueDTO>> partialUpdateIntegerParameterValue(
-        @PathVariable(value = "id", required = false) final Long id,
+        @PathVariable(value = "id", required = false) final UUID id,
         @NotNull @RequestBody IntegerParameterValueDTO integerParameterValueDTO
     ) throws URISyntaxException {
         log.debug("REST request to partial update IntegerParameterValue partially : {}, {}", id, integerParameterValueDTO);
@@ -192,7 +194,7 @@ public class IntegerParameterValueResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the integerParameterValueDTO, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/integer-parameter-values/{id}")
-    public Mono<ResponseEntity<IntegerParameterValueDTO>> getIntegerParameterValue(@PathVariable Long id) {
+    public Mono<ResponseEntity<IntegerParameterValueDTO>> getIntegerParameterValue(@PathVariable UUID id) {
         log.debug("REST request to get IntegerParameterValue : {}", id);
         Mono<IntegerParameterValueDTO> integerParameterValueDTO = integerParameterValueService.findOne(id);
         return ResponseUtil.wrapOrNotFound(integerParameterValueDTO);
@@ -205,7 +207,7 @@ public class IntegerParameterValueResource {
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
     @DeleteMapping("/integer-parameter-values/{id}")
-    public Mono<ResponseEntity<Void>> deleteIntegerParameterValue(@PathVariable Long id) {
+    public Mono<ResponseEntity<Void>> deleteIntegerParameterValue(@PathVariable UUID id) {
         log.debug("REST request to delete IntegerParameterValue : {}", id);
         return integerParameterValueService
             .delete(id)

@@ -26,9 +26,9 @@ public class CategoricalParameterValueRowMapper implements BiFunction<Row, Strin
     @Override
     public CategoricalParameterValue apply(Row row, String prefix) {
         CategoricalParameterValue entity = new CategoricalParameterValue();
-        entity.setId(converter.fromRow(row, prefix + "_id", Long.class));
+        entity.setId(converter.fromRow(row, prefix + "_id", UUID.class));
         entity.setValue(converter.fromRow(row, prefix + "_value", String.class));
-        entity.setCategoricalParameterId(converter.fromRow(row, prefix + "_categorical_parameter_id", UUID.class));
+        entity.setParameterTypeDefinitionId(converter.fromRow(row, prefix + "_parameter_type_definition_id", UUID.class));
         return entity;
     }
 }

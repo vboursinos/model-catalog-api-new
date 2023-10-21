@@ -6,6 +6,8 @@ import ai.turintech.catalog.repository.rowmapper.CategoricalParameterValueRowMap
 import io.r2dbc.spi.Row;
 import io.r2dbc.spi.RowMetadata;
 import java.util.List;
+import java.util.UUID;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.r2dbc.convert.R2dbcConverter;
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations;
@@ -30,7 +32,7 @@ import reactor.core.publisher.Mono;
  */
 @SuppressWarnings("unused")
 class CategoricalParameterValueRepositoryInternalImpl
-    extends SimpleR2dbcRepository<CategoricalParameterValue, Long>
+    extends SimpleR2dbcRepository<CategoricalParameterValue, UUID>
     implements CategoricalParameterValueRepositoryInternal {
 
     private final DatabaseClient db;
@@ -91,14 +93,13 @@ class CategoricalParameterValueRepositoryInternalImpl
     }
 
     @Override
-    public Mono<CategoricalParameterValue> findById(Long id) {
+    public Mono<CategoricalParameterValue> findById(UUID id) {
         Comparison whereClause = Conditions.isEqual(entityTable.column("id"), Conditions.just(id.toString()));
         return createQuery(null, whereClause).one();
     }
 
     private CategoricalParameterValue process(Row row, RowMetadata metadata) {
         CategoricalParameterValue entity = categoricalparametervalueMapper.apply(row, "e");
-        entity.setCategoricalParameter(categoricalparameterMapper.apply(row, "categoricalParameter"));
         return entity;
     }
 

@@ -10,6 +10,8 @@ import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.UUID;
+
 /**
  * Service Implementation for managing {@link ai.turintech.catalog.domain.IntegerParameterValue}.
  */
@@ -104,7 +106,7 @@ public class IntegerParameterValueService {
      * @return the entity.
      */
     @Transactional(readOnly = true)
-    public Mono<IntegerParameterValueDTO> findOne(Long id) {
+    public Mono<IntegerParameterValueDTO> findOne(UUID id) {
         log.debug("Request to get IntegerParameterValue : {}", id);
         return integerParameterValueRepository.findById(id).map(integerParameterValueMapper::toDto);
     }
@@ -115,7 +117,7 @@ public class IntegerParameterValueService {
      * @param id the id of the entity.
      * @return a Mono to signal the deletion
      */
-    public Mono<Void> delete(Long id) {
+    public Mono<Void> delete(UUID id) {
         log.debug("Request to delete IntegerParameterValue : {}", id);
         return integerParameterValueRepository.deleteById(id);
     }

@@ -1,6 +1,8 @@
 package ai.turintech.catalog.service.dto;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -13,6 +15,8 @@ public class FloatParameterDTO implements Serializable {
     private UUID parameterTypeDefinitionId;
 
     private Double defaultValue;
+
+    private List<FloatParameterRangeDTO> floatParameterRanges = new ArrayList<>();
 
     public Double getDefaultValue() {
         return defaultValue;
@@ -29,6 +33,15 @@ public class FloatParameterDTO implements Serializable {
     public void setParameterTypeDefinitionId(UUID parameterTypeDefinitionId) {
         this.parameterTypeDefinitionId = parameterTypeDefinitionId;
     }
+
+    public List<FloatParameterRangeDTO> getFloatParameterRanges() {
+        return floatParameterRanges;
+    }
+
+    public void setFloatParameterRanges(List<FloatParameterRangeDTO> floatParameterRanges) {
+        this.floatParameterRanges = floatParameterRanges;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
