@@ -59,11 +59,11 @@ public class Model implements Serializable, Persistable<UUID> {
 
     @Transient
     @JsonIgnoreProperties(value = { "models" }, allowSetters = true)
-    private Set<ModelGroupType> groups = new HashSet<>();
+    private List<ModelGroupType> groups = new ArrayList<>();
 
     @Transient
     @JsonIgnoreProperties(value = { "models" }, allowSetters = true)
-    private Set<Metric> incompatibleMetrics = new HashSet<>();
+    private List<Metric> incompatibleMetrics = new ArrayList<>();
 
     @Transient
     @JsonIgnoreProperties(value = { "models" }, allowSetters = true)
@@ -230,15 +230,23 @@ public class Model implements Serializable, Persistable<UUID> {
         return this;
     }
 
-    public Set<ModelGroupType> getGroups() {
-        return this.groups;
+    public List<ModelGroupType> getGroups() {
+        return groups;
     }
 
-    public void setGroups(Set<ModelGroupType> modelGroupTypes) {
-        this.groups = modelGroupTypes;
+    public void setGroups(List<ModelGroupType> groups) {
+        this.groups = groups;
     }
 
-    public Model groups(Set<ModelGroupType> modelGroupTypes) {
+    public void setIncompatibleMetrics(List<Metric> incompatibleMetrics) {
+        this.incompatibleMetrics = incompatibleMetrics;
+    }
+
+    public List<Metric> getIncompatibleMetrics() {
+        return incompatibleMetrics;
+    }
+
+    public Model groups(List<ModelGroupType> modelGroupTypes) {
         this.setGroups(modelGroupTypes);
         return this;
     }
@@ -255,15 +263,7 @@ public class Model implements Serializable, Persistable<UUID> {
         return this;
     }
 
-    public Set<Metric> getIncompatibleMetrics() {
-        return this.incompatibleMetrics;
-    }
-
-    public void setIncompatibleMetrics(Set<Metric> metrics) {
-        this.incompatibleMetrics = metrics;
-    }
-
-    public Model incompatibleMetrics(Set<Metric> metrics) {
+    public Model incompatibleMetrics(List<Metric> metrics) {
         this.setIncompatibleMetrics(metrics);
         return this;
     }

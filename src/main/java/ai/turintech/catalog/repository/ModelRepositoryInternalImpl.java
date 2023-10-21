@@ -4,29 +4,24 @@ import ai.turintech.catalog.domain.*;
 import ai.turintech.catalog.repository.rowmapper.*;
 import io.r2dbc.spi.Row;
 import io.r2dbc.spi.RowMetadata;
-
-import java.util.*;
-import java.util.stream.Collectors;
-
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.r2dbc.convert.R2dbcConverter;
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations;
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
 import org.springframework.data.r2dbc.repository.support.SimpleR2dbcRepository;
-import org.springframework.data.relational.core.sql.Column;
-import org.springframework.data.relational.core.sql.Comparison;
-import org.springframework.data.relational.core.sql.Condition;
-import org.springframework.data.relational.core.sql.Conditions;
-import org.springframework.data.relational.core.sql.Expression;
-import org.springframework.data.relational.core.sql.Select;
+import org.springframework.data.relational.core.sql.*;
 import org.springframework.data.relational.core.sql.SelectBuilder.SelectFromAndJoinCondition;
-import org.springframework.data.relational.core.sql.Table;
 import org.springframework.data.relational.repository.support.MappingRelationalEntityInformation;
 import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.r2dbc.core.RowsFetchSpec;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Spring Data R2DBC custom repository implementation for the Model entity.
@@ -48,11 +43,14 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
     private final ParameterTypeDefinitionRowMapper parametertypedefinitionMapper;
     private final ParameterDistributionTypeRowMapper parameterdistributiontypeMapper;
 
+    private final ModelGroupTypeRowMapper modelGroupTypeMapper;
+    private final MetricRowMapper metricMapper;
     private final CategoricalParameterRowMapper categoricalParameterMapper;
     private final BooleanParameterRowMapper booleanParameterMapper;
     private final IntegerParameterRowMapper integerParameterMapper;
     private final FloatParameterRowMapper flaotParameterMapper;
     private final ParameterTypeRowMapper parametertypeMapper;
+
     private static final Table entityTable = Table.aliased("model", EntityManager.ENTITY_ALIAS);
     private static final Table mlTaskTable = Table.aliased("ml_task_type", "mlTask");
     private static final Table structureTable = Table.aliased("model_structure_type", "e_structure");
@@ -67,6 +65,12 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
     private static final Table booleanParameterTable = Table.aliased("boolean_parameter", "booleanParameter");
     private static final Table integerParameterTable = Table.aliased("integer_parameter", "integerParameter");
     private static final Table floatParameterTable = Table.aliased("float_parameter", "floatParameter");
+
+    private static final Table groupTable = Table.aliased("model_group_type", "modelGroup");
+    private static final Table modelGroupTable = Table.aliased("rel_model__groups", "rel_model__groups");
+    private static final Table metricTable = Table.aliased("metric", "metric");
+    private static final Table modelIncompatibleMetricsTable = Table.aliased("rel_model__incompatible_metrics", "rel_model__incompatible_metrics");
+
     private static final EntityManager.LinkTable groupsLink = new EntityManager.LinkTable("rel_model__groups", "model_id", "groups_id");
     private static final EntityManager.LinkTable incompatibleMetricsLink = new EntityManager.LinkTable(
         "rel_model__incompatible_metrics",
@@ -91,6 +95,8 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
         BooleanParameterRowMapper booleanParameterMapper,
         IntegerParameterRowMapper integerParameterMapper,
         FloatParameterRowMapper flaotParameterMapper,
+        ModelGroupTypeRowMapper modelGroupTypeMapper,
+        MetricRowMapper metricMapper,
         R2dbcEntityOperations entityOperations,
         R2dbcConverter converter
     ) {
@@ -116,6 +122,8 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
         this.booleanParameterMapper = booleanParameterMapper;
         this.integerParameterMapper = integerParameterMapper;
         this.flaotParameterMapper = flaotParameterMapper;
+        this.modelGroupTypeMapper = modelGroupTypeMapper;
+        this.metricMapper = metricMapper;
     }
 
     @Override
@@ -154,6 +162,43 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
         return db.sql(select).map(this::process);
     }
 
+    RowsFetchSpec<ModelGroupType> createModelGroupJoinQuery(Pageable pageable, Condition whereClause) {
+        List<Expression> columns = ModelSqlHelper.getColumns(entityTable, EntityManager.ENTITY_ALIAS);
+        columns.addAll(ModelGroupTypeSqlHelper.getColumns(groupTable, "modelGroup"));
+        SelectFromAndJoinCondition selectFrom = Select
+                .builder()
+                .select(columns)
+                .from(modelGroupTable)
+                .leftOuterJoin(entityTable)
+                .on(Column.create("id", entityTable))
+                .equals(Column.create("model_id", modelGroupTable))
+                .leftOuterJoin(groupTable)
+                .on(Column.create("id", groupTable))
+                .equals(Column.create("group_id", modelGroupTable));
+        String select = entityManager.createSelect(selectFrom, Model.class, pageable, whereClause);
+        RowsFetchSpec<ModelGroupType> mappedResults = db.sql(select).map(this::modelGroupProcess);
+        Flux<ModelGroupType> modelGroupTypeFlux = mappedResults.all();
+        return mappedResults;
+    }
+
+    RowsFetchSpec<Metric> createModelMetricJoinQuery(Pageable pageable, Condition whereClause) {
+        List<Expression> columns = ModelSqlHelper.getColumns(entityTable, EntityManager.ENTITY_ALIAS);
+        columns.addAll(ModelGroupTypeSqlHelper.getColumns(metricTable, "metric"));
+        SelectFromAndJoinCondition selectFrom = Select
+                .builder()
+                .select(columns)
+                .from(modelIncompatibleMetricsTable)
+                .leftOuterJoin(entityTable)
+                .on(Column.create("id", entityTable))
+                .equals(Column.create("model_id", modelIncompatibleMetricsTable))
+                .leftOuterJoin(metricTable)
+                .on(Column.create("id", metricTable))
+                .equals(Column.create("metric_id", modelIncompatibleMetricsTable));
+        String select = entityManager.createSelect(selectFrom, Model.class, pageable, whereClause);
+        RowsFetchSpec<Metric> mappedResults = db.sql(select).map(this::metricProcess);
+        Flux<Metric> modelGroupTypeFlux = mappedResults.all();
+        return mappedResults;
+    }
     RowsFetchSpec<Parameter> createParameterQuery(Pageable pageable, Condition whereClause) {
         List<Expression> columns = new ArrayList<>();
         columns.addAll(ParameterSqlHelper.getColumns(parameterTable, "parameter"));
@@ -241,6 +286,9 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
         Comparison whereClause = Conditions.isEqual(entityTable.column("id"), Conditions.just(StringUtils.wrap(id.toString(), "'")));
         Mono<Model> model = createQuery(null, whereClause).one();
         Mono<List<Parameter>> parameters = createParameterQuery(null, whereClause).all().collectList();
+        Mono<List<ModelGroupType>> groups = createModelGroupJoinQuery(null, whereClause).all().collectList();
+        Mono<List<Metric>> metrics = createModelMetricJoinQuery(null, whereClause).all().collectList();
+
 
         Mono<Model> modelWithParameters = parameters.flatMap(parameterList -> {
             // Fetch ParameterTypeDefinition for each Parameter and then proceed with setting parameters.
@@ -283,6 +331,15 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
                             }
                         });
                     });
+        }).zipWith(groups).zipWith(metrics).map(tuple -> {
+            Model mod = tuple.getT1().getT1();
+            List<ModelGroupType> modelGroupTypes = tuple.getT1().getT2();
+            List<Metric> modelMetrics = tuple.getT2();
+
+            mod.setGroups(modelGroupTypes);
+            mod.setIncompatibleMetrics(modelMetrics);  // Assuming Model class has a setMetrics() method
+
+            return mod;
         });
 
         modelWithParameters.subscribe(
@@ -318,6 +375,16 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
         entity.setFamilyType(modelfamilytypeMapper.apply(row, "familyType"));
         entity.setEnsembleType(modelensembletypeMapper.apply(row, "ensembleType"));
         return entity;
+    }
+
+    private ModelGroupType modelGroupProcess(Row row, RowMetadata metadata) {
+        ModelGroupType modelGroup = modelGroupTypeMapper.apply(row, "modelGroup");
+        return modelGroup;
+    }
+
+    private Metric metricProcess(Row row, RowMetadata metadata) {
+        Metric metric = metricMapper.apply(row, "metric");
+        return metric;
     }
 
     private Parameter processParameters(Row row, RowMetadata metadata) {

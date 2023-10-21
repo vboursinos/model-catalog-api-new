@@ -25,8 +25,8 @@ import org.mapstruct.*;
  */
 @Mapper(componentModel = "spring")
 public interface ModelMapper extends EntityMapper<ModelDTO, Model> {
-    @Mapping(target = "groups", source = "groups", qualifiedByName = "modelGroupTypeIdSet")
-    @Mapping(target = "incompatibleMetrics", source = "incompatibleMetrics", qualifiedByName = "metricIdSet")
+    @Mapping(target = "groups", source = "groups")
+    @Mapping(target = "incompatibleMetrics", source = "incompatibleMetrics")
     @Mapping(target = "mlTask", source = "mlTask")
     @Mapping(target = "structure", source = "structure")
     @Mapping(target = "type", source = "type")

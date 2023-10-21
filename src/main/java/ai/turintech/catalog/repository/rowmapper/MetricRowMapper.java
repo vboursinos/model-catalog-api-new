@@ -26,7 +26,7 @@ public class MetricRowMapper implements BiFunction<Row, String, Metric> {
     public Metric apply(Row row, String prefix) {
         Metric entity = new Metric();
         entity.setId(converter.fromRow(row, prefix + "_id", UUID.class));
-        entity.setMetric(converter.fromRow(row, prefix + "_metric", String.class));
+        entity.setMetric(converter.fromRow(row, prefix + "_name", String.class));
         return entity;
     }
 }
