@@ -389,7 +389,7 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
             // Fetch and set CategoricalParameterValue for each Parameter -> ParameterTypeDefinition
             List<Mono<Parameter>> parametersWithValues = mod.getParameters().stream().map(parameter -> {
                 return Flux.fromIterable(parameter.getDefinitions()).flatMap(def -> {
-                            if (def.getCategoricalParameter() != null) {
+                            if (def.getCategoricalParameter() != null && def.getCategoricalParameter().getParameterTypeDefinitionId() != null) {
                                 Comparison whereClauseForValues = Conditions.isEqual(categoricalParameterTable.column("parameter_type_definition_id"),
                                         Conditions.just(StringUtils.wrap(def.getId().toString(), "'")));
                                 return createCategoricalValuesJoinQuery(null, whereClauseForValues).all()
@@ -397,6 +397,26 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
                                         .doOnNext(categoricalParameterValues -> {
                                             def.getCategoricalParameter().setCategoricalParameterValues(categoricalParameterValues);
                                             System.out.println("Categorical Parameter Values fetched: " + categoricalParameterValues);  // Added print
+                                        })
+                                        .thenReturn(def);
+                            } else if (def.getIntegerParameter() != null && def.getIntegerParameter().getParameterTypeDefinitionId() != null){
+                                Comparison whereClauseForValues = Conditions.isEqual(integerParameterTable.column("parameter_type_definition_id"),
+                                        Conditions.just(StringUtils.wrap(def.getId().toString(), "'")));
+                                return createIntegerValuesJoinQuery(null, whereClauseForValues).all()
+                                        .collectList()
+                                        .doOnNext(integerParameterValues -> {
+                                            def.getIntegerParameter().setIntegerParameterValues(integerParameterValues);
+                                            System.out.println("Integer Parameter Values fetched: " + integerParameterValues);  // Added print
+                                        })
+                                        .thenReturn(def);
+                            } else if (def.getFloatParameter() != null && def.getFloatParameter().getParameterTypeDefinitionId() != null){
+                                Comparison whereClauseForValues = Conditions.isEqual(floatParameterTable.column("parameter_type_definition_id"),
+                                        Conditions.just(StringUtils.wrap(def.getId().toString(), "'")));
+                                return createFloatValuesJoinQuery(null, whereClauseForValues).all()
+                                        .collectList()
+                                        .doOnNext(floatParameterRanges -> {
+                                            def.getFloatParameter().setFloatParameterRanges(floatParameterRanges);
+                                            System.out.println("Float Parameter Values fetched: " + floatParameterRanges);  // Added print
                                         })
                                         .thenReturn(def);
                             } else {
