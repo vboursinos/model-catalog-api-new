@@ -411,6 +411,7 @@ public class Model implements Serializable, Persistable<UUID> {
 
     // prettier-ignore
 
+
     @Override
     public String toString() {
         return "Model{" +
@@ -425,6 +426,11 @@ public class Model implements Serializable, Persistable<UUID> {
                 ", parameters=" + parameters +
                 ", groups=" + groups +
                 ", incompatibleMetrics=" + incompatibleMetrics +
+                ", mlTask=" + mlTask +
+                ", structure=" + structure +
+                ", type=" + type +
+                ", familyType=" + familyType +
+                ", ensembleType=" + ensembleType +
                 ", mlTaskId=" + mlTaskId +
                 ", structureId=" + structureId +
                 ", modelTypeId=" + modelTypeId +
