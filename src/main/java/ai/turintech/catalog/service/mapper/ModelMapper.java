@@ -27,11 +27,11 @@ import org.mapstruct.*;
 public interface ModelMapper extends EntityMapper<ModelDTO, Model> {
     @Mapping(target = "groups", source = "groups", qualifiedByName = "modelGroupTypeIdSet")
     @Mapping(target = "incompatibleMetrics", source = "incompatibleMetrics", qualifiedByName = "metricIdSet")
-    @Mapping(target = "mlTask", source = "mlTask", qualifiedByName = "mlTaskTypeId")
-    @Mapping(target = "structure", source = "structure", qualifiedByName = "modelStructureTypeId")
-    @Mapping(target = "type", source = "type", qualifiedByName = "modelTypeId")
-    @Mapping(target = "familyType", source = "familyType", qualifiedByName = "modelFamilyTypeId")
-    @Mapping(target = "ensembleType", source = "ensembleType", qualifiedByName = "modelEnsembleTypeId")
+    @Mapping(target = "mlTask", source = "mlTask")
+    @Mapping(target = "structure", source = "structure")
+    @Mapping(target = "type", source = "type")
+    @Mapping(target = "familyType", source = "familyType")
+    @Mapping(target = "ensembleType", source = "ensembleType")
     @Mapping(target = "parameters", source = "parameters")
     ModelDTO toDto(Model s);
 
