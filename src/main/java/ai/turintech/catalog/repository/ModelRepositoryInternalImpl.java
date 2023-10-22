@@ -17,6 +17,7 @@ import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.r2dbc.core.RowsFetchSpec;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.util.function.Tuple4;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -328,117 +329,131 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
     @Override
     public Mono<Model> findById(UUID id) {
         Comparison whereClause = Conditions.isEqual(entityTable.column("id"), Conditions.just(StringUtils.wrap(id.toString(), "'")));
-        Mono<Model> model = createModelJoinQuery(null, whereClause).one();
-        Mono<List<Parameter>> parameters = createParameterQuery(null, whereClause).all().collectList();
-        Mono<List<ModelGroupType>> groups = createModelGroupJoinQuery(null, whereClause).all().collectList();
-        Mono<List<Metric>> metrics = createModelMetricJoinQuery(null, whereClause).all().collectList();
-//        Mono<List<CategoricalParameterValue>> categoricalParameterValues = createCategoricalValuesJoinQuery(null, whereClause).all().collectList();
 
-        Mono<Model> modelWithParameters = parameters.flatMap(parameterList -> {
-            // Fetch ParameterTypeDefinition for each Parameter and then proceed with setting parameters.
-            List<Mono<Parameter>> parametersWithDefinitions = parameterList.stream().map(parameter -> {
-                Comparison whereClauseForPTD = Conditions.isEqual(parameterTypeDefinitionTable.column("parameter_id"),
-                        Conditions.just(StringUtils.wrap(parameter.getId().toString(), "'")));
+        return Mono.zip(
+                        fetchModel(whereClause),
+                        fetchParameters(whereClause),
+                        fetchModelGroupJoinQuery(whereClause),
+                        fetchModelMetricJoinQuery(whereClause)
+                )
+                .flatMap(this::createModelWithParametersAndMetrics);
+    }
 
-                return createParameterTypeDefinitionQuery(null, whereClauseForPTD).all().collectList()
-                        .flatMap(parameterTypeDefinitions -> {
-                            // Fetch ParameterDistributionType for each ParameterTypeDefinition
-                            List<Mono<ParameterTypeDefinition>> defsDistribution = parameterTypeDefinitions.stream().map(def -> {
-                                Comparison whereClauseForDist = Conditions.isEqual(parameterTypeDefinitionTable.column("id"),
-                                        Conditions.just(StringUtils.wrap(def.getId().toString(), "'")));
-                                return createParameterDistributionTypeJoinQuery(null, whereClauseForDist).one();
-                            }).collect(Collectors.toList());
+    private Mono<Model> fetchModel(Comparison whereClause){
+        return createModelJoinQuery(null, whereClause).one();
+    }
 
-                            return Flux.fromIterable(defsDistribution)
-                                    .flatMap(mono -> mono)
-                                    .collectList()
-                                    .doOnNext(updatedDefs -> {
-                                        parameter.setDefinitions(updatedDefs);
-                                    });
-                        })
-                        .thenReturn(parameter);
-            }).collect(Collectors.toList());
+    private Mono<List<Parameter>> fetchParameters(Comparison whereClause){
+        return createParameterQuery(null, whereClause).all().collectList()
+                .flatMapMany(Flux::fromIterable)
+                .flatMap(this::populateParameterWithDefinitions)
+                .collectList();
+    }
 
-            return Flux.fromIterable(parametersWithDefinitions)
-                    .flatMap(mono -> mono)
-                    .collectList()
-                    .flatMap(updatedParameters -> {
-                        return model.doOnNext(m -> {
-                            m.setParameters(updatedParameters);
-                        });
+    private Mono<Parameter> populateParameterWithDefinitions(Parameter parameter){
+        Comparison whereClauseForPTD = Conditions.isEqual(parameterTypeDefinitionTable.column("parameter_id"),
+                Conditions.just(StringUtils.wrap(parameter.getId().toString(), "'")));
+
+        return createParameterTypeDefinitionQuery(null, whereClauseForPTD).all().collectList()
+                .flatMapMany(Flux::fromIterable)
+                .flatMap(this::populateParameterDefinitionsWithType)
+                .collectList()
+                .doOnNext(parameter::setDefinitions)
+                .thenReturn(parameter);
+    }
+
+    private Mono<ParameterTypeDefinition> populateParameterDefinitionsWithType(ParameterTypeDefinition definition){
+        Comparison whereClauseForDist = Conditions.isEqual(parameterTypeDefinitionTable.column("id"),
+                Conditions.just(StringUtils.wrap(definition.getId().toString(), "'")));
+
+        return createParameterDistributionTypeJoinQuery(null, whereClauseForDist).one();
+    }
+
+    private Mono<List<ModelGroupType>> fetchModelGroupJoinQuery(Comparison whereClause){
+        return createModelGroupJoinQuery(null, whereClause).all().collectList();
+    }
+
+    private Mono<List<Metric>> fetchModelMetricJoinQuery(Comparison whereClause){
+        return createModelMetricJoinQuery(null, whereClause).all().collectList();
+    }
+
+    private Mono<Model> createModelWithParametersAndMetrics(Tuple4<Model, List<Parameter>, List<ModelGroupType>, List<Metric>> tuple){
+        Model mod = tuple.getT1();
+        List<Parameter> parameters = tuple.getT2();
+        List<ModelGroupType> modelGroupTypes = tuple.getT3();
+        List<Metric> modelMetrics = tuple.getT4();
+
+        mod.setParameters(parameters);
+        mod.setGroups(modelGroupTypes);
+        mod.setIncompatibleMetrics(modelMetrics);
+
+        return Flux.fromIterable(parameters)
+                .flatMap(this::populateParameterWithValues)
+                .collectList()
+                .doOnNext(mod::setParameters)
+                .thenReturn(mod);
+    }
+
+    private Mono<Parameter> populateParameterWithValues(Parameter parameter){
+        return Flux.fromIterable(parameter.getDefinitions()).flatMap(def -> {
+                    if (def.getCategoricalParameter() != null && def.getCategoricalParameter().getParameterTypeDefinitionId() != null) {
+                        return fetchCategoricalValues(def);
+                    } else if (def.getIntegerParameter() != null && def.getIntegerParameter().getParameterTypeDefinitionId() != null){
+                        return fetchIntegerValues(def);
+                    } else if (def.getFloatParameter() != null && def.getFloatParameter().getParameterTypeDefinitionId() != null){
+                        return fetchFloatValues(def);
+                    } else {
+                        return Flux.just(def);
+                    }
+                }).collectList()
+                .doOnNext(updatedDefs -> {
+                    parameter.setDefinitions(updatedDefs);
+                    updatedDefs.forEach(def -> {
+                        if (def.getCategoricalParameter() != null) {
+                            System.out.println("After set: " + def.getCategoricalParameter()); // Print after set
+                        }
                     });
-        }).zipWith(groups).zipWith(metrics).flatMap(tuple -> {
-            Model mod = tuple.getT1().getT1();
-            List<ModelGroupType> modelGroupTypes = tuple.getT1().getT2();
-            List<Metric> modelMetrics = tuple.getT2();
+                })
+                .thenReturn(parameter);
+    }
 
-            mod.setGroups(modelGroupTypes);
-            mod.setIncompatibleMetrics(modelMetrics);
+    private Mono<ParameterTypeDefinition> fetchCategoricalValues(ParameterTypeDefinition def) {
+        Comparison whereClauseForValues = Conditions.isEqual(categoricalParameterTable.column("parameter_type_definition_id"),
+                Conditions.just(StringUtils.wrap(def.getId().toString(), "'")));
 
-            // Fetch and set CategoricalParameterValue for each Parameter -> ParameterTypeDefinition
-            List<Mono<Parameter>> parametersWithValues = mod.getParameters().stream().map(parameter -> {
-                return Flux.fromIterable(parameter.getDefinitions()).flatMap(def -> {
-                            if (def.getCategoricalParameter() != null && def.getCategoricalParameter().getParameterTypeDefinitionId() != null) {
-                                Comparison whereClauseForValues = Conditions.isEqual(categoricalParameterTable.column("parameter_type_definition_id"),
-                                        Conditions.just(StringUtils.wrap(def.getId().toString(), "'")));
-                                return createCategoricalValuesJoinQuery(null, whereClauseForValues).all()
-                                        .collectList()
-                                        .doOnNext(categoricalParameterValues -> {
-                                            def.getCategoricalParameter().setCategoricalParameterValues(categoricalParameterValues);
-                                            System.out.println("Categorical Parameter Values fetched: " + categoricalParameterValues);  // Added print
-                                        })
-                                        .thenReturn(def);
-                            } else if (def.getIntegerParameter() != null && def.getIntegerParameter().getParameterTypeDefinitionId() != null){
-                                Comparison whereClauseForValues = Conditions.isEqual(integerParameterTable.column("parameter_type_definition_id"),
-                                        Conditions.just(StringUtils.wrap(def.getId().toString(), "'")));
-                                return createIntegerValuesJoinQuery(null, whereClauseForValues).all()
-                                        .collectList()
-                                        .doOnNext(integerParameterValues -> {
-                                            def.getIntegerParameter().setIntegerParameterValues(integerParameterValues);
-                                            System.out.println("Integer Parameter Values fetched: " + integerParameterValues);  // Added print
-                                        })
-                                        .thenReturn(def);
-                            } else if (def.getFloatParameter() != null && def.getFloatParameter().getParameterTypeDefinitionId() != null){
-                                Comparison whereClauseForValues = Conditions.isEqual(floatParameterTable.column("parameter_type_definition_id"),
-                                        Conditions.just(StringUtils.wrap(def.getId().toString(), "'")));
-                                return createFloatValuesJoinQuery(null, whereClauseForValues).all()
-                                        .collectList()
-                                        .doOnNext(floatParameterRanges -> {
-                                            def.getFloatParameter().setFloatParameterRanges(floatParameterRanges);
-                                            System.out.println("Float Parameter Values fetched: " + floatParameterRanges);  // Added print
-                                        })
-                                        .thenReturn(def);
-                            } else {
-                                return Flux.just(def);
-                            }
-                        }).collectList()
-                        .doOnNext(updatedDefs -> {
-                            parameter.setDefinitions(updatedDefs);
-                            updatedDefs.forEach(def -> {
-                                if (def.getCategoricalParameter() != null) {
-                                    System.out.println("After set: " + def.getCategoricalParameter()); // Print after set
-                                }
-                            });
-                        })
-                        .thenReturn(parameter);
-            }).collect(Collectors.toList());
+        return createCategoricalValuesJoinQuery(null, whereClauseForValues).all()
+                .collectList()
+                .doOnNext(categoricalParameterValues -> {
+                    def.getCategoricalParameter().setCategoricalParameterValues(categoricalParameterValues);
+                    System.out.println("Categorical Parameter Values fetched: " + categoricalParameterValues);  // Added print
+                })
+                .thenReturn(def);
+    }
 
-            return Flux.fromIterable(parametersWithValues)
-                    .flatMap(mono -> mono)
-                    .collectList()
-                    .doOnNext(updatedParameters -> {
-                        mod.setParameters(updatedParameters);
-                    })
-                    .thenReturn(mod);
-        });
+    private Mono<ParameterTypeDefinition> fetchIntegerValues(ParameterTypeDefinition def) {
+        Comparison whereClauseForValues = Conditions.isEqual(integerParameterTable.column("parameter_type_definition_id"),
+                Conditions.just(StringUtils.wrap(def.getId().toString(), "'")));
 
-        modelWithParameters.subscribe(
-                result -> System.out.println("Model obtained: " + result),
-                error -> System.out.println("Error: " + error.getMessage()),
-                () -> System.out.println("Completed!")
-        );
+        return createIntegerValuesJoinQuery(null, whereClauseForValues).all()
+                .collectList()
+                .doOnNext(integerParameterValues -> {
+                    def.getIntegerParameter().setIntegerParameterValues(integerParameterValues);
+                    System.out.println("Integer Parameter Values fetched: " + integerParameterValues);  // Added print
+                })
+                .thenReturn(def);
+    }
 
-        return modelWithParameters;
+    private Mono<ParameterTypeDefinition> fetchFloatValues(ParameterTypeDefinition def) {
+        Comparison whereClauseForValues = Conditions.isEqual(floatParameterTable.column("parameter_type_definition_id"),
+                Conditions.just(StringUtils.wrap(def.getId().toString(), "'")));
+
+        return createFloatValuesJoinQuery(null, whereClauseForValues).all()
+                .collectList()
+                .doOnNext(floatParameterRanges -> {
+                    def.getFloatParameter().setFloatParameterRanges(floatParameterRanges);
+                    System.out.println("Float Parameter Values fetched: " + floatParameterRanges);  // Added print
+                })
+                .thenReturn(def);
     }
 
     @Override
