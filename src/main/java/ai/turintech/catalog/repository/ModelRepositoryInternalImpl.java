@@ -138,10 +138,10 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
 
     @Override
     public Flux<Model> findAllBy(Pageable pageable) {
-        return createQuery(pageable, null).all();
+        return createModelJoinQuery(pageable, null).all();
     }
 
-    RowsFetchSpec<Model> createQuery(Pageable pageable, Condition whereClause) {
+    RowsFetchSpec<Model> createModelJoinQuery(Pageable pageable, Condition whereClause) {
         List<Expression> columns = ModelSqlHelper.getColumns(entityTable, EntityManager.ENTITY_ALIAS);
         columns.addAll(MlTaskTypeSqlHelper.getColumns(mlTaskTable, "mlTask"));
         columns.addAll(ModelStructureTypeSqlHelper.getColumns(structureTable, "structure"));
@@ -187,7 +187,6 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
                 .equals(Column.create("group_id", modelGroupTable));
         String select = entityManager.createSelect(selectFrom, Model.class, pageable, whereClause);
         RowsFetchSpec<ModelGroupType> mappedResults = db.sql(select).map(this::modelGroupProcess);
-        Flux<ModelGroupType> modelGroupTypeFlux = mappedResults.all();
         return mappedResults;
     }
 
@@ -206,27 +205,22 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
                 .equals(Column.create("metric_id", modelIncompatibleMetricsTable));
         String select = entityManager.createSelect(selectFrom, Model.class, pageable, whereClause);
         RowsFetchSpec<Metric> mappedResults = db.sql(select).map(this::metricProcess);
-        Flux<Metric> modelGroupTypeFlux = mappedResults.all();
         return mappedResults;
     }
     RowsFetchSpec<Parameter> createParameterQuery(Pageable pageable, Condition whereClause) {
         List<Expression> columns = new ArrayList<>();
         columns.addAll(ParameterSqlHelper.getColumns(parameterTable, "parameter"));
-        SelectFromAndJoinCondition selectFrom = Select
+        SelectBuilder.SelectOrdered selectFrom = Select
                 .builder()
                 .select(columns)
                 .from(parameterTable)
                 .leftOuterJoin(entityTable)
                 .on(Column.create("model_id", parameterTable))
-                .equals(Column.create("id", entityTable));
-        String select = entityManager.createSelect(selectFrom, Parameter.class, pageable, whereClause);
+                .equals(Column.create("id", entityTable))
+                .orderBy(Column.create("ordering", parameterTable)); // added orderBy method with entityTable's ordering column in ascending order
 
+        String select = entityManager.createSelect((SelectBuilder.SelectFromAndJoin) selectFrom, Parameter.class, pageable, whereClause);
         RowsFetchSpec<Parameter> mappedResults = db.sql(select).map(this::processParameters);
-        Flux<Parameter> parameters = mappedResults.all();
-        parameters.subscribe(parameter -> {
-            System.out.println("Parameter found: ");
-            System.out.println(parameter); // Print the ModelDTO when it's available
-        });
         return mappedResults;
     }
 
@@ -242,15 +236,10 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
                 .equals(Column.create("id", parameterTable));
         String select = entityManager.createSelect(selectFrom, ParameterTypeDefinition.class, pageable, whereClause);
         RowsFetchSpec<ParameterTypeDefinition> mappedResults = db.sql(select).map(this::processParameterTypeDefinition);
-        Flux<ParameterTypeDefinition> parameterTypeDefinitionFlux = mappedResults.all();
-        parameterTypeDefinitionFlux.subscribe(parameter -> {
-            System.out.println("Parameter type definition found: ");
-            System.out.println(parameter); // Print the ModelDTO when it's available
-        });
         return mappedResults;
     }
 
-    RowsFetchSpec<ParameterTypeDefinition> createParameterDistributionTypeQuery(Pageable pageable, Condition whereClause) {
+    RowsFetchSpec<ParameterTypeDefinition> createParameterDistributionTypeJoinQuery(Pageable pageable, Condition whereClause) {
         List<Expression> columns = new ArrayList<>();
         columns.addAll(ParameterTypeDefinitionSqlHelper.getColumns(parameterTypeDefinitionTable, "parameterTypeDefinition"));
         columns.addAll(ParameterTypeSqlHelper.getColumns(parameterTypeTable, "parameterType"));
@@ -282,7 +271,7 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
                 .on(Column.create("id", parameterTypeDefinitionTable))
                 .equals(Column.create("parameter_type_definition_id", floatParameterTable));
         String select = entityManager.createSelect(selectFrom, ParameterTypeDefinition.class, pageable, whereClause);
-        RowsFetchSpec<ParameterTypeDefinition> mappedResults = db.sql(select).map(this::processParameterType);
+        RowsFetchSpec<ParameterTypeDefinition> mappedResults = db.sql(select).map(this::processAddParameterProperties);
         return mappedResults;
     }
 
@@ -339,7 +328,7 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
     @Override
     public Mono<Model> findById(UUID id) {
         Comparison whereClause = Conditions.isEqual(entityTable.column("id"), Conditions.just(StringUtils.wrap(id.toString(), "'")));
-        Mono<Model> model = createQuery(null, whereClause).one();
+        Mono<Model> model = createModelJoinQuery(null, whereClause).one();
         Mono<List<Parameter>> parameters = createParameterQuery(null, whereClause).all().collectList();
         Mono<List<ModelGroupType>> groups = createModelGroupJoinQuery(null, whereClause).all().collectList();
         Mono<List<Metric>> metrics = createModelMetricJoinQuery(null, whereClause).all().collectList();
@@ -357,7 +346,7 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
                             List<Mono<ParameterTypeDefinition>> defsDistribution = parameterTypeDefinitions.stream().map(def -> {
                                 Comparison whereClauseForDist = Conditions.isEqual(parameterTypeDefinitionTable.column("id"),
                                         Conditions.just(StringUtils.wrap(def.getId().toString(), "'")));
-                                return createParameterDistributionTypeQuery(null, whereClauseForDist).one();
+                                return createParameterDistributionTypeJoinQuery(null, whereClauseForDist).one();
                             }).collect(Collectors.toList());
 
                             return Flux.fromIterable(defsDistribution)
@@ -479,35 +468,22 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
     }
 
     private ModelGroupType modelGroupProcess(Row row, RowMetadata metadata) {
-        ModelGroupType modelGroup = modelGroupTypeMapper.apply(row, "modelGroup");
-        return modelGroup;
+        return modelGroupTypeMapper.apply(row, "modelGroup");
     }
 
     private Metric metricProcess(Row row, RowMetadata metadata) {
-        Metric metric = metricMapper.apply(row, "metric");
-        return metric;
+        return  metricMapper.apply(row, "metric");
     }
 
     private Parameter processParameters(Row row, RowMetadata metadata) {
-        Parameter parameter = parameterMapper.apply(row, "parameter");
-        //todo check if this is needed
-        parameter.setModelId(row.get("parameter_model_id", UUID.class));
-        parameter.setFixedValue(row.get("parameter_fixed_value", Boolean.class));
-        parameter.setOrdering(row.get("parameter_ordering", Integer.class));
-        parameter.setEnabled(row.get("parameter_enabled", Boolean.class));
-        parameter.setDescription(row.get("parameter_description", String.class));
-        parameter.setLabel(row.get("parameter_label", String.class));
-        parameter.setName(row.get("parameter_name", String.class));
-        parameter.setId(row.get("parameter_id", UUID.class));
-        return parameter;
+        return parameterMapper.apply(row, "parameter");
     }
 
     private ParameterTypeDefinition processParameterTypeDefinition(Row row, RowMetadata metadata) {
-        ParameterTypeDefinition parameterTypeDefinition = parametertypedefinitionMapper.apply(row, "parametertypedefinition");
-        return parameterTypeDefinition;
+        return parametertypedefinitionMapper.apply(row, "parametertypedefinition");
     }
 
-    private ParameterTypeDefinition processParameterType(Row row, RowMetadata metadata) {
+    private ParameterTypeDefinition processAddParameterProperties(Row row, RowMetadata metadata) {
         ParameterTypeDefinition parameterTypeDefinition = parametertypedefinitionMapper.apply(row, "parametertypedefinition");
         parameterTypeDefinition.setType(parametertypeMapper.apply(row, "parametertype"));
         parameterTypeDefinition.setDistribution(parameterdistributiontypeMapper.apply(row, "parameterdistributiontype"));
