@@ -2,6 +2,7 @@ package ai.turintech.catalog.repository;
 
 import ai.turintech.catalog.domain.*;
 import ai.turintech.catalog.repository.rowmapper.*;
+import ai.turintech.catalog.service.dto.SearchDTO;
 import io.r2dbc.spi.Row;
 import io.r2dbc.spi.RowMetadata;
 import org.apache.commons.lang3.StringUtils;
@@ -22,7 +23,6 @@ import reactor.util.function.Tuple4;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 /**
  * Spring Data R2DBC custom repository implementation for the Model entity.
@@ -137,9 +137,47 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
         this.metricMapper = metricMapper;
     }
 
+//    @Override
+//    public Flux<Model> findAllBy(Pageable pageable) {
+////        return createModelJoinQuery(pageable, null).all();
+//        return createModelJoinQuery(pageable, null)
+//                .all()
+//                .flatMap(model -> {
+//                    findById(model.getId()).subscribe();
+//                    Comparison whereClause = Conditions.isEqual(entityTable.column("id"), Conditions.just(StringUtils.wrap(model.getId().toString(), "'")));
+//                    return Mono.zip(
+//                            Mono.just(model),
+//                            fetchParameters(whereClause),
+//                            fetchModelGroupJoinQuery(whereClause),
+//                            fetchModelMetricJoinQuery(whereClause)
+//                    ).flatMap(this::createModelWithParametersAndMetrics);
+//                });
+//    }
+
+//    @Override
+//    public Flux<Model> findAllBy(Pageable pageable) {
+//        return createModelJoinQuery(pageable, null)
+//                .all()
+//                .map(Model::getId)
+//                .flatMap(this::findById);
+//    }
+
+//    @Override
+//    public Flux<Model> findAllBy(Pageable pageable) {
+//        return createModelJoinQuery(pageable, null)
+//                .all()
+//                .flatMap(model -> findById(model.getId()));
+//    }
+
     @Override
     public Flux<Model> findAllBy(Pageable pageable) {
-        return createModelJoinQuery(pageable, null).all();
+        return findAllBy(pageable, null);
+    }
+
+    @Override
+    public Flux<Model> findAllBy(Pageable pageable, SearchDTO searchDTO) {
+        Condition conditions = createConditions(searchDTO);
+        return createModelJoinQuery(pageable, conditions).all();
     }
 
     RowsFetchSpec<Model> createModelJoinQuery(Pageable pageable, Condition whereClause) {
@@ -329,7 +367,6 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
     @Override
     public Mono<Model> findById(UUID id) {
         Comparison whereClause = Conditions.isEqual(entityTable.column("id"), Conditions.just(StringUtils.wrap(id.toString(), "'")));
-
         return Mono.zip(
                         fetchModel(whereClause),
                         fetchParameters(whereClause),
@@ -386,7 +423,7 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
         mod.setParameters(parameters);
         mod.setGroups(modelGroupTypes);
         mod.setIncompatibleMetrics(modelMetrics);
-
+        System.out.println(String.format("internal mod: %s",mod));
         return Flux.fromIterable(parameters)
                 .flatMap(this::populateParameterWithValues)
                 .collectList()
@@ -408,11 +445,6 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
                 }).collectList()
                 .doOnNext(updatedDefs -> {
                     parameter.setDefinitions(updatedDefs);
-                    updatedDefs.forEach(def -> {
-                        if (def.getCategoricalParameter() != null) {
-                            System.out.println("After set: " + def.getCategoricalParameter()); // Print after set
-                        }
-                    });
                 })
                 .thenReturn(parameter);
     }
@@ -425,7 +457,7 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
                 .collectList()
                 .doOnNext(categoricalParameterValues -> {
                     def.getCategoricalParameter().setCategoricalParameterValues(categoricalParameterValues);
-                    System.out.println("Categorical Parameter Values fetched: " + categoricalParameterValues);  // Added print
+//                    System.out.println("Categorical Parameter Values fetched: " + categoricalParameterValues);
                 })
                 .thenReturn(def);
     }
@@ -438,7 +470,7 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
                 .collectList()
                 .doOnNext(integerParameterValues -> {
                     def.getIntegerParameter().setIntegerParameterValues(integerParameterValues);
-                    System.out.println("Integer Parameter Values fetched: " + integerParameterValues);  // Added print
+//                    System.out.println("Integer Parameter Values fetched: " + integerParameterValues);
                 })
                 .thenReturn(def);
     }
@@ -451,7 +483,7 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
                 .collectList()
                 .doOnNext(floatParameterRanges -> {
                     def.getFloatParameter().setFloatParameterRanges(floatParameterRanges);
-                    System.out.println("Float Parameter Values fetched: " + floatParameterRanges);  // Added print
+//                    System.out.println("Float Parameter Values fetched: " + floatParameterRanges);
                 })
                 .thenReturn(def);
     }
@@ -553,5 +585,21 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
         return entityManager
             .deleteFromLinkTable(groupsLink, entityId)
             .and(entityManager.deleteFromLinkTable(incompatibleMetricsLink, entityId));
+    }
+
+    private Condition createConditions(SearchDTO searchDTO) {
+        Condition combinedConditions = Conditions.isEqual(entityTable.column("enabled"), Conditions.just(String.valueOf(searchDTO.isEnabled())));
+
+        if (searchDTO.getMlTask() != null) {
+            Comparison whereMlTaskClause = Conditions.isEqual(mlTaskTable.column("name"), Conditions.just(StringUtils.wrap(searchDTO.getMlTask(), "'")));
+            combinedConditions = combinedConditions.and(whereMlTaskClause);
+        }
+
+        if (searchDTO.getModelType() != null) {
+            Comparison whereTypeClause = Conditions.isEqual(typeTable.column("name"), Conditions.just(StringUtils.wrap(searchDTO.getModelType(), "'")));
+            combinedConditions = combinedConditions.and(whereTypeClause);
+        }
+
+        return combinedConditions;
     }
 }

@@ -3,6 +3,7 @@ package ai.turintech.catalog.service;
 import ai.turintech.catalog.domain.Model;
 import ai.turintech.catalog.repository.ModelRepository;
 import ai.turintech.catalog.service.dto.ModelDTO;
+import ai.turintech.catalog.service.dto.SearchDTO;
 import ai.turintech.catalog.service.mapper.ModelMapper;
 import java.util.UUID;
 import org.slf4j.Logger;
@@ -19,7 +20,6 @@ import reactor.core.publisher.Mono;
 @Service
 @Transactional
 public class ModelService {
-
     private final Logger log = LoggerFactory.getLogger(ModelService.class);
 
     private final ModelRepository modelRepository;
@@ -80,9 +80,15 @@ public class ModelService {
      * @return the list of entities.
      */
     @Transactional(readOnly = true)
-    public Flux<ModelDTO> findAll(Pageable pageable) {
+    public Flux<ModelDTO> findAll(Pageable pageable, SearchDTO searchDTO) {
         log.debug("Request to get all Models");
-        return modelRepository.findAllBy(pageable).map(modelMapper::toDto);
+        Flux<ModelDTO> modelDTOs = modelRepository.findAllBy(pageable, searchDTO)
+                .doOnNext(model -> System.out.println("Original model: " + model))
+                .map(modelMapper::toDto);
+        modelDTOs.subscribe(modelDTO ->
+                System.out.println("ModelDTO: " + modelDTO)
+        );
+        return modelDTOs;
     }
 
     /**
