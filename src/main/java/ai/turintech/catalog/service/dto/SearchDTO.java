@@ -3,7 +3,7 @@ package ai.turintech.catalog.service.dto;
 public class SearchDTO {
     private String mlTask;
     private String modelType;
-    private boolean enabled;
+    private boolean enabled = true;
 
     public SearchDTO() {
     }
