@@ -1,5 +1,6 @@
 package ai.turintech.catalog.service.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.validation.constraints.NotNull;
 
 import java.io.Serializable;
@@ -10,6 +11,7 @@ import java.util.UUID;
  * A DTO for the {@link ai.turintech.catalog.domain.ParameterTypeDefinition} entity.
  */
 @SuppressWarnings("common-java:DuplicatedBlocks")
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ParameterTypeDefinitionDTO implements Serializable {
 
     private UUID id;

@@ -2,9 +2,10 @@ package ai.turintech.catalog.repository.rowmapper;
 
 import ai.turintech.catalog.domain.IntegerParameter;
 import io.r2dbc.spi.Row;
+import org.springframework.stereotype.Service;
+
 import java.util.UUID;
 import java.util.function.BiFunction;
-import org.springframework.stereotype.Service;
 
 /**
  * Converter between {@link Row} to {@link IntegerParameter}, with proper type conversions.
@@ -20,13 +21,18 @@ public class IntegerParameterRowMapper implements BiFunction<Row, String, Intege
 
     /**
      * Take a {@link Row} and a column prefix, and extract all the fields.
+     *
      * @return the {@link IntegerParameter} stored in the database.
      */
     @Override
     public IntegerParameter apply(Row row, String prefix) {
-        IntegerParameter entity = new IntegerParameter();
-        entity.setParameterTypeDefinitionId(converter.fromRow(row, prefix + "_id", UUID.class));
-        entity.setDefaultValue(converter.fromRow(row, prefix + "_default_value", Integer.class));
-        return entity;
+        if (converter.fromRow(row, prefix + "_id", UUID.class) != null) {
+            IntegerParameter entity = new IntegerParameter();
+            entity.setParameterTypeDefinitionId(converter.fromRow(row, prefix + "_id", UUID.class));
+            entity.setDefaultValue(converter.fromRow(row, prefix + "_default_value", Integer.class));
+            return entity;
+        } else {
+            return null;
+        }
     }
 }

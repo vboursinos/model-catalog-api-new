@@ -2,9 +2,10 @@ package ai.turintech.catalog.repository.rowmapper;
 
 import ai.turintech.catalog.domain.CategoricalParameter;
 import io.r2dbc.spi.Row;
+import org.springframework.stereotype.Service;
+
 import java.util.UUID;
 import java.util.function.BiFunction;
-import org.springframework.stereotype.Service;
 
 /**
  * Converter between {@link Row} to {@link CategoricalParameter}, with proper type conversions.
@@ -20,13 +21,18 @@ public class CategoricalParameterRowMapper implements BiFunction<Row, String, Ca
 
     /**
      * Take a {@link Row} and a column prefix, and extract all the fields.
+     *
      * @return the {@link CategoricalParameter} stored in the database.
      */
     @Override
     public CategoricalParameter apply(Row row, String prefix) {
-        CategoricalParameter entity = new CategoricalParameter();
-        entity.setParameterTypeDefinitionId(converter.fromRow(row, prefix + "_id", UUID.class));
-        entity.setDefaultValue(converter.fromRow(row, prefix + "_default_value", String.class));
-        return entity;
+        if (converter.fromRow(row, prefix + "_id", UUID.class) != null) {
+            CategoricalParameter entity = new CategoricalParameter();
+            entity.setParameterTypeDefinitionId(converter.fromRow(row, prefix + "_id", UUID.class));
+            entity.setDefaultValue(converter.fromRow(row, prefix + "_default_value", String.class));
+            return entity;
+        } else {
+            return null;
+        }
     }
 }
