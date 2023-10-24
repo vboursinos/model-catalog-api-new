@@ -5,7 +5,7 @@ public class SearchDTO {
     private String modelType;
 
     private String structure;
-    private boolean enabled = true;
+    private Boolean enabled;
 
     public SearchDTO() {
     }
@@ -33,11 +33,11 @@ public class SearchDTO {
         this.modelType = modelType;
     }
 
-    public boolean isEnabled() {
+    public Boolean isEnabled() {
         return enabled;
     }
 
-    public void setEnabled(boolean enabled) {
+    public void setEnabled(Boolean enabled) {
         this.enabled = enabled;
     }
 

@@ -4,7 +4,6 @@ import ai.turintech.catalog.service.dto.ModelDTO;
 import ai.turintech.catalog.service.dto.ModelPaginatedListDTO;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -28,12 +27,12 @@ public class PaginationConverter {
                 totalPageNum = (int) (totalListSize / size + 1);
             }
         }
-
+        page = page + 1;
         ModelPaginatedListDTO producedFilePaginationResponse =
                 new ModelPaginatedListDTO(
                         modelDTOS,
                         totalListSize,
-                        size,
+                        totalListSize < size ? (int) totalListSize : size,
                         totalPageNum <= 0 ? 1 : totalPageNum,
                         page,
                         page,

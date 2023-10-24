@@ -21,10 +21,8 @@ import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple3;
 import reactor.util.function.Tuple4;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Spring Data R2DBC custom repository implementation for the Model entity.
@@ -80,40 +78,40 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
 
     private static final EntityManager.LinkTable groupsLink = new EntityManager.LinkTable("rel_model__groups", "model_id", "groups_id");
     private static final EntityManager.LinkTable incompatibleMetricsLink = new EntityManager.LinkTable(
-        "rel_model__incompatible_metrics",
-        "model_id",
-        "incompatible_metrics_id"
+            "rel_model__incompatible_metrics",
+            "model_id",
+            "incompatible_metrics_id"
     );
 
     public ModelRepositoryInternalImpl(
-        R2dbcEntityTemplate template,
-        EntityManager entityManager,
-        MlTaskTypeRowMapper mltasktypeMapper,
-        ModelStructureTypeRowMapper modelstructuretypeMapper,
-        ModelTypeRowMapper modeltypeMapper,
-        ModelFamilyTypeRowMapper modelfamilytypeMapper,
-        ModelEnsembleTypeRowMapper modelensembletypeMapper,
-        ModelRowMapper modelMapper,
-        ParameterRowMapper parameterMapper,
-        ParameterTypeDefinitionRowMapper parameterTypeDefinitionMapper,
-        ParameterDistributionTypeRowMapper parameterDistributionTypeMapper,
-        ParameterTypeRowMapper parameterTypeMapper,
-        CategoricalParameterRowMapper categoricalParameterMapper,
-        CategoricalParameterValueRowMapper categoricalParameterValueMapper,
-        BooleanParameterRowMapper booleanParameterMapper,
-        IntegerParameterRowMapper integerParameterMapper,
-        IntegerParameterValueRowMapper integerParameterValueMapper,
-        FloatParameterRowMapper floatParameterMapper,
-        FloatParameterRangeRowMapper floatParameterRangeMapper,
-        ModelGroupTypeRowMapper modelGroupTypeMapper,
-        MetricRowMapper metricMapper,
-        R2dbcEntityOperations entityOperations,
-        R2dbcConverter converter
+            R2dbcEntityTemplate template,
+            EntityManager entityManager,
+            MlTaskTypeRowMapper mltasktypeMapper,
+            ModelStructureTypeRowMapper modelstructuretypeMapper,
+            ModelTypeRowMapper modeltypeMapper,
+            ModelFamilyTypeRowMapper modelfamilytypeMapper,
+            ModelEnsembleTypeRowMapper modelensembletypeMapper,
+            ModelRowMapper modelMapper,
+            ParameterRowMapper parameterMapper,
+            ParameterTypeDefinitionRowMapper parameterTypeDefinitionMapper,
+            ParameterDistributionTypeRowMapper parameterDistributionTypeMapper,
+            ParameterTypeRowMapper parameterTypeMapper,
+            CategoricalParameterRowMapper categoricalParameterMapper,
+            CategoricalParameterValueRowMapper categoricalParameterValueMapper,
+            BooleanParameterRowMapper booleanParameterMapper,
+            IntegerParameterRowMapper integerParameterMapper,
+            IntegerParameterValueRowMapper integerParameterValueMapper,
+            FloatParameterRowMapper floatParameterMapper,
+            FloatParameterRangeRowMapper floatParameterRangeMapper,
+            ModelGroupTypeRowMapper modelGroupTypeMapper,
+            MetricRowMapper metricMapper,
+            R2dbcEntityOperations entityOperations,
+            R2dbcConverter converter
     ) {
         super(
-            new MappingRelationalEntityInformation(converter.getMappingContext().getRequiredPersistentEntity(Model.class)),
-            entityOperations,
-            converter
+                new MappingRelationalEntityInformation(converter.getMappingContext().getRequiredPersistentEntity(Model.class)),
+                entityOperations,
+                converter
         );
         this.db = template.getDatabaseClient();
         this.r2dbcEntityTemplate = template;
@@ -209,24 +207,24 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
         columns.addAll(ModelFamilyTypeSqlHelper.getColumns(familyTypeTable, "familyType"));
         columns.addAll(ModelEnsembleTypeSqlHelper.getColumns(ensembleTypeTable, "ensembleType"));
         SelectFromAndJoinCondition selectFrom = Select
-            .builder()
-            .select(columns)
-            .from(entityTable)
-            .leftOuterJoin(mlTaskTable)
-            .on(Column.create("ml_task_id", entityTable))
-            .equals(Column.create("id", mlTaskTable))
-            .leftOuterJoin(structureTable)
-            .on(Column.create("structure_id", entityTable))
-            .equals(Column.create("id", structureTable))
-            .leftOuterJoin(typeTable)
-            .on(Column.create("model_type_id", entityTable))
-            .equals(Column.create("id", typeTable))
-            .leftOuterJoin(familyTypeTable)
-            .on(Column.create("family_type_id", entityTable))
-            .equals(Column.create("id", familyTypeTable))
-            .leftOuterJoin(ensembleTypeTable)
-            .on(Column.create("ensemble_type_id", entityTable))
-            .equals(Column.create("id", ensembleTypeTable));
+                .builder()
+                .select(columns)
+                .from(entityTable)
+                .leftOuterJoin(mlTaskTable)
+                .on(Column.create("ml_task_id", entityTable))
+                .equals(Column.create("id", mlTaskTable))
+                .leftOuterJoin(structureTable)
+                .on(Column.create("structure_id", entityTable))
+                .equals(Column.create("id", structureTable))
+                .leftOuterJoin(typeTable)
+                .on(Column.create("model_type_id", entityTable))
+                .equals(Column.create("id", typeTable))
+                .leftOuterJoin(familyTypeTable)
+                .on(Column.create("family_type_id", entityTable))
+                .equals(Column.create("id", familyTypeTable))
+                .leftOuterJoin(ensembleTypeTable)
+                .on(Column.create("ensemble_type_id", entityTable))
+                .equals(Column.create("id", ensembleTypeTable));
         // we do not support Criteria here for now as of https://github.com/jhipster/generator-jhipster/issues/18269
         String select = entityManager.createSelect(selectFrom, Model.class, pageable, whereClause);
         return db.sql(select).map(this::process);
@@ -267,6 +265,7 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
         RowsFetchSpec<Metric> mappedResults = db.sql(select).map(this::metricProcess);
         return mappedResults;
     }
+
     RowsFetchSpec<Parameter> createParameterQuery(Pageable pageable, Condition whereClause) {
         List<Expression> columns = new ArrayList<>();
         columns.addAll(ParameterSqlHelper.getColumns(parameterTable, "parameter"));
@@ -401,11 +400,11 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
                 .flatMap(this::createModelWithParametersAndMetrics);
     }
 
-    private Mono<Model> fetchModel(Comparison whereClause){
+    private Mono<Model> fetchModel(Comparison whereClause) {
         return createModelJoinQuery(null, whereClause).one();
     }
 
-    private Mono<List<Parameter>> fetchParameters(Comparison whereClause){
+    private Mono<List<Parameter>> fetchParameters(Comparison whereClause) {
         return createParameterQuery(null, whereClause).all().collectList()
                 .flatMapMany(Flux::fromIterable)
                 .flatMap(this::populateParameterWithDefinitions)
@@ -413,7 +412,7 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
                 .collectList();
     }
 
-    private Mono<Parameter> populateParameterWithDefinitions(Parameter parameter){
+    private Mono<Parameter> populateParameterWithDefinitions(Parameter parameter) {
         Comparison whereClauseForPTD = Conditions.isEqual(parameterTypeDefinitionTable.column("parameter_id"),
                 Conditions.just(StringUtils.wrap(parameter.getId().toString(), "'")));
 
@@ -425,35 +424,35 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
                 .thenReturn(parameter);
     }
 
-    private Mono<ParameterTypeDefinition> populateParameterDefinitionsWithType(ParameterTypeDefinition definition){
+    private Mono<ParameterTypeDefinition> populateParameterDefinitionsWithType(ParameterTypeDefinition definition) {
         Comparison whereClauseForDist = Conditions.isEqual(parameterTypeDefinitionTable.column("id"),
                 Conditions.just(StringUtils.wrap(definition.getId().toString(), "'")));
 
         return createParameterDistributionTypeJoinQuery(null, whereClauseForDist).one();
     }
 
-    private Mono<List<ModelGroupType>> fetchModelGroupJoinQuery(Comparison whereClause){
+    private Mono<List<ModelGroupType>> fetchModelGroupJoinQuery(Comparison whereClause) {
         return createModelGroupJoinQuery(null, whereClause).all().collectList();
     }
 
-    private Mono<List<Metric>> fetchModelMetricJoinQuery(Comparison whereClause){
+    private Mono<List<Metric>> fetchModelMetricJoinQuery(Comparison whereClause) {
         return createModelMetricJoinQuery(null, whereClause).all().collectList();
     }
 
-    private Mono<Model> createModelWithGroupsAndMetrics(Tuple3<Model, List<ModelGroupType>, List<Metric>> tuple){
+    private Mono<Model> createModelWithGroupsAndMetrics(Tuple3<Model, List<ModelGroupType>, List<Metric>> tuple) {
         Model mod = tuple.getT1();
         List<ModelGroupType> modelGroupTypes = tuple.getT2();
         List<Metric> modelMetrics = tuple.getT3();
 
         mod.setGroups(modelGroupTypes);
         mod.setIncompatibleMetrics(modelMetrics);
-        System.out.println(String.format("internal mod: %s",mod));
+        System.out.println(String.format("internal mod: %s", mod));
         return Flux.fromIterable(modelMetrics)
                 .collectList()
                 .thenReturn(mod);
     }
 
-    private Mono<Model> createModelWithParametersAndMetrics(Tuple4<Model, List<Parameter>, List<ModelGroupType>, List<Metric>> tuple){
+    private Mono<Model> createModelWithParametersAndMetrics(Tuple4<Model, List<Parameter>, List<ModelGroupType>, List<Metric>> tuple) {
         Model mod = tuple.getT1();
         List<Parameter> parameters = tuple.getT2();
         List<ModelGroupType> modelGroupTypes = tuple.getT3();
@@ -462,7 +461,7 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
         mod.setParameters(parameters);
         mod.setGroups(modelGroupTypes);
         mod.setIncompatibleMetrics(modelMetrics);
-        System.out.println(String.format("internal mod: %s",mod));
+        System.out.println(String.format("internal mod: %s", mod));
         return Flux.fromIterable(parameters)
                 .flatMap(this::populateParameterWithValues)
                 .collectList()
@@ -470,13 +469,13 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
                 .thenReturn(mod);
     }
 
-    private Mono<Parameter> populateParameterWithValues(Parameter parameter){
+    private Mono<Parameter> populateParameterWithValues(Parameter parameter) {
         return Flux.fromIterable(parameter.getDefinitions()).flatMap(def -> {
                     if (def.getCategoricalParameter() != null && def.getCategoricalParameter().getParameterTypeDefinitionId() != null) {
                         return fetchCategoricalValues(def);
-                    } else if (def.getIntegerParameter() != null && def.getIntegerParameter().getParameterTypeDefinitionId() != null){
+                    } else if (def.getIntegerParameter() != null && def.getIntegerParameter().getParameterTypeDefinitionId() != null) {
                         return fetchIntegerValues(def);
-                    } else if (def.getFloatParameter() != null && def.getFloatParameter().getParameterTypeDefinitionId() != null){
+                    } else if (def.getFloatParameter() != null && def.getFloatParameter().getParameterTypeDefinitionId() != null) {
                         return fetchFloatValues(def);
                     } else {
                         return Flux.just(def);
@@ -542,26 +541,55 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
         Flux<Model> models = findAllBy(page);
         return models;
     }
-//TODO ADD ALL THE CRITERIA
+
     @Override
     public Mono<Long> count(SearchDTO searchDTO) {
 
-        String query = "SELECT COUNT(*) FROM " + entityTable
+        String baseQuery = "SELECT COUNT(*) FROM " + entityTable
                 + " LEFT OUTER JOIN " + mlTaskTable
                 + " ON " + entityTable.column("ml_task_id")
                 + " = " + mlTaskTable.column("id")
-                + " WHERE " + mlTaskTable.column("name") + " = :name";
+                + " LEFT OUTER JOIN " + typeTable
+                + " ON " + entityTable.column("model_type_id")
+                + " = " + typeTable.column("id")
+                + " LEFT OUTER JOIN " + structureTable
+                + " ON " + entityTable.column("structure_id")
+                + " = " + structureTable.column("id");
 
-        // Now use the above query with binding for name column from SearchDTO
-        DatabaseClient.GenericExecuteSpec genericExecuteSpec = r2dbcEntityTemplate
-                .getDatabaseClient()
-                .sql(query);
+        Map<Column, Object> criteria = new HashMap<>();
+        if (searchDTO.getMlTask() != null) {
+            criteria.put(mlTaskTable.column("name"), searchDTO.getMlTask());
+        }
+        if (searchDTO.getModelType() != null) {
+            criteria.put(typeTable.column("name"), searchDTO.getModelType());
+        }
+        if (searchDTO.getStructure() != null) {
+            criteria.put(structureTable.column("name"), searchDTO.getStructure());
+        }
+        if (searchDTO.isEnabled() != null) {
+            criteria.put(entityTable.column("enabled"), searchDTO.isEnabled());
+        }
 
-        genericExecuteSpec = genericExecuteSpec.bind("name", searchDTO.getMlTask());
+        String query = buildQueryWithConditions(baseQuery, criteria);
+        DatabaseClient.GenericExecuteSpec genericExecuteSpec = r2dbcEntityTemplate.getDatabaseClient().sql(query);
+
+        for (Map.Entry<Column, Object> entry : criteria.entrySet()) {
+            genericExecuteSpec = genericExecuteSpec.bind(entry.getKey().toString(), entry.getValue());
+        }
 
         return genericExecuteSpec
                 .map((row, metadata) -> row.get(0, Long.class))
                 .one();
+    }
+
+    private String buildQueryWithConditions(String baseQuery, Map<Column, Object> criteria) {
+        if (criteria.isEmpty()) {
+            return baseQuery;
+        }
+        String conditions = criteria.keySet().stream()
+                .map(key -> " " + key + " = :" + key)
+                .collect(Collectors.joining(" AND "));
+        return baseQuery + " WHERE" + conditions;
     }
 
     private Model process(Row row, RowMetadata metadata) {
@@ -579,7 +607,7 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
     }
 
     private Metric metricProcess(Row row, RowMetadata metadata) {
-        return  metricMapper.apply(row, "metric");
+        return metricMapper.apply(row, "metric");
     }
 
     private Parameter processParameters(Row row, RowMetadata metadata) {
@@ -623,16 +651,16 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
 
     protected <S extends Model> Mono<S> updateRelations(S entity) {
         Mono<Void> result = entityManager
-            .updateLinkTable(groupsLink, entity.getId(), entity.getGroups().stream().map(ModelGroupType::getId))
-            .then();
+                .updateLinkTable(groupsLink, entity.getId(), entity.getGroups().stream().map(ModelGroupType::getId))
+                .then();
         result =
-            result.and(
-                entityManager.updateLinkTable(
-                    incompatibleMetricsLink,
-                    entity.getId(),
-                    entity.getIncompatibleMetrics().stream().map(Metric::getId)
-                )
-            );
+                result.and(
+                        entityManager.updateLinkTable(
+                                incompatibleMetricsLink,
+                                entity.getId(),
+                                entity.getIncompatibleMetrics().stream().map(Metric::getId)
+                        )
+                );
         return result.thenReturn(entity);
     }
 
@@ -643,12 +671,12 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
 
     protected Mono<Void> deleteRelations(UUID entityId) {
         return entityManager
-            .deleteFromLinkTable(groupsLink, entityId)
-            .and(entityManager.deleteFromLinkTable(incompatibleMetricsLink, entityId));
+                .deleteFromLinkTable(groupsLink, entityId)
+                .and(entityManager.deleteFromLinkTable(incompatibleMetricsLink, entityId));
     }
 
     private Condition createConditions(SearchDTO searchDTO) {
-        Condition combinedConditions = Conditions.isEqual(entityTable.column("enabled"), Conditions.just(String.valueOf(searchDTO.isEnabled())));
+        Condition combinedConditions = Conditions.just(String.valueOf(true));
 
         if (searchDTO.getMlTask() != null) {
             Comparison whereMlTaskClause = Conditions.isEqual(mlTaskTable.column("name"), Conditions.just(StringUtils.wrap(searchDTO.getMlTask(), "'")));
@@ -665,6 +693,10 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
             combinedConditions = combinedConditions.and(whereStructureClause);
         }
 
+        if (searchDTO.isEnabled() != null) {
+            Comparison whereEnabledClause = Conditions.isEqual(entityTable.column("enabled"), Conditions.just(String.valueOf(searchDTO.isEnabled())));
+            combinedConditions = combinedConditions.and(whereEnabledClause);
+        }
         return combinedConditions;
     }
 }
