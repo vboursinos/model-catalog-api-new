@@ -18,6 +18,7 @@ import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.r2dbc.core.RowsFetchSpec;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.util.function.Tuple3;
 import reactor.util.function.Tuple4;
 
 import java.util.ArrayList;
@@ -137,7 +138,7 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
         this.metricMapper = metricMapper;
     }
 
-    @Override
+/*    @Override
     public Flux<Model> findAllBy(Pageable pageable, SearchDTO searchDTO) {
         Condition conditions = createConditions(searchDTO);
         return createModelJoinQuery(pageable, conditions)
@@ -151,6 +152,23 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
                             fetchModelGroupJoinQuery(whereClause),
                             fetchModelMetricJoinQuery(whereClause)
                     ).flatMap(this::createModelWithParametersAndMetrics);
+                });
+    }*/
+
+    @Override
+    public Flux<Model> findAllBy(Pageable pageable, SearchDTO searchDTO) {
+        Condition conditions = createConditions(searchDTO);
+        return createModelJoinQuery(pageable, conditions)
+                .all()
+                .flatMap(model -> {
+                    findById(model.getId()).subscribe();
+                    Comparison whereClause = Conditions.isEqual(entityTable.column("id"), Conditions.just(StringUtils.wrap(model.getId().toString(), "'")));
+                    return Mono.zip(
+                            Mono.just(model),
+//                            fetchParameters(whereClause),
+                            fetchModelGroupJoinQuery(whereClause),
+                            fetchModelMetricJoinQuery(whereClause)
+                    ).flatMap(this::createModelWithGroupsAndMetrics);
                 });
     }
 
@@ -416,6 +434,19 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
         return createModelMetricJoinQuery(null, whereClause).all().collectList();
     }
 
+    private Mono<Model> createModelWithGroupsAndMetrics(Tuple3<Model, List<ModelGroupType>, List<Metric>> tuple){
+        Model mod = tuple.getT1();
+        List<ModelGroupType> modelGroupTypes = tuple.getT2();
+        List<Metric> modelMetrics = tuple.getT3();
+
+        mod.setGroups(modelGroupTypes);
+        mod.setIncompatibleMetrics(modelMetrics);
+        System.out.println(String.format("internal mod: %s",mod));
+        return Flux.fromIterable(modelMetrics)
+                .collectList()
+                .thenReturn(mod);
+    }
+
     private Mono<Model> createModelWithParametersAndMetrics(Tuple4<Model, List<Parameter>, List<ModelGroupType>, List<Metric>> tuple){
         Model mod = tuple.getT1();
         List<Parameter> parameters = tuple.getT2();
@@ -600,6 +631,11 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
         if (searchDTO.getModelType() != null) {
             Comparison whereTypeClause = Conditions.isEqual(typeTable.column("name"), Conditions.just(StringUtils.wrap(searchDTO.getModelType(), "'")));
             combinedConditions = combinedConditions.and(whereTypeClause);
+        }
+
+        if (searchDTO.getStructure() != null) {
+            Comparison whereStructureClause = Conditions.isEqual(structureTable.column("name"), Conditions.just(StringUtils.wrap(searchDTO.getStructure(), "'")));
+            combinedConditions = combinedConditions.and(whereStructureClause);
         }
 
         return combinedConditions;
