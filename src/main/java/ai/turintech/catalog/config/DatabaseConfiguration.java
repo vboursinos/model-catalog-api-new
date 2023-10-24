@@ -1,23 +1,14 @@
 package ai.turintech.catalog.config;
 
+import io.r2dbc.pool.ConnectionPool;
+import io.r2dbc.pool.ConnectionPoolConfiguration;
 import io.r2dbc.spi.ConnectionFactories;
 import io.r2dbc.spi.ConnectionFactory;
-import java.sql.SQLException;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.List;
-
 import io.r2dbc.spi.ConnectionFactoryOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.env.Environment;
 import org.springframework.data.convert.ReadingConverter;
@@ -31,6 +22,11 @@ import org.springframework.data.r2dbc.repository.config.EnableR2dbcRepositories;
 import org.springframework.data.relational.core.dialect.RenderContextFactory;
 import org.springframework.data.relational.core.sql.render.SqlRenderer;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+
+import java.time.*;
+import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.List;
 
 import static io.r2dbc.spi.ConnectionFactoryOptions.*;
 
@@ -67,7 +63,7 @@ public class DatabaseConfiguration {
         String username = env.getProperty("spring.r2dbc.username");
         String password = env.getProperty("spring.r2dbc.password");
 
-        return ConnectionFactories.get(ConnectionFactoryOptions.builder()
+        ConnectionFactory connectionFactory = ConnectionFactories.get(ConnectionFactoryOptions.builder()
                 .option(DRIVER, "postgresql")
                 .option(HOST, "localhost")
                 .option(PORT, 5434)
@@ -75,6 +71,16 @@ public class DatabaseConfiguration {
                 .option(USER, username)
                 .option(PASSWORD, password)
                 .build());
+
+        ConnectionPoolConfiguration configuration = ConnectionPoolConfiguration.builder(connectionFactory)
+                .validationQuery("SELECT 1")
+                .initialSize(10)
+                .maxSize(100)
+                .maxIdleTime(Duration.ofMinutes(30))
+                .maxCreateConnectionTime(Duration.ofSeconds(10))
+                .build();
+
+        return new ConnectionPool(configuration);
     }
 
     @Bean
