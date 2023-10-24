@@ -114,6 +114,9 @@ public class ModelService {
         return modelRepository.count();
     }
 
+    public Mono<Long> countAll(SearchDTO searchDTO) {
+        return modelRepository.count(searchDTO);
+    }
     /**
      * Get one model by id.
      *

@@ -99,6 +99,8 @@ interface ModelRepositoryInternal {
 
     Flux<Model> findAllWithEagerRelationships();
 
+    Mono<Long> count(SearchDTO searchDTO);
+
     Flux<Model> findAllWithEagerRelationships(Pageable page);
 
     Mono<Void> deleteById(UUID id);

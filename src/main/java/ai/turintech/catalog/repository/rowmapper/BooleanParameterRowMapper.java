@@ -24,9 +24,13 @@ public class BooleanParameterRowMapper implements BiFunction<Row, String, Boolea
      */
     @Override
     public BooleanParameter apply(Row row, String prefix) {
-        BooleanParameter entity = new BooleanParameter();
-        entity.setParameterTypeDefinitionId(converter.fromRow(row, prefix + "_id", UUID.class));
-        entity.setDefaultValue(converter.fromRow(row, prefix + "_default_value", Boolean.class));
-        return entity;
+        if (converter.fromRow(row, prefix + "_id", UUID.class) != null) {
+            BooleanParameter entity = new BooleanParameter();
+            entity.setParameterTypeDefinitionId(converter.fromRow(row, prefix + "_id", UUID.class));
+            entity.setDefaultValue(converter.fromRow(row, prefix + "_default_value", Boolean.class));
+            return entity;
+        } else {
+            return null;
+        }
     }
 }

@@ -3,20 +3,20 @@ package ai.turintech.catalog.web.rest;
 import ai.turintech.catalog.repository.ModelRepository;
 import ai.turintech.catalog.service.ModelService;
 import ai.turintech.catalog.service.dto.ModelDTO;
+import ai.turintech.catalog.service.dto.ModelPaginatedListDTO;
 import ai.turintech.catalog.service.dto.SearchDTO;
+import ai.turintech.catalog.utils.PaginationConverter;
 import ai.turintech.catalog.web.rest.errors.BadRequestAlertException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -28,6 +28,11 @@ import reactor.core.publisher.Mono;
 import tech.jhipster.web.util.HeaderUtil;
 import tech.jhipster.web.util.PaginationUtil;
 import tech.jhipster.web.util.reactive.ResponseUtil;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Objects;
+import java.util.UUID;
 
 /**
  * REST controller for managing {@link ai.turintech.catalog.domain.Model}.
@@ -43,6 +48,8 @@ public class ModelResource {
     @Value("${jhipster.clientApp.name}")
     private String applicationName;
 
+    @Autowired
+    private PaginationConverter paginationConverter;
     private final ModelService modelService;
 
     private final ModelRepository modelRepository;
@@ -175,27 +182,30 @@ public class ModelResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of models in body.
      */
     @GetMapping(value = "/models", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Mono<ResponseEntity<List<ModelDTO>>> getAllModels(
-        @org.springdoc.core.annotations.ParameterObject Pageable pageable,
-        ServerHttpRequest request,
-        @RequestParam(required = false, defaultValue = "false") boolean eagerload,
-        SearchDTO searchDTO
+    public Mono<ResponseEntity<ModelPaginatedListDTO>> getAllModels(
+            @ParameterObject Pageable pageable,
+            ServerHttpRequest request,
+            @RequestParam(required = false, defaultValue = "false") boolean eagerload,
+            SearchDTO searchDTO
     ) {
         log.debug("REST request to get a page of Models");
         return modelService
-            .countAll()
-            .zipWith(modelService.findAll(pageable,searchDTO).collectList())
-            .map(countWithEntities ->
-                ResponseEntity
-                    .ok()
-                    .headers(
-                        PaginationUtil.generatePaginationHttpHeaders(
+                .countAll(searchDTO)
+                .zipWith(modelService.findAll(pageable, searchDTO).collectList())
+                .map(countWithEntities -> {
+                    ModelPaginatedListDTO paginatedList = paginationConverter.getPaginatedList(
+                            countWithEntities.getT2(),
+                            pageable.getPageNumber(),
+                            pageable.getPageSize(),
+                            countWithEntities.getT1()
+                    );
+
+                    HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(
                             UriComponentsBuilder.fromHttpRequest(request),
-                            new PageImpl<>(countWithEntities.getT2(), pageable, countWithEntities.getT1())
-                        )
-                    )
-                    .body(countWithEntities.getT2())
-            );
+                            new PageImpl<>(countWithEntities.getT2(), pageable, countWithEntities.getT1()));
+
+                    return ResponseEntity.ok().headers(headers).body(paginatedList);
+                });
     }
 
     /**

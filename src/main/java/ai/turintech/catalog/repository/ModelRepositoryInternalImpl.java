@@ -22,6 +22,7 @@ import reactor.util.function.Tuple3;
 import reactor.util.function.Tuple4;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
@@ -169,7 +170,7 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
                             fetchModelGroupJoinQuery(whereClause),
                             fetchModelMetricJoinQuery(whereClause)
                     ).flatMap(this::createModelWithGroupsAndMetrics);
-                });
+                }).sort(Comparator.comparing(Model::getDisplayName));
     }
 
 //    @Override
@@ -276,10 +277,14 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
                 .leftOuterJoin(entityTable)
                 .on(Column.create("model_id", parameterTable))
                 .equals(Column.create("id", entityTable))
-                .orderBy(Column.create("ordering", parameterTable)); // added orderBy method with entityTable's ordering column in ascending order
-
+                .orderBy(Column.create("ordering", parameterTable));
         String select = entityManager.createSelect((SelectBuilder.SelectFromAndJoin) selectFrom, Parameter.class, pageable, whereClause);
         RowsFetchSpec<Parameter> mappedResults = db.sql(select).map(this::processParameters);
+        Flux<Parameter> parameters = mappedResults.all();
+        parameters.subscribe(parameter -> {
+            System.out.println("Parameter found: ");
+            System.out.println(parameter); // Print the ModelDTO when it's available
+        });
         return mappedResults;
     }
 
@@ -404,6 +409,7 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
         return createParameterQuery(null, whereClause).all().collectList()
                 .flatMapMany(Flux::fromIterable)
                 .flatMap(this::populateParameterWithDefinitions)
+//                .sort(Comparator.comparing(Parameter::getOrdering))
                 .collectList();
     }
 
@@ -535,6 +541,27 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
     public Flux<Model> findAllWithEagerRelationships(Pageable page) {
         Flux<Model> models = findAllBy(page);
         return models;
+    }
+//TODO ADD ALL THE CRITERIA
+    @Override
+    public Mono<Long> count(SearchDTO searchDTO) {
+
+        String query = "SELECT COUNT(*) FROM " + entityTable
+                + " LEFT OUTER JOIN " + mlTaskTable
+                + " ON " + entityTable.column("ml_task_id")
+                + " = " + mlTaskTable.column("id")
+                + " WHERE " + mlTaskTable.column("name") + " = :name";
+
+        // Now use the above query with binding for name column from SearchDTO
+        DatabaseClient.GenericExecuteSpec genericExecuteSpec = r2dbcEntityTemplate
+                .getDatabaseClient()
+                .sql(query);
+
+        genericExecuteSpec = genericExecuteSpec.bind("name", searchDTO.getMlTask());
+
+        return genericExecuteSpec
+                .map((row, metadata) -> row.get(0, Long.class))
+                .one();
     }
 
     private Model process(Row row, RowMetadata metadata) {
