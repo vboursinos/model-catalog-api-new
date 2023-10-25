@@ -4,6 +4,7 @@ import ai.turintech.catalog.repository.ModelRepository;
 import ai.turintech.catalog.service.ModelService;
 import ai.turintech.catalog.service.dto.ModelDTO;
 import ai.turintech.catalog.service.dto.ModelPaginatedListDTO;
+import ai.turintech.catalog.service.dto.FilterDTO;
 import ai.turintech.catalog.service.dto.SearchDTO;
 import ai.turintech.catalog.utils.PaginationConverter;
 import ai.turintech.catalog.web.rest.errors.BadRequestAlertException;
@@ -186,12 +187,13 @@ public class ModelResource {
             @ParameterObject Pageable pageable,
             ServerHttpRequest request,
             @RequestParam(required = false, defaultValue = "false") boolean eagerload,
+            FilterDTO filterDTO,
             SearchDTO searchDTO
     ) {
         log.debug("REST request to get a page of Models");
         return modelService
-                .countAll(searchDTO)
-                .zipWith(modelService.findAll(pageable, searchDTO).collectList())
+                .countAll(filterDTO, searchDTO)
+                .zipWith(modelService.findAll(pageable, filterDTO, searchDTO).collectList())
                 .map(countWithEntities -> {
                     ModelPaginatedListDTO paginatedList = paginationConverter.getPaginatedList(
                             countWithEntities.getT2(),

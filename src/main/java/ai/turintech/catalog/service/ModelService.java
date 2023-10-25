@@ -3,6 +3,7 @@ package ai.turintech.catalog.service;
 import ai.turintech.catalog.domain.Model;
 import ai.turintech.catalog.repository.ModelRepository;
 import ai.turintech.catalog.service.dto.ModelDTO;
+import ai.turintech.catalog.service.dto.FilterDTO;
 import ai.turintech.catalog.service.dto.SearchDTO;
 import ai.turintech.catalog.service.mapper.ModelMapper;
 import java.util.UUID;
@@ -80,9 +81,9 @@ public class ModelService {
      * @return the list of entities.
      */
     @Transactional(readOnly = true)
-    public Flux<ModelDTO> findAll(Pageable pageable, SearchDTO searchDTO) {
+    public Flux<ModelDTO> findAll(Pageable pageable, FilterDTO filterDTO, SearchDTO searchDTO) {
         log.debug("Request to get all Models");
-        Flux<ModelDTO> modelDTOs = modelRepository.findAllBy(pageable, searchDTO)
+        Flux<ModelDTO> modelDTOs = modelRepository.findAllBy(pageable, filterDTO, searchDTO)
                 .doOnNext(model -> System.out.println("Original model: " + model))
                 .map(modelMapper::toDto);
         modelDTOs.subscribe(modelDTO ->
@@ -114,8 +115,8 @@ public class ModelService {
         return modelRepository.count();
     }
 
-    public Mono<Long> countAll(SearchDTO searchDTO) {
-        return modelRepository.count(searchDTO);
+    public Mono<Long> countAll(FilterDTO filterDTO, SearchDTO searchDTO) {
+        return modelRepository.count(filterDTO, searchDTO);
     }
     /**
      * Get one model by id.

@@ -3,6 +3,7 @@ package ai.turintech.catalog.repository;
 import ai.turintech.catalog.domain.Model;
 import java.util.UUID;
 
+import ai.turintech.catalog.service.dto.FilterDTO;
 import ai.turintech.catalog.service.dto.SearchDTO;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.r2dbc.repository.Query;
@@ -18,7 +19,7 @@ import reactor.core.publisher.Mono;
 @Repository
 public interface ModelRepository extends ReactiveCrudRepository<Model, UUID>, ModelRepositoryInternal {
     Flux<Model> findAllBy(Pageable pageable);
-    Flux<Model> findAllBy(Pageable pageable, SearchDTO searchDTO);
+    Flux<Model> findAllBy(Pageable pageable, FilterDTO filterDTO);
 
     @Override
     Mono<Model> findOneWithEagerRelationships(UUID id);
@@ -87,7 +88,7 @@ interface ModelRepositoryInternal {
 
     Flux<Model> findAllBy(Pageable pageable);
 
-    Flux<Model> findAllBy(Pageable pageable, SearchDTO searchDTO);
+    Flux<Model> findAllBy(Pageable pageable, FilterDTO filterDTO, SearchDTO searchDTO);
 
     Flux<Model> findAll();
 
@@ -99,7 +100,7 @@ interface ModelRepositoryInternal {
 
     Flux<Model> findAllWithEagerRelationships();
 
-    Mono<Long> count(SearchDTO searchDTO);
+    Mono<Long> count(FilterDTO filterDTO, SearchDTO searchDTO);
 
     Flux<Model> findAllWithEagerRelationships(Pageable page);
 

@@ -2,6 +2,7 @@ package ai.turintech.catalog.repository;
 
 import ai.turintech.catalog.domain.*;
 import ai.turintech.catalog.repository.rowmapper.*;
+import ai.turintech.catalog.service.dto.FilterDTO;
 import ai.turintech.catalog.service.dto.SearchDTO;
 import io.r2dbc.spi.Row;
 import io.r2dbc.spi.RowMetadata;
@@ -155,8 +156,8 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
     }*/
 
     @Override
-    public Flux<Model> findAllBy(Pageable pageable, SearchDTO searchDTO) {
-        Condition conditions = createConditions(searchDTO);
+    public Flux<Model> findAllBy(Pageable pageable, FilterDTO filterDTO, SearchDTO searchDTO) {
+        Condition conditions = createConditions(filterDTO, searchDTO);
         return createModelJoinQuery(pageable, conditions)
                 .all()
                 .flatMap(model -> {
@@ -168,7 +169,7 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
                             fetchModelGroupJoinQuery(whereClause),
                             fetchModelMetricJoinQuery(whereClause)
                     ).flatMap(this::createModelWithGroupsAndMetrics);
-                }).sort(Comparator.comparing(Model::getDisplayName));
+                });
     }
 
 //    @Override
@@ -190,14 +191,8 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
 
     @Override
     public Flux<Model> findAllBy(Pageable pageable) {
-        return findAllBy(pageable, null);
+        return findAllBy(pageable, null, null);
     }
-
-//    @Override
-//    public Flux<Model> findAllBy(Pageable pageable, SearchDTO searchDTO) {
-//        Condition conditions = createConditions(searchDTO);
-//        return createModelJoinQuery(pageable, conditions).all().delayElements(Duration.ofSeconds(0,1));
-//    }
 
     RowsFetchSpec<Model> createModelJoinQuery(Pageable pageable, Condition whereClause) {
         List<Expression> columns = ModelSqlHelper.getColumns(entityTable, EntityManager.ENTITY_ALIAS);
@@ -543,7 +538,7 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
     }
 
     @Override
-    public Mono<Long> count(SearchDTO searchDTO) {
+    public Mono<Long> count(FilterDTO filterDTO, SearchDTO searchDTO) {
 
         String baseQuery = "SELECT COUNT(*) FROM " + entityTable
                 + " LEFT OUTER JOIN " + mlTaskTable
@@ -557,17 +552,20 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
                 + " = " + structureTable.column("id");
 
         Map<Column, Object> criteria = new HashMap<>();
-        if (searchDTO.getMlTask() != null) {
-            criteria.put(mlTaskTable.column("name"), searchDTO.getMlTask());
+        if (filterDTO.getMlTask() != null) {
+            criteria.put(mlTaskTable.column("name"), filterDTO.getMlTask());
         }
-        if (searchDTO.getModelType() != null) {
-            criteria.put(typeTable.column("name"), searchDTO.getModelType());
+        if (filterDTO.getModelType() != null) {
+            criteria.put(typeTable.column("name"), filterDTO.getModelType());
         }
-        if (searchDTO.getStructure() != null) {
-            criteria.put(structureTable.column("name"), searchDTO.getStructure());
+        if (filterDTO.getStructure() != null) {
+            criteria.put(structureTable.column("name"), filterDTO.getStructure());
         }
-        if (searchDTO.isEnabled() != null) {
-            criteria.put(entityTable.column("enabled"), searchDTO.isEnabled());
+        if (filterDTO.isEnabled() != null) {
+            criteria.put(entityTable.column("enabled"), filterDTO.isEnabled());
+        }
+        if (searchDTO != null) {
+            criteria.put(entityTable.column(searchDTO.getKey()), "%" + searchDTO.getValue() + "%");
         }
 
         String query = buildQueryWithConditions(baseQuery, criteria);
@@ -586,12 +584,15 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
         if (criteria.isEmpty()) {
             return baseQuery;
         }
-        String conditions = criteria.keySet().stream()
-                .map(key -> " " + key + " = :" + key)
+        String conditions = criteria.entrySet().stream()
+                .map(entry -> {
+                    String key = entry.getKey().toString();
+                    String value = (String) entry.getValue();
+                    return " " + key + ((value.contains("%")) ? " LIKE " : " = ") + ":" + key;
+                })
                 .collect(Collectors.joining(" AND "));
         return baseQuery + " WHERE" + conditions;
     }
-
     private Model process(Row row, RowMetadata metadata) {
         Model entity = modelMapper.apply(row, "e");
         entity.setMlTask(mltasktypeMapper.apply(row, "mlTask"));
@@ -675,26 +676,33 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
                 .and(entityManager.deleteFromLinkTable(incompatibleMetricsLink, entityId));
     }
 
-    private Condition createConditions(SearchDTO searchDTO) {
+    private Condition createConditions(FilterDTO filterDTO, SearchDTO searchDTO) {
         Condition combinedConditions = Conditions.just(String.valueOf(true));
 
-        if (searchDTO.getMlTask() != null) {
-            Comparison whereMlTaskClause = Conditions.isEqual(mlTaskTable.column("name"), Conditions.just(StringUtils.wrap(searchDTO.getMlTask(), "'")));
+        if (searchDTO != null) {
+            if (searchDTO.getValue() instanceof String) {
+                Like whereNameClause = Conditions.like(entityTable.column(searchDTO.getKey()), Conditions.just(StringUtils.wrap("%" + searchDTO.getValue() + "%", "'")));
+                combinedConditions = combinedConditions.and(whereNameClause);
+            }
+        }
+
+        if (filterDTO.getMlTask() != null) {
+            Comparison whereMlTaskClause = Conditions.isEqual(mlTaskTable.column("name"), Conditions.just(StringUtils.wrap(filterDTO.getMlTask(), "'")));
             combinedConditions = combinedConditions.and(whereMlTaskClause);
         }
 
-        if (searchDTO.getModelType() != null) {
-            Comparison whereTypeClause = Conditions.isEqual(typeTable.column("name"), Conditions.just(StringUtils.wrap(searchDTO.getModelType(), "'")));
+        if (filterDTO.getModelType() != null) {
+            Comparison whereTypeClause = Conditions.isEqual(typeTable.column("name"), Conditions.just(StringUtils.wrap(filterDTO.getModelType(), "'")));
             combinedConditions = combinedConditions.and(whereTypeClause);
         }
 
-        if (searchDTO.getStructure() != null) {
-            Comparison whereStructureClause = Conditions.isEqual(structureTable.column("name"), Conditions.just(StringUtils.wrap(searchDTO.getStructure(), "'")));
+        if (filterDTO.getStructure() != null) {
+            Comparison whereStructureClause = Conditions.isEqual(structureTable.column("name"), Conditions.just(StringUtils.wrap(filterDTO.getStructure(), "'")));
             combinedConditions = combinedConditions.and(whereStructureClause);
         }
 
-        if (searchDTO.isEnabled() != null) {
-            Comparison whereEnabledClause = Conditions.isEqual(entityTable.column("enabled"), Conditions.just(String.valueOf(searchDTO.isEnabled())));
+        if (filterDTO.isEnabled() != null) {
+            Comparison whereEnabledClause = Conditions.isEqual(entityTable.column("enabled"), Conditions.just(String.valueOf(filterDTO.isEnabled())));
             combinedConditions = combinedConditions.and(whereEnabledClause);
         }
         return combinedConditions;

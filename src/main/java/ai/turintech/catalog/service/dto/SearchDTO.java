@@ -1,61 +1,49 @@
 package ai.turintech.catalog.service.dto;
 
 public class SearchDTO {
-    private String mlTask;
-    private String modelType;
-
-    private String structure;
-    private Boolean enabled;
+    private String key;
+    private String operation;
+    private Object value;
 
     public SearchDTO() {
     }
 
-    public SearchDTO(String mlTask, String modelType, String structure, boolean enabled) {
-        this.mlTask = mlTask;
-        this.modelType = modelType;
-        this.enabled = enabled;
-        this.structure = structure;
+    public SearchDTO(String key, String operation, Object value) {
+        this.key = key;
+        this.operation = operation;
+        this.value = value;
     }
 
-    public String getMlTask() {
-        return mlTask;
+    public String getKey() {
+        return key;
     }
 
-    public void setMlTask(String mlTask) {
-        this.mlTask = mlTask;
+    public void setKey(String key) {
+        this.key = key;
     }
 
-    public String getModelType() {
-        return modelType;
+    public String getOperation() {
+        return operation;
     }
 
-    public void setModelType(String modelType) {
-        this.modelType = modelType;
+    public void setOperation(String operation) {
+        this.operation = operation;
     }
 
-    public Boolean isEnabled() {
-        return enabled;
+    public Object getValue() {
+        return value;
     }
 
-    public void setEnabled(Boolean enabled) {
-        this.enabled = enabled;
-    }
-
-    public String getStructure() {
-        return structure;
-    }
-
-    public void setStructure(String structure) {
-        this.structure = structure;
+    public void setValue(Object value) {
+        this.value = value;
     }
 
     @Override
     public String toString() {
         return "SearchDTO{" +
-                "mlTask='" + mlTask + '\'' +
-                ", modelType='" + modelType + '\'' +
-                ", structure='" + structure + '\'' +
-                ", enabled=" + enabled +
+                "key='" + key + '\'' +
+                ", operation='" + operation + '\'' +
+                ", value=" + value +
                 '}';
     }
 }
