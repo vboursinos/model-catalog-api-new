@@ -156,8 +156,8 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
     }*/
 
     @Override
-    public Flux<Model> findAllBy(Pageable pageable, FilterDTO filterDTO, SearchDTO searchDTO) {
-        Condition conditions = createConditions(filterDTO, searchDTO);
+    public Flux<Model> findAllBy(Pageable pageable, FilterDTO filterDTO, List<SearchDTO> searchParams) {
+        Condition conditions = createConditions(filterDTO, searchParams);
         return createModelJoinQuery(pageable, conditions)
                 .all()
                 .flatMap(model -> {
@@ -191,7 +191,7 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
 
     @Override
     public Flux<Model> findAllBy(Pageable pageable) {
-        return findAllBy(pageable, null, null);
+        return findAllBy(pageable);
     }
 
     RowsFetchSpec<Model> createModelJoinQuery(Pageable pageable, Condition whereClause) {
@@ -538,7 +538,7 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
     }
 
     @Override
-    public Mono<Long> count(FilterDTO filterDTO, SearchDTO searchDTO) {
+    public Mono<Long> count(FilterDTO filterDTO, List<SearchDTO> searchParams) {
 
         String baseQuery = "SELECT COUNT(*) FROM " + entityTable
                 + " LEFT OUTER JOIN " + mlTaskTable
@@ -564,10 +564,11 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
         if (filterDTO.isEnabled() != null) {
             criteria.put(entityTable.column("enabled"), filterDTO.isEnabled());
         }
-        if (searchDTO != null) {
-            criteria.put(entityTable.column(searchDTO.getKey()), "%" + searchDTO.getValue() + "%");
+        for (SearchDTO searchDTO : searchParams) {
+            if (searchDTO.getKey() != null) {
+                criteria.put(entityTable.column(searchDTO.getKey()), "%" + searchDTO.getValue() + "%");
+            }
         }
-
         String query = buildQueryWithConditions(baseQuery, criteria);
         DatabaseClient.GenericExecuteSpec genericExecuteSpec = r2dbcEntityTemplate.getDatabaseClient().sql(query);
 
@@ -676,15 +677,10 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
                 .and(entityManager.deleteFromLinkTable(incompatibleMetricsLink, entityId));
     }
 
-    private Condition createConditions(FilterDTO filterDTO, SearchDTO searchDTO) {
-        Condition combinedConditions = Conditions.just(String.valueOf(true));
+    private Condition createConditions(FilterDTO filterDTO, List<SearchDTO> searchParams) {
 
-        if (searchDTO != null) {
-            if (searchDTO.getValue() instanceof String) {
-                Like whereNameClause = Conditions.like(entityTable.column(searchDTO.getKey()), Conditions.just(StringUtils.wrap("%" + searchDTO.getValue() + "%", "'")));
-                combinedConditions = combinedConditions.and(whereNameClause);
-            }
-        }
+        ModelPredicatesCreator modelPredicatesCreator = new ModelPredicatesCreator(searchParams, entityTable);
+        Condition combinedConditions = modelPredicatesCreator.create();
 
         if (filterDTO.getMlTask() != null) {
             Comparison whereMlTaskClause = Conditions.isEqual(mlTaskTable.column("name"), Conditions.just(StringUtils.wrap(filterDTO.getMlTask(), "'")));

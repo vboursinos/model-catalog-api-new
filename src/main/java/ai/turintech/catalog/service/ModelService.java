@@ -6,6 +6,8 @@ import ai.turintech.catalog.service.dto.ModelDTO;
 import ai.turintech.catalog.service.dto.FilterDTO;
 import ai.turintech.catalog.service.dto.SearchDTO;
 import ai.turintech.catalog.service.mapper.ModelMapper;
+
+import java.util.List;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,9 +83,9 @@ public class ModelService {
      * @return the list of entities.
      */
     @Transactional(readOnly = true)
-    public Flux<ModelDTO> findAll(Pageable pageable, FilterDTO filterDTO, SearchDTO searchDTO) {
+    public Flux<ModelDTO> findAll(Pageable pageable, FilterDTO filterDTO, List<SearchDTO> searchParams) {
         log.debug("Request to get all Models");
-        Flux<ModelDTO> modelDTOs = modelRepository.findAllBy(pageable, filterDTO, searchDTO)
+        Flux<ModelDTO> modelDTOs = modelRepository.findAllBy(pageable, filterDTO, searchParams)
                 .doOnNext(model -> System.out.println("Original model: " + model))
                 .map(modelMapper::toDto);
         modelDTOs.subscribe(modelDTO ->
@@ -115,8 +117,8 @@ public class ModelService {
         return modelRepository.count();
     }
 
-    public Mono<Long> countAll(FilterDTO filterDTO, SearchDTO searchDTO) {
-        return modelRepository.count(filterDTO, searchDTO);
+    public Mono<Long> countAll(FilterDTO filterDTO, List<SearchDTO> searchParams) {
+        return modelRepository.count(filterDTO, searchParams);
     }
     /**
      * Get one model by id.

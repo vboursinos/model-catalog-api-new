@@ -1,6 +1,8 @@
 package ai.turintech.catalog.repository;
 
 import ai.turintech.catalog.domain.Model;
+
+import java.util.List;
 import java.util.UUID;
 
 import ai.turintech.catalog.service.dto.FilterDTO;
@@ -88,7 +90,7 @@ interface ModelRepositoryInternal {
 
     Flux<Model> findAllBy(Pageable pageable);
 
-    Flux<Model> findAllBy(Pageable pageable, FilterDTO filterDTO, SearchDTO searchDTO);
+    Flux<Model> findAllBy(Pageable pageable, FilterDTO filterDTO, List<SearchDTO> searchDTO);
 
     Flux<Model> findAll();
 
@@ -100,7 +102,7 @@ interface ModelRepositoryInternal {
 
     Flux<Model> findAllWithEagerRelationships();
 
-    Mono<Long> count(FilterDTO filterDTO, SearchDTO searchDTO);
+    Mono<Long> count(FilterDTO filterDTO, List<SearchDTO> searchParams);
 
     Flux<Model> findAllWithEagerRelationships(Pageable page);
 

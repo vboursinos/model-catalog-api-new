@@ -32,8 +32,12 @@ import tech.jhipster.web.util.reactive.ResponseUtil;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * REST controller for managing {@link ai.turintech.catalog.domain.Model}.
@@ -188,12 +192,21 @@ public class ModelResource {
             ServerHttpRequest request,
             @RequestParam(required = false, defaultValue = "false") boolean eagerload,
             FilterDTO filterDTO,
-            SearchDTO searchDTO
+            @RequestParam(value = "search", required = false) String search
     ) {
         log.debug("REST request to get a page of Models");
+        List<SearchDTO> searchParams = new ArrayList<SearchDTO>();
+        if (search != null) {
+            Pattern pattern = Pattern.compile("(\\w+)(:)([^,]+),?");
+            Matcher matcher = pattern.matcher(search);
+
+            while (matcher.find()) {
+                searchParams.add(new SearchDTO(matcher.group(1), matcher.group(2), matcher.group(3)));
+            }
+        }
         return modelService
-                .countAll(filterDTO, searchDTO)
-                .zipWith(modelService.findAll(pageable, filterDTO, searchDTO).collectList())
+                .countAll(filterDTO, searchParams)
+                .zipWith(modelService.findAll(pageable, filterDTO, searchParams).collectList())
                 .map(countWithEntities -> {
                     ModelPaginatedListDTO paginatedList = paginationConverter.getPaginatedList(
                             countWithEntities.getT2(),
