@@ -138,23 +138,6 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
         this.metricMapper = metricMapper;
     }
 
-/*    @Override
-    public Flux<Model> findAllBy(Pageable pageable, SearchDTO searchDTO) {
-        Condition conditions = createConditions(searchDTO);
-        return createModelJoinQuery(pageable, conditions)
-                .all()
-                .flatMap(model -> {
-                    findById(model.getId()).subscribe();
-                    Comparison whereClause = Conditions.isEqual(entityTable.column("id"), Conditions.just(StringUtils.wrap(model.getId().toString(), "'")));
-                    return Mono.zip(
-                            Mono.just(model),
-                            fetchParameters(whereClause),
-                            fetchModelGroupJoinQuery(whereClause),
-                            fetchModelMetricJoinQuery(whereClause)
-                    ).flatMap(this::createModelWithParametersAndMetrics);
-                });
-    }*/
-
     @Override
     public Flux<Model> findAllBy(Pageable pageable, FilterDTO filterDTO, List<SearchDTO> searchParams) {
         Condition conditions = createConditions(filterDTO, searchParams);
@@ -165,29 +148,11 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
                     Comparison whereClause = Conditions.isEqual(entityTable.column("id"), Conditions.just(StringUtils.wrap(model.getId().toString(), "'")));
                     return Mono.zip(
                             Mono.just(model),
-//                            fetchParameters(whereClause),
                             fetchModelGroupJoinQuery(whereClause),
                             fetchModelMetricJoinQuery(whereClause)
                     ).flatMap(this::createModelWithGroupsAndMetrics);
                 });
     }
-
-//    @Override
-//    public Flux<Model> findAllBy(Pageable pageable, SearchDTO searchDTO) {
-//        Condition conditions = createConditions(searchDTO);
-//        return createModelJoinQuery(pageable, conditions)
-//                .all()
-//                .map(Model::getId)
-//                .flatMap(this::findById);
-//    }
-
-//    @Override
-//    public Flux<Model> findAllBy(Pageable pageable, SearchDTO searchDTO) {
-//        Condition conditions = createConditions(searchDTO);
-//        return createModelJoinQuery(pageable, conditions)
-//                .all()
-//                .flatMap(model -> findById(model.getId()));
-//    }
 
     @Override
     public Flux<Model> findAllBy(Pageable pageable) {
@@ -394,6 +359,18 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
                 )
                 .flatMap(this::createModelWithParametersAndMetrics);
     }
+
+    public Mono<Model> findByIdWithoutParameters(UUID id) {
+        Comparison whereClause = Conditions.isEqual(entityTable.column("id"), Conditions.just(StringUtils.wrap(id.toString(), "'")));
+        return Mono.zip(
+                        fetchModel(whereClause),
+                        fetchParameters(null),
+                        fetchModelGroupJoinQuery(whereClause),
+                        fetchModelMetricJoinQuery(whereClause)
+                )
+                .flatMap(this::createModelWithParametersAndMetrics);
+    }
+
 
     private Mono<Model> fetchModel(Comparison whereClause) {
         return createModelJoinQuery(null, whereClause).one();
