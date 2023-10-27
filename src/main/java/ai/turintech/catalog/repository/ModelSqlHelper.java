@@ -2,6 +2,9 @@ package ai.turintech.catalog.repository;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import ai.turintech.catalog.service.dto.GenericQueryDTO;
+import ai.turintech.catalog.service.dto.TableInfoDTO;
 import org.springframework.data.relational.core.sql.Column;
 import org.springframework.data.relational.core.sql.Expression;
 import org.springframework.data.relational.core.sql.Table;
@@ -26,4 +29,15 @@ public class ModelSqlHelper {
         columns.add(Column.aliased("ensemble_type_id", table, columnPrefix + "_ensemble_type_id"));
         return columns;
     }
+
+    public static List<Expression> getColumnsGeneric(GenericQueryDTO genericQueryDTO) {
+        List<Expression> columns = new ArrayList<>();
+        for (TableInfoDTO tableInfoDTO : genericQueryDTO.getTables()) {
+            for (String column : tableInfoDTO.getColumns()) {
+                columns.add(Column.aliased(column, tableInfoDTO.getTable(), tableInfoDTO.getColumnPrefix() + "_" + column));
+            }
+        }
+        return columns;
+    }
+
 }
