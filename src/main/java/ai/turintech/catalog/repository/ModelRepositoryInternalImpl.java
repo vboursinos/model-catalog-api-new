@@ -143,7 +143,7 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
         return createModelJoinQuery(pageable, conditions)
                 .all()
                 .flatMap(model -> {
-                    findById(model.getId()).subscribe();
+                    findByIdWithoutParameters(model.getId()).subscribe();
                     Comparison whereClause = Conditions.isEqual(entityTable.column("id"), Conditions.just(StringUtils.wrap(model.getId().toString(), "'")));
                     return Mono.zip(
                             Mono.just(model),
@@ -161,11 +161,11 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
     public static GenericQueryDTO initModel() {
         String[] modelColumnsArray = {"id", "name", "description", "display_name", "advantages", "enabled", "decision_tree", "disadvantages", "model_type_id", "structure_id", "family_type_id", "ensemble_type_id", "ml_task_id"};
         List<String> modelColumns = new ArrayList<>(Arrays.asList(modelColumnsArray));
-        RelationshipDTO modelMltaskRelationshipDTO = new RelationshipDTO("ManyToOne", "ml_task_type", Table.aliased("ml_task_type", "mlTask"), "ml_task_id", "id");
-        RelationshipDTO modelStructureRelationshipDTO = new RelationshipDTO("ManyToOne", "model_structure_type", Table.aliased("model_structure_type", "e_structure"), "structure_id", "id");
-        RelationshipDTO modelTypeRelationshipDTO = new RelationshipDTO("ManyToOne", "model_type", Table.aliased("model_type", "model_type"), "model_type_id", "id");
-        RelationshipDTO modelFamilyTypeRelationshipDTO = new RelationshipDTO("ManyToOne", "model_family_type", Table.aliased("model_family_type", "familyType"), "family_type_id", "id");
-        RelationshipDTO modelEnsembleTypeRelationshipDTO = new RelationshipDTO("ManyToOne", "model_ensemble_type", Table.aliased("model_ensemble_type", "ensembleType"), "ensemble_type_id", "id");
+        RelationshipDTO modelMltaskRelationshipDTO = new RelationshipDTO("ManyToOne", "ml_task_type", Table.aliased("ml_task_type", "mlTask"), "ml_task_id", "id", "mlTask");
+        RelationshipDTO modelStructureRelationshipDTO = new RelationshipDTO("ManyToOne", "model_structure_type", Table.aliased("model_structure_type", "e_structure"), "structure_id", "id", "structure");
+        RelationshipDTO modelTypeRelationshipDTO = new RelationshipDTO("ManyToOne", "model_type", Table.aliased("model_type", "model_type"), "model_type_id", "id", "modelType");
+        RelationshipDTO modelFamilyTypeRelationshipDTO = new RelationshipDTO("ManyToOne", "model_family_type", Table.aliased("model_family_type", "familyType"), "family_type_id", "id", "familyType");
+        RelationshipDTO modelEnsembleTypeRelationshipDTO = new RelationshipDTO("ManyToOne", "model_ensemble_type", Table.aliased("model_ensemble_type", "ensembleType"), "ensemble_type_id", "id", "ensembleType");
         List<RelationshipDTO> modelRelationships = new ArrayList<>(Arrays.asList(modelMltaskRelationshipDTO, modelStructureRelationshipDTO, modelTypeRelationshipDTO, modelFamilyTypeRelationshipDTO, modelEnsembleTypeRelationshipDTO));
         TableInfoDTO modelTableInfoDTO = new TableInfoDTO(Table.aliased("model", EntityManager.ENTITY_ALIAS), "e", modelColumns, modelRelationships);
 
@@ -196,15 +196,51 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
         tables.add(familyTypeTableInfoDTO);
         tables.add(ensembleTypeTableInfoDTO);
         tables.add(mlTaskTableInfoDTO);
+        Map<String, List<String>> tableColumnsMap = new HashMap<>();
+        tableColumnsMap.put("model", modelColumns);
+        tableColumnsMap.put("model_type", modelTypeColumns);
+        tableColumnsMap.put("model_structure_type", structureColumns);
+        tableColumnsMap.put("model_family_type", familyTypeColumns);
+        tableColumnsMap.put("model_ensemble_type", ensembleTypeColumns);
+        tableColumnsMap.put("ml_task_type", mlTaskColumns);
+        return new GenericQueryDTO(tables, tableColumnsMap);
+    }
 
-        return new GenericQueryDTO(tables);
+    public static GenericQueryDTO initGroupTable() {
+
+        String[] modelGroupColumnsArray = {"model_id", "group_id"};
+        List<String> modelGroupColumns = new ArrayList<>(Arrays.asList(modelGroupColumnsArray));
+        RelationshipDTO relationshipDTO1 = new RelationshipDTO("ManyToOne", "model", Table.aliased("model", "e"), "model_id", "id", "e");
+        RelationshipDTO relationshipDTO2 = new RelationshipDTO("ManyToOne", "model_group_type", Table.aliased("model_group_type", "modelGroup"), "group_id", "id", "modelGroup");
+        List<RelationshipDTO> modelRelationships = new ArrayList<>(Arrays.asList(relationshipDTO1, relationshipDTO2));
+        TableInfoDTO modelGroupTableInfoDTO = new TableInfoDTO(Table.aliased("rel_model__groups", "rel_model__groups"), "rel_model__groups", modelGroupColumns, modelRelationships);
+
+
+        String[] groupColumnsArray = {"id", "name"};
+        List<String> groupColumns = new ArrayList<>(Arrays.asList(groupColumnsArray));
+        TableInfoDTO groupTableInfoDTO = new TableInfoDTO(Table.aliased("model_group_type", "modelGroup"), "modelGroup", groupColumns, Collections.emptyList());
+
+        String[] modelColumnsArray = {"id", "name", "description", "display_name", "advantages", "enabled", "decision_tree", "disadvantages", "model_type_id", "structure_id", "family_type_id", "ensemble_type_id", "ml_task_id"};
+        List<String> modelColumns = new ArrayList<>(Arrays.asList(modelColumnsArray));
+        TableInfoDTO modelTableInfoDTO2 = new TableInfoDTO(Table.aliased("model", "e"), "e", modelColumns, Collections.emptyList());
+
+        List<TableInfoDTO> tables = new ArrayList<>();
+        tables.add(modelGroupTableInfoDTO);
+        tables.add(groupTableInfoDTO);
+        tables.add(modelTableInfoDTO2);
+        Map<String, List<String>> tableColumnsMap = new HashMap<>();
+        tableColumnsMap.put("rel_model__groups", modelGroupColumns);
+        tableColumnsMap.put("model_group_type", groupColumns);
+        tableColumnsMap.put("model", modelColumns);
+        return new GenericQueryDTO(tables, tableColumnsMap);
     }
 
     RowsFetchSpec<Model> createModelJoinQuery(Pageable pageable, Condition whereClause) {
         List<Expression> columns = new ArrayList<>();
         GenericQueryDTO genericQueryDTO = initModel();
         TableInfoDTO table = genericQueryDTO.getTables().get(0);
-        columns.addAll(ModelSqlHelper.getColumnsGeneric(genericQueryDTO));
+        Map<String,List<Expression>> tableColumnsMap = ModelSqlHelper.getColumnsGeneric(genericQueryDTO);
+        columns.addAll(tableColumnsMap.get(table.getTable().getName().toString()));
         SelectBuilder.SelectFromAndJoinCondition selectFrom = null;
         boolean firstJoin = true;
         if (!table.getRelationships().isEmpty()) {
@@ -212,67 +248,44 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
                 String foreignKey = relationship.getFromColumn();
                 Table tableName = relationship.getToTableObject();
                 String pkJoinTable = relationship.getToColumn();
-                if ("ManyToOne".equals(relationship.getType()) && firstJoin) {
-                    selectFrom = Select.builder().select(columns).from(table.getTable()).leftOuterJoin(tableName).on(Column.create(foreignKey, table.getTable())).equals(Column.create(pkJoinTable, table.getTable()));
-                    firstJoin = false;
-                } else {
-                   selectFrom = selectFrom.leftOuterJoin(tableName).on(Column.create(foreignKey, table.getTable())).equals(Column.create(pkJoinTable, tableName));
+                if ("ManyToOne".equals(relationship.getType())) {
+                    if (firstJoin) {
+                        selectFrom = Select.builder().select(columns).from(table.getTable()).leftOuterJoin(tableName).on(Column.create(foreignKey, table.getTable())).equals(Column.create(pkJoinTable, tableName));
+                        firstJoin = false;
+                    } else {
+                        selectFrom = selectFrom.leftOuterJoin(tableName).on(Column.create(foreignKey, table.getTable())).equals(Column.create(pkJoinTable, tableName));
+                    }
                 }
             }
         }
-        String select = entityManager.createSelect(selectFrom, Model.class, pageable, whereClause);
-        return db.sql(select).map(this::process);
-    }
-
-    RowsFetchSpec<Model> createModelJoinQuery2(Pageable pageable, Condition whereClause) {
-        List<Expression> columns = new ArrayList<>();
-        columns.addAll(ModelSqlHelper.getColumnsGeneric(initModel()));
-//        columns.addAll(MlTaskTypeSqlHelper.getColumns(mlTaskTable, "mlTask"));
-//        columns.addAll(ModelStructureTypeSqlHelper.getColumns(structureTable, "structure"));
-//        columns.addAll(ModelTypeSqlHelper.getColumns(typeTable, "modelType"));
-//        columns.addAll(ModelFamilyTypeSqlHelper.getColumns(familyTypeTable, "familyType"));
-//        columns.addAll(ModelEnsembleTypeSqlHelper.getColumns(ensembleTypeTable, "ensembleType"));
-        SelectFromAndJoinCondition selectFrom = Select
-                .builder()
-                .select(columns)
-                .from(entityTable)
-                .leftOuterJoin(mlTaskTable)
-                .on(Column.create("ml_task_id", entityTable))
-                .equals(Column.create("id", mlTaskTable));
-        selectFrom = selectFrom
-                .leftOuterJoin(structureTable)
-                .on(Column.create("structure_id", entityTable))
-                .equals(Column.create("id", structureTable));
-        selectFrom = selectFrom
-                .leftOuterJoin(typeTable)
-                .on(Column.create("model_type_id", entityTable))
-                .equals(Column.create("id", typeTable));
-        selectFrom = selectFrom
-                .leftOuterJoin(familyTypeTable)
-                .on(Column.create("family_type_id", entityTable))
-                .equals(Column.create("id", familyTypeTable));
-        selectFrom = selectFrom
-                .leftOuterJoin(ensembleTypeTable)
-                .on(Column.create("ensemble_type_id", entityTable))
-                .equals(Column.create("id", ensembleTypeTable));
-        // we do not support Criteria here for now as of https://github.com/jhipster/generator-jhipster/issues/18269
-        String select = entityManager.createSelect(selectFrom, Model.class, pageable, whereClause);
+        String select = entityManager.createSelect(selectFrom, Object.class, pageable, whereClause);
         return db.sql(select).map(this::process);
     }
 
     RowsFetchSpec<ModelGroupType> createModelGroupJoinQuery(Pageable pageable, Condition whereClause) {
-        List<Expression> columns = ModelSqlHelper.getColumns(entityTable, EntityManager.ENTITY_ALIAS);
-        columns.addAll(ModelGroupTypeSqlHelper.getColumns(groupTable, "modelGroup"));
-        SelectFromAndJoinCondition selectFrom = Select
-                .builder()
-                .select(columns)
-                .from(modelGroupTable)
-                .leftOuterJoin(entityTable)
-                .on(Column.create("id", entityTable))
-                .equals(Column.create("model_id", modelGroupTable))
-                .leftOuterJoin(groupTable)
-                .on(Column.create("id", groupTable))
-                .equals(Column.create("group_id", modelGroupTable));
+        List<Expression> columns = new ArrayList<>();
+        GenericQueryDTO genericQueryDTO = initGroupTable();
+        TableInfoDTO table = genericQueryDTO.getTables().get(0);
+        Map<String,List<Expression>> tableColumnsMap = ModelSqlHelper.getColumnsGeneric(genericQueryDTO);
+        columns.addAll(tableColumnsMap.get(table.getTable().getName().toString()));
+        SelectBuilder.SelectFromAndJoinCondition selectFrom = null;
+        boolean firstJoin = true;
+        if (!table.getRelationships().isEmpty()) {
+            for (RelationshipDTO relationship : table.getRelationships()) {
+                String foreignKey = relationship.getFromColumn();
+                Table tableName = relationship.getToTableObject();
+                String pkJoinTable = relationship.getToColumn();
+                if ("ManyToOne".equals(relationship.getType())) {
+                    if (firstJoin) {
+                        selectFrom = Select.builder().select(columns).from(table.getTable()).leftOuterJoin(tableName).on(Column.create(foreignKey, table.getTable())).equals(Column.create(pkJoinTable, tableName));
+                        firstJoin = false;
+                    } else {
+                        selectFrom = selectFrom.leftOuterJoin(tableName).on(Column.create(foreignKey, table.getTable())).equals(Column.create(pkJoinTable, tableName));
+                    }
+                }
+            }
+        }
+
         String select = entityManager.createSelect(selectFrom, Model.class, pageable, whereClause);
         RowsFetchSpec<ModelGroupType> mappedResults = db.sql(select).map(this::modelGroupProcess);
         return mappedResults;

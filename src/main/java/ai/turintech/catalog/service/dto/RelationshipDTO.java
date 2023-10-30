@@ -9,16 +9,18 @@ public class RelationshipDTO {
     private String toTableAlias;
     private String fromColumn;
     private String toColumn;
+    private String toColumnPrefix;
 
     public RelationshipDTO() {
     }
 
-    public RelationshipDTO(String type, String toTable, Table toTableObject, String fromColumn, String toColumn) {
+    public RelationshipDTO(String type, String toTable, Table toTableObject, String fromColumn, String toColumn, String toColumnPrefix) {
         this.type = type;
         this.toTable = toTable;
         this.toTableObject = toTableObject;
         this.fromColumn = fromColumn;
         this.toColumn = toColumn;
+        this.toColumnPrefix = toColumnPrefix;
     }
 
     public String getType() {
@@ -67,6 +69,14 @@ public class RelationshipDTO {
 
     public void setToTableObject(Table toTableObject) {
         this.toTableObject = toTableObject;
+    }
+
+    public String getToColumnPrefix() {
+        return toColumnPrefix;
+    }
+
+    public void setToColumnPrefix(String toColumnPrefix) {
+        this.toColumnPrefix = toColumnPrefix;
     }
 
     @Override
