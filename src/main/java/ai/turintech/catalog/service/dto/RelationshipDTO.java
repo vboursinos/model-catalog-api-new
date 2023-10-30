@@ -3,7 +3,7 @@ package ai.turintech.catalog.service.dto;
 import org.springframework.data.relational.core.sql.Table;
 
 public class RelationshipDTO {
-    private String type;
+    private RelationshipTypeDTO type;
     private String toTable;
     private Table toTableObject;
     private String toTableAlias;
@@ -14,7 +14,7 @@ public class RelationshipDTO {
     public RelationshipDTO() {
     }
 
-    public RelationshipDTO(String type, String toTable, Table toTableObject, String fromColumn, String toColumn, String toColumnPrefix) {
+    public RelationshipDTO(RelationshipTypeDTO type, String toTable, Table toTableObject, String fromColumn, String toColumn, String toColumnPrefix) {
         this.type = type;
         this.toTable = toTable;
         this.toTableObject = toTableObject;
@@ -23,11 +23,11 @@ public class RelationshipDTO {
         this.toColumnPrefix = toColumnPrefix;
     }
 
-    public String getType() {
+    public RelationshipTypeDTO getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(RelationshipTypeDTO type) {
         this.type = type;
     }
 

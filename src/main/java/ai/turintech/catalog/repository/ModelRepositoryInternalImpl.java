@@ -1,11 +1,14 @@
 package ai.turintech.catalog.repository;
 
+import ai.turintech.catalog.anotatation.Columns;
+import ai.turintech.catalog.config.EntityConfiguration;
 import ai.turintech.catalog.domain.*;
 import ai.turintech.catalog.repository.rowmapper.*;
 import ai.turintech.catalog.service.dto.*;
 import io.r2dbc.spi.Row;
 import io.r2dbc.spi.RowMetadata;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.r2dbc.convert.R2dbcConverter;
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations;
@@ -16,20 +19,27 @@ import org.springframework.data.relational.core.sql.SelectBuilder.SelectFromAndJ
 import org.springframework.data.relational.repository.support.MappingRelationalEntityInformation;
 import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.r2dbc.core.RowsFetchSpec;
+import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple3;
 import reactor.util.function.Tuple4;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.*;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 /**
  * Spring Data R2DBC custom repository implementation for the Model entity.
  */
 @SuppressWarnings("unused")
+@Repository
 class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> implements ModelRepositoryInternal {
 
+    @Autowired
+    private static EntityConfiguration entityConfiguration;
     private final DatabaseClient db;
     private final R2dbcEntityTemplate r2dbcEntityTemplate;
     private final EntityManager entityManager;
@@ -159,13 +169,14 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
     }
 
     public static GenericQueryDTO initModel() {
+//        System.out.println(entityConfiguration.getTableInfo());
         String[] modelColumnsArray = {"id", "name", "description", "display_name", "advantages", "enabled", "decision_tree", "disadvantages", "model_type_id", "structure_id", "family_type_id", "ensemble_type_id", "ml_task_id"};
         List<String> modelColumns = new ArrayList<>(Arrays.asList(modelColumnsArray));
-        RelationshipDTO modelMltaskRelationshipDTO = new RelationshipDTO("ManyToOne", "ml_task_type", Table.aliased("ml_task_type", "mlTask"), "ml_task_id", "id", "mlTask");
-        RelationshipDTO modelStructureRelationshipDTO = new RelationshipDTO("ManyToOne", "model_structure_type", Table.aliased("model_structure_type", "e_structure"), "structure_id", "id", "structure");
-        RelationshipDTO modelTypeRelationshipDTO = new RelationshipDTO("ManyToOne", "model_type", Table.aliased("model_type", "model_type"), "model_type_id", "id", "modelType");
-        RelationshipDTO modelFamilyTypeRelationshipDTO = new RelationshipDTO("ManyToOne", "model_family_type", Table.aliased("model_family_type", "familyType"), "family_type_id", "id", "familyType");
-        RelationshipDTO modelEnsembleTypeRelationshipDTO = new RelationshipDTO("ManyToOne", "model_ensemble_type", Table.aliased("model_ensemble_type", "ensembleType"), "ensemble_type_id", "id", "ensembleType");
+        RelationshipDTO modelMltaskRelationshipDTO = new RelationshipDTO(RelationshipTypeDTO.MANY_TO_ONE, "ml_task_type", Table.aliased("ml_task_type", "mlTask"), "ml_task_id", "id", "mlTask");
+        RelationshipDTO modelStructureRelationshipDTO = new RelationshipDTO(RelationshipTypeDTO.MANY_TO_ONE, "model_structure_type", Table.aliased("model_structure_type", "e_structure"), "structure_id", "id", "structure");
+        RelationshipDTO modelTypeRelationshipDTO = new RelationshipDTO(RelationshipTypeDTO.MANY_TO_ONE, "model_type", Table.aliased("model_type", "model_type"), "model_type_id", "id", "modelType");
+        RelationshipDTO modelFamilyTypeRelationshipDTO = new RelationshipDTO(RelationshipTypeDTO.MANY_TO_ONE, "model_family_type", Table.aliased("model_family_type", "familyType"), "family_type_id", "id", "familyType");
+        RelationshipDTO modelEnsembleTypeRelationshipDTO = new RelationshipDTO(RelationshipTypeDTO.MANY_TO_ONE, "model_ensemble_type", Table.aliased("model_ensemble_type", "ensembleType"), "ensemble_type_id", "id", "ensembleType");
         List<RelationshipDTO> modelRelationships = new ArrayList<>(Arrays.asList(modelMltaskRelationshipDTO, modelStructureRelationshipDTO, modelTypeRelationshipDTO, modelFamilyTypeRelationshipDTO, modelEnsembleTypeRelationshipDTO));
         TableInfoDTO modelTableInfoDTO = new TableInfoDTO(Table.aliased("model", EntityManager.ENTITY_ALIAS), "e", modelColumns, modelRelationships);
 
@@ -210,8 +221,8 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
 
         String[] modelGroupColumnsArray = {"model_id", "group_id"};
         List<String> modelGroupColumns = new ArrayList<>(Arrays.asList(modelGroupColumnsArray));
-        RelationshipDTO relationshipDTO1 = new RelationshipDTO("ManyToOne", "model", Table.aliased("model", "e"), "model_id", "id", "e");
-        RelationshipDTO relationshipDTO2 = new RelationshipDTO("ManyToOne", "model_group_type", Table.aliased("model_group_type", "modelGroup"), "group_id", "id", "modelGroup");
+        RelationshipDTO relationshipDTO1 = new RelationshipDTO(RelationshipTypeDTO.MANY_TO_MANY, "model", Table.aliased("model", "e"), "model_id", "id", "e");
+        RelationshipDTO relationshipDTO2 = new RelationshipDTO(RelationshipTypeDTO.MANY_TO_MANY, "model_group_type", Table.aliased("model_group_type", "modelGroup"), "group_id", "id", "modelGroup");
         List<RelationshipDTO> modelRelationships = new ArrayList<>(Arrays.asList(relationshipDTO1, relationshipDTO2));
         TableInfoDTO modelGroupTableInfoDTO = new TableInfoDTO(Table.aliased("rel_model__groups", "rel_model__groups"), "rel_model__groups", modelGroupColumns, modelRelationships);
 
@@ -248,7 +259,7 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
                 String foreignKey = relationship.getFromColumn();
                 Table tableName = relationship.getToTableObject();
                 String pkJoinTable = relationship.getToColumn();
-                if ("ManyToOne".equals(relationship.getType())) {
+                if ("many-to-one".equals(relationship.getType().getValue())) {
                     if (firstJoin) {
                         selectFrom = Select.builder().select(columns).from(table.getTable()).leftOuterJoin(tableName).on(Column.create(foreignKey, table.getTable())).equals(Column.create(pkJoinTable, tableName));
                         firstJoin = false;
@@ -275,7 +286,7 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
                 String foreignKey = relationship.getFromColumn();
                 Table tableName = relationship.getToTableObject();
                 String pkJoinTable = relationship.getToColumn();
-                if ("ManyToOne".equals(relationship.getType())) {
+                if ("many-to-many".equals(relationship.getType().getValue())) {
                     if (firstJoin) {
                         selectFrom = Select.builder().select(columns).from(table.getTable()).leftOuterJoin(tableName).on(Column.create(foreignKey, table.getTable())).equals(Column.create(pkJoinTable, tableName));
                         firstJoin = false;
@@ -663,6 +674,31 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
         entity.setFamilyType(modelfamilytypeMapper.apply(row, "familyType"));
         entity.setEnsembleType(modelensembletypeMapper.apply(row, "ensembleType"));
         return entity;
+    }
+
+
+    public <T> T process(Row row, RowMetadata metadata, BiFunction<Row, String, T> rowMapper, Map<String, BiFunction<Row, String, ?>> propertySetters) {
+        T entity = rowMapper.apply(row, "e");
+
+        for (Map.Entry<String, BiFunction<Row, String, ?>> entry : propertySetters.entrySet()) {
+            // assuming a method that sets this
+            setProperty(entity, entry.getKey(), entry.getValue().apply(row, entry.getKey()));
+        }
+        return entity;
+    }
+    private <T, U> void setProperty(T entity, String propertyName, U value) {
+        try {
+            // Convert the property name to upper camel case to match method naming convention
+            String methodName = "set" + Character.toUpperCase(propertyName.charAt(0)) + propertyName.substring(1);
+
+            Method method = entity.getClass().getMethod(methodName, value.getClass());
+
+            if (method != null) {
+                method.invoke(entity, value);
+            }
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            e.printStackTrace();
+        }
     }
 
     private ModelGroupType modelGroupProcess(Row row, RowMetadata metadata) {

@@ -1,5 +1,8 @@
 package ai.turintech.catalog.domain;
 
+import ai.turintech.catalog.anotatation.Columns;
+import ai.turintech.catalog.anotatation.Relationship;
+import ai.turintech.catalog.service.dto.RelationshipTypeDTO;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.*;
 import java.io.Serializable;
@@ -14,6 +17,7 @@ import org.springframework.data.relational.core.mapping.Table;
 /**
  * A Model.
  */
+@Columns(names = { "id", "name", "display_name", "description", "advantages", "disadvantages", "enabled", "decision_tree", "ml_task_id", "structure_id", "model_type_id", "family_type_id", "ensemble_type_id" })
 @Table("model")
 @JsonIgnoreProperties(value = { "new" })
 @SuppressWarnings("common-java:DuplicatedBlocks")
@@ -65,22 +69,27 @@ public class Model implements Serializable, Persistable<UUID> {
     @JsonIgnoreProperties(value = { "models" }, allowSetters = true)
     private List<Metric> incompatibleMetrics = new ArrayList<>();
 
+    @Relationship(type = RelationshipTypeDTO.MANY_TO_ONE, toTable = "ml_task_type", fromColumn = "ml_task_id", toColumn = "id", toColumnPrefix = "mlTask")
     @Transient
     @JsonIgnoreProperties(value = { "models" }, allowSetters = true)
     private MlTaskType mlTask;
 
+    @Relationship(type = RelationshipTypeDTO.MANY_TO_ONE, toTable = "model_structure_type", fromColumn = "structure_id", toColumn = "id", toColumnPrefix = "structure")
     @Transient
     @JsonIgnoreProperties(value = { "models" }, allowSetters = true)
     private ModelStructureType structure;
 
+    @Relationship(type = RelationshipTypeDTO.MANY_TO_ONE, toTable = "model_type", fromColumn = "model_type_id", toColumn = "id", toColumnPrefix = "modelType")
     @Transient
     @JsonIgnoreProperties(value = { "models" }, allowSetters = true)
     private ModelType type;
 
+    @Relationship(type = RelationshipTypeDTO.MANY_TO_ONE, toTable = "model_family_type", fromColumn = "family_type_id", toColumn = "id", toColumnPrefix = "familyType")
     @Transient
     @JsonIgnoreProperties(value = { "models" }, allowSetters = true)
     private ModelFamilyType familyType;
 
+    @Relationship(type = RelationshipTypeDTO.MANY_TO_ONE, toTable = "model_ensemble_type", fromColumn = "ensemble_type_id", toColumn = "id", toColumnPrefix = "ensembleType")
     @Transient
     @JsonIgnoreProperties(value = { "models" }, allowSetters = true)
     private ModelEnsembleType ensembleType;
