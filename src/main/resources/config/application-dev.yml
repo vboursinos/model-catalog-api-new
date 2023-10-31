@@ -60,16 +60,16 @@ spring:
       host: localhost
       port: 8500
   datasource:
-    url: jdbc:postgresql://localhost:5434/postgres
+    url: jdbc:postgresql://localhost:5435/postgres
     username: file-api
     password: RUyWGY7XF5hGzK3sFUknQZ11CwNef5BR15
   liquibase:
     contexts: dev
-    url: jdbc:postgresql://localhost:5434/postgres
+    url: jdbc:postgresql://localhost:5435/postgres
     user: file-api
     password: RUyWGY7XF5hGzK3sFUknQZ11CwNef5BR15
   r2dbc:
-    url: r2dbc:postgresql://localhost:5434/postgres
+    url: r2dbc:postgresql://localhost:5435/postgres
     username: file-api
     password: RUyWGY7XF5hGzK3sFUknQZ11CwNef5BR15
   messages:
@@ -80,7 +80,8 @@ spring:
 #    r2dbc:
 #      repositories:
 #        enabled: false
-
+#model-catalog-properties:
+#  model_properties: id,name,display_name
 server:
   port: 8081
 
