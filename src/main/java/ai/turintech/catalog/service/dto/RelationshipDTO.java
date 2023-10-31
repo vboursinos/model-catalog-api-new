@@ -23,6 +23,14 @@ public class RelationshipDTO {
         this.toColumnPrefix = toColumnPrefix;
     }
 
+    public RelationshipDTO(RelationshipTypeDTO type, String toTable, String fromColumn, String toColumn, String toColumnPrefix) {
+        this.type = type;
+        this.toTable = toTable;
+        this.fromColumn = fromColumn;
+        this.toColumn = toColumn;
+        this.toColumnPrefix = toColumnPrefix;
+    }
+
     public RelationshipTypeDTO getType() {
         return type;
     }

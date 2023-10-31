@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
 class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> implements ModelRepositoryInternal {
 
     @Autowired
-    private static EntityConfiguration entityConfiguration;
+    private TableInfoDTO tableInfoDTONew;
     private final DatabaseClient db;
     private final R2dbcEntityTemplate r2dbcEntityTemplate;
     private final EntityManager entityManager;
@@ -168,8 +168,11 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
         return findAllBy(pageable);
     }
 
+    public void init(){
+        System.out.println(this.tableInfoDTONew.getRelationships());
+    }
+
     public static GenericQueryDTO initModel() {
-//        System.out.println(entityConfiguration.getTableInfo());
         String[] modelColumnsArray = {"id", "name", "description", "display_name", "advantages", "enabled", "decision_tree", "disadvantages", "model_type_id", "structure_id", "family_type_id", "ensemble_type_id", "ml_task_id"};
         List<String> modelColumns = new ArrayList<>(Arrays.asList(modelColumnsArray));
         RelationshipDTO modelMltaskRelationshipDTO = new RelationshipDTO(RelationshipTypeDTO.MANY_TO_ONE, "ml_task_type", Table.aliased("ml_task_type", "mlTask"), "ml_task_id", "id", "mlTask");
@@ -261,7 +264,7 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
                 String pkJoinTable = relationship.getToColumn();
                 if ("many-to-one".equals(relationship.getType().getValue())) {
                     if (firstJoin) {
-                        selectFrom = Select.builder().select(columns).from(table.getTable()).leftOuterJoin(tableName).on(Column.create(foreignKey, table.getTable())).equals(Column.create(pkJoinTable, tableName));
+                        selectFrom = Select.builder().select(columns).from(table.getTable()).join(tableName).on(Column.create(foreignKey, table.getTable())).equals(Column.create(pkJoinTable, tableName));
                         firstJoin = false;
                     } else {
                         selectFrom = selectFrom.leftOuterJoin(tableName).on(Column.create(foreignKey, table.getTable())).equals(Column.create(pkJoinTable, tableName));
@@ -274,6 +277,7 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
     }
 
     RowsFetchSpec<ModelGroupType> createModelGroupJoinQuery(Pageable pageable, Condition whereClause) {
+        init();
         List<Expression> columns = new ArrayList<>();
         GenericQueryDTO genericQueryDTO = initGroupTable();
         TableInfoDTO table = genericQueryDTO.getTables().get(0);
