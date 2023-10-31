@@ -1,7 +1,5 @@
 package ai.turintech.catalog.repository;
 
-import ai.turintech.catalog.anotatation.Columns;
-import ai.turintech.catalog.config.EntityConfiguration;
 import ai.turintech.catalog.domain.*;
 import ai.turintech.catalog.repository.rowmapper.*;
 import ai.turintech.catalog.service.dto.*;
@@ -40,6 +38,9 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
 
     @Autowired
     private TableInfoDTO tableInfoDTONew;
+
+    @Autowired
+    private GenericQueryDTO genericQueryDTO;
     private final DatabaseClient db;
     private final R2dbcEntityTemplate r2dbcEntityTemplate;
     private final EntityManager entityManager;
@@ -64,7 +65,7 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
     private final CategoricalParameterValueRowMapper categoricalparametervalueMapper;
     private final IntegerParameterValueRowMapper integerparametervalueMapper;
     private final FloatParameterRangeRowMapper floatparameterrangeMapper;
-    private static final Table entityTable = Table.aliased("model", EntityManager.ENTITY_ALIAS);
+    private static final Table entityTable = Table.aliased("model", "Model");
     private static final Table mlTaskTable = Table.aliased("ml_task_type", "mlTask");
     private static final Table structureTable = Table.aliased("model_structure_type", "e_structure");
     private static final Table typeTable = Table.aliased("model_type", "model_type");
@@ -168,92 +169,93 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
         return findAllBy(pageable);
     }
 
-    public void init(){
-        System.out.println(this.tableInfoDTONew.getRelationships());
+    public GenericQueryDTO initModel2() {
+        return this.genericQueryDTO;
     }
 
-    public static GenericQueryDTO initModel() {
-        String[] modelColumnsArray = {"id", "name", "description", "display_name", "advantages", "enabled", "decision_tree", "disadvantages", "model_type_id", "structure_id", "family_type_id", "ensemble_type_id", "ml_task_id"};
-        List<String> modelColumns = new ArrayList<>(Arrays.asList(modelColumnsArray));
-        RelationshipDTO modelMltaskRelationshipDTO = new RelationshipDTO(RelationshipTypeDTO.MANY_TO_ONE, "ml_task_type", Table.aliased("ml_task_type", "mlTask"), "ml_task_id", "id", "mlTask");
-        RelationshipDTO modelStructureRelationshipDTO = new RelationshipDTO(RelationshipTypeDTO.MANY_TO_ONE, "model_structure_type", Table.aliased("model_structure_type", "e_structure"), "structure_id", "id", "structure");
-        RelationshipDTO modelTypeRelationshipDTO = new RelationshipDTO(RelationshipTypeDTO.MANY_TO_ONE, "model_type", Table.aliased("model_type", "model_type"), "model_type_id", "id", "modelType");
-        RelationshipDTO modelFamilyTypeRelationshipDTO = new RelationshipDTO(RelationshipTypeDTO.MANY_TO_ONE, "model_family_type", Table.aliased("model_family_type", "familyType"), "family_type_id", "id", "familyType");
-        RelationshipDTO modelEnsembleTypeRelationshipDTO = new RelationshipDTO(RelationshipTypeDTO.MANY_TO_ONE, "model_ensemble_type", Table.aliased("model_ensemble_type", "ensembleType"), "ensemble_type_id", "id", "ensembleType");
-        List<RelationshipDTO> modelRelationships = new ArrayList<>(Arrays.asList(modelMltaskRelationshipDTO, modelStructureRelationshipDTO, modelTypeRelationshipDTO, modelFamilyTypeRelationshipDTO, modelEnsembleTypeRelationshipDTO));
-        TableInfoDTO modelTableInfoDTO = new TableInfoDTO(Table.aliased("model", EntityManager.ENTITY_ALIAS), "e", modelColumns, modelRelationships);
+//    public static GenericQueryDTO initModel() {
+//        String[] modelColumnsArray = {"id", "name", "description", "display_name", "advantages", "enabled", "decision_tree", "disadvantages", "model_type_id", "structure_id", "family_type_id", "ensemble_type_id", "ml_task_id"};
+//        List<String> modelColumns = new ArrayList<>(Arrays.asList(modelColumnsArray));
+//        RelationshipDTO modelMltaskRelationshipDTO = new RelationshipDTO(RelationshipTypeDTO.MANY_TO_ONE, "ml_task_type", Table.aliased("ml_task_type", "mlTask"), "ml_task_id", "id", "mlTask");
+//        RelationshipDTO modelStructureRelationshipDTO = new RelationshipDTO(RelationshipTypeDTO.MANY_TO_ONE, "model_structure_type", Table.aliased("model_structure_type", "e_structure"), "structure_id", "id", "structure");
+//        RelationshipDTO modelTypeRelationshipDTO = new RelationshipDTO(RelationshipTypeDTO.MANY_TO_ONE, "model_type", Table.aliased("model_type", "model_type"), "model_type_id", "id", "modelType");
+//        RelationshipDTO modelFamilyTypeRelationshipDTO = new RelationshipDTO(RelationshipTypeDTO.MANY_TO_ONE, "model_family_type", Table.aliased("model_family_type", "familyType"), "family_type_id", "id", "familyType");
+//        RelationshipDTO modelEnsembleTypeRelationshipDTO = new RelationshipDTO(RelationshipTypeDTO.MANY_TO_ONE, "model_ensemble_type", Table.aliased("model_ensemble_type", "ensembleType"), "ensemble_type_id", "id", "ensembleType");
+//        List<RelationshipDTO> modelRelationships = new ArrayList<>(Arrays.asList(modelMltaskRelationshipDTO, modelStructureRelationshipDTO, modelTypeRelationshipDTO, modelFamilyTypeRelationshipDTO, modelEnsembleTypeRelationshipDTO));
+//        TableInfoDTO modelTableInfoDTO = new TableInfoDTO(Table.aliased("model", EntityManager.ENTITY_ALIAS), "e", modelColumns, modelRelationships);
+//
+//        String[] modelTypeColumnsArray = {"id", "name"};
+//        List<String> modelTypeColumns = new ArrayList<>(Arrays.asList(modelTypeColumnsArray));
+//        TableInfoDTO modelTypeTableInfoDTO = new TableInfoDTO(Table.aliased("model_type", "model_type"), "modelType", modelTypeColumns, Collections.emptyList());
+//
+//        String[] structureColumnsArray = {"id", "name"};
+//        List<String> structureColumns = new ArrayList<>(Arrays.asList(structureColumnsArray));
+//        TableInfoDTO structureTableInfoDTO = new TableInfoDTO(Table.aliased("model_structure_type", "e_structure"), "structure", structureColumns, Collections.emptyList());
+//
+//        String[] familyTypeColumnsArray = {"id", "name"};
+//        List<String> familyTypeColumns = new ArrayList<>(Arrays.asList(familyTypeColumnsArray));
+//        TableInfoDTO familyTypeTableInfoDTO = new TableInfoDTO(Table.aliased("model_family_type", "familyType"), "familyType", familyTypeColumns, Collections.emptyList());
+//
+//        String[] ensembleTypeColumnsArray = {"id", "name"};
+//        List<String> ensembleTypeColumns = new ArrayList<>(Arrays.asList(ensembleTypeColumnsArray));
+//        TableInfoDTO ensembleTypeTableInfoDTO = new TableInfoDTO(Table.aliased("model_ensemble_type", "ensembleType"), "ensembleType", ensembleTypeColumns, Collections.emptyList());
+//
+//        String[] mlTaskColumnsArray = {"id", "name"};
+//        List<String> mlTaskColumns = new ArrayList<>(Arrays.asList(mlTaskColumnsArray));
+//        TableInfoDTO mlTaskTableInfoDTO = new TableInfoDTO(Table.aliased("ml_task_type", "mlTask"), "mlTask", mlTaskColumns, Collections.emptyList());
+//
+//        List<TableInfoDTO> tables = new ArrayList<>();
+//        tables.add(modelTableInfoDTO);
+//        tables.add(modelTypeTableInfoDTO);
+//        tables.add(structureTableInfoDTO);
+//        tables.add(familyTypeTableInfoDTO);
+//        tables.add(ensembleTypeTableInfoDTO);
+//        tables.add(mlTaskTableInfoDTO);
+//        Map<String, List<String>> tableColumnsMap = new HashMap<>();
+//        tableColumnsMap.put("model", modelColumns);
+//        tableColumnsMap.put("model_type", modelTypeColumns);
+//        tableColumnsMap.put("model_structure_type", structureColumns);
+//        tableColumnsMap.put("model_family_type", familyTypeColumns);
+//        tableColumnsMap.put("model_ensemble_type", ensembleTypeColumns);
+//        tableColumnsMap.put("ml_task_type", mlTaskColumns);
+//        return new GenericQueryDTO(tables, tableColumnsMap);
+//    }
 
-        String[] modelTypeColumnsArray = {"id", "name"};
-        List<String> modelTypeColumns = new ArrayList<>(Arrays.asList(modelTypeColumnsArray));
-        TableInfoDTO modelTypeTableInfoDTO = new TableInfoDTO(Table.aliased("model_type", "model_type"), "modelType", modelTypeColumns, Collections.emptyList());
-
-        String[] structureColumnsArray = {"id", "name"};
-        List<String> structureColumns = new ArrayList<>(Arrays.asList(structureColumnsArray));
-        TableInfoDTO structureTableInfoDTO = new TableInfoDTO(Table.aliased("model_structure_type", "e_structure"), "structure", structureColumns, Collections.emptyList());
-
-        String[] familyTypeColumnsArray = {"id", "name"};
-        List<String> familyTypeColumns = new ArrayList<>(Arrays.asList(familyTypeColumnsArray));
-        TableInfoDTO familyTypeTableInfoDTO = new TableInfoDTO(Table.aliased("model_family_type", "familyType"), "familyType", familyTypeColumns, Collections.emptyList());
-
-        String[] ensembleTypeColumnsArray = {"id", "name"};
-        List<String> ensembleTypeColumns = new ArrayList<>(Arrays.asList(ensembleTypeColumnsArray));
-        TableInfoDTO ensembleTypeTableInfoDTO = new TableInfoDTO(Table.aliased("model_ensemble_type", "ensembleType"), "ensembleType", ensembleTypeColumns, Collections.emptyList());
-
-        String[] mlTaskColumnsArray = {"id", "name"};
-        List<String> mlTaskColumns = new ArrayList<>(Arrays.asList(mlTaskColumnsArray));
-        TableInfoDTO mlTaskTableInfoDTO = new TableInfoDTO(Table.aliased("ml_task_type", "mlTask"), "mlTask", mlTaskColumns, Collections.emptyList());
-
-        List<TableInfoDTO> tables = new ArrayList<>();
-        tables.add(modelTableInfoDTO);
-        tables.add(modelTypeTableInfoDTO);
-        tables.add(structureTableInfoDTO);
-        tables.add(familyTypeTableInfoDTO);
-        tables.add(ensembleTypeTableInfoDTO);
-        tables.add(mlTaskTableInfoDTO);
-        Map<String, List<String>> tableColumnsMap = new HashMap<>();
-        tableColumnsMap.put("model", modelColumns);
-        tableColumnsMap.put("model_type", modelTypeColumns);
-        tableColumnsMap.put("model_structure_type", structureColumns);
-        tableColumnsMap.put("model_family_type", familyTypeColumns);
-        tableColumnsMap.put("model_ensemble_type", ensembleTypeColumns);
-        tableColumnsMap.put("ml_task_type", mlTaskColumns);
-        return new GenericQueryDTO(tables, tableColumnsMap);
-    }
-
-    public static GenericQueryDTO initGroupTable() {
-
-        String[] modelGroupColumnsArray = {"model_id", "group_id"};
-        List<String> modelGroupColumns = new ArrayList<>(Arrays.asList(modelGroupColumnsArray));
-        RelationshipDTO relationshipDTO1 = new RelationshipDTO(RelationshipTypeDTO.MANY_TO_MANY, "model", Table.aliased("model", "e"), "model_id", "id", "e");
-        RelationshipDTO relationshipDTO2 = new RelationshipDTO(RelationshipTypeDTO.MANY_TO_MANY, "model_group_type", Table.aliased("model_group_type", "modelGroup"), "group_id", "id", "modelGroup");
-        List<RelationshipDTO> modelRelationships = new ArrayList<>(Arrays.asList(relationshipDTO1, relationshipDTO2));
-        TableInfoDTO modelGroupTableInfoDTO = new TableInfoDTO(Table.aliased("rel_model__groups", "rel_model__groups"), "rel_model__groups", modelGroupColumns, modelRelationships);
-
-
-        String[] groupColumnsArray = {"id", "name"};
-        List<String> groupColumns = new ArrayList<>(Arrays.asList(groupColumnsArray));
-        TableInfoDTO groupTableInfoDTO = new TableInfoDTO(Table.aliased("model_group_type", "modelGroup"), "modelGroup", groupColumns, Collections.emptyList());
-
-        String[] modelColumnsArray = {"id", "name", "description", "display_name", "advantages", "enabled", "decision_tree", "disadvantages", "model_type_id", "structure_id", "family_type_id", "ensemble_type_id", "ml_task_id"};
-        List<String> modelColumns = new ArrayList<>(Arrays.asList(modelColumnsArray));
-        TableInfoDTO modelTableInfoDTO2 = new TableInfoDTO(Table.aliased("model", "e"), "e", modelColumns, Collections.emptyList());
-
-        List<TableInfoDTO> tables = new ArrayList<>();
-        tables.add(modelGroupTableInfoDTO);
-        tables.add(groupTableInfoDTO);
-        tables.add(modelTableInfoDTO2);
-        Map<String, List<String>> tableColumnsMap = new HashMap<>();
-        tableColumnsMap.put("rel_model__groups", modelGroupColumns);
-        tableColumnsMap.put("model_group_type", groupColumns);
-        tableColumnsMap.put("model", modelColumns);
-        return new GenericQueryDTO(tables, tableColumnsMap);
-    }
+//    public static GenericQueryDTO initGroupTable() {
+//
+//        String[] modelGroupColumnsArray = {"model_id", "group_id"};
+//        List<String> modelGroupColumns = new ArrayList<>(Arrays.asList(modelGroupColumnsArray));
+//        RelationshipDTO relationshipDTO1 = new RelationshipDTO(RelationshipTypeDTO.MANY_TO_MANY, "model", Table.aliased("model", "Model"), "model_id", "id", "Model");
+//        RelationshipDTO relationshipDTO2 = new RelationshipDTO(RelationshipTypeDTO.MANY_TO_MANY, "model_group_type", Table.aliased("model_group_type", "modelGroup"), "group_id", "id", "modelGroup");
+//        List<RelationshipDTO> modelRelationships = new ArrayList<>(Arrays.asList(relationshipDTO1, relationshipDTO2));
+//        TableInfoDTO modelGroupTableInfoDTO = new TableInfoDTO(Table.aliased("rel_model__groups", "rel_model__groups"), "rel_model__groups", modelGroupColumns, modelRelationships);
+//
+//
+//        String[] groupColumnsArray = {"id", "name"};
+//        List<String> groupColumns = new ArrayList<>(Arrays.asList(groupColumnsArray));
+//        TableInfoDTO groupTableInfoDTO = new TableInfoDTO(Table.aliased("model_group_type", "modelGroup"), "modelGroup", groupColumns, Collections.emptyList());
+//
+//        String[] modelColumnsArray = {"id", "name", "description", "display_name", "advantages", "enabled", "decision_tree", "disadvantages", "model_type_id", "structure_id", "family_type_id", "ensemble_type_id", "ml_task_id"};
+//        List<String> modelColumns = new ArrayList<>(Arrays.asList(modelColumnsArray));
+//        TableInfoDTO modelTableInfoDTO2 = new TableInfoDTO(Table.aliased("model", "Model"), "Model", modelColumns, Collections.emptyList());
+//
+//        List<TableInfoDTO> tables = new ArrayList<>();
+//        tables.add(modelGroupTableInfoDTO);
+//        tables.add(groupTableInfoDTO);
+//        tables.add(modelTableInfoDTO2);
+//        Map<String, List<String>> tableColumnsMap = new HashMap<>();
+//        tableColumnsMap.put("rel_model__groups", modelGroupColumns);
+//        tableColumnsMap.put("model_group_type", groupColumns);
+//        tableColumnsMap.put("model", modelColumns);
+//        return new GenericQueryDTO(tables, tableColumnsMap);
+//    }
 
     RowsFetchSpec<Model> createModelJoinQuery(Pageable pageable, Condition whereClause) {
         List<Expression> columns = new ArrayList<>();
-        GenericQueryDTO genericQueryDTO = initModel();
-        TableInfoDTO table = genericQueryDTO.getTables().get(0);
-        Map<String,List<Expression>> tableColumnsMap = ModelSqlHelper.getColumnsGeneric(genericQueryDTO);
+        GenericQueryDTO genericQueryDTO = this.genericQueryDTO;
+        TableInfoDTO table = genericQueryDTO.getTables().stream()
+                .filter(tableName -> "model".equals(tableName.getTable().getName().toString())).findFirst().orElseThrow(() -> new RuntimeException("Table not found"));
+        Map<String, List<Expression>> tableColumnsMap = ModelSqlHelper.getColumnsGeneric(genericQueryDTO);
         columns.addAll(tableColumnsMap.get(table.getTable().getName().toString()));
         SelectBuilder.SelectFromAndJoinCondition selectFrom = null;
         boolean firstJoin = true;
@@ -277,11 +279,11 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
     }
 
     RowsFetchSpec<ModelGroupType> createModelGroupJoinQuery(Pageable pageable, Condition whereClause) {
-        init();
         List<Expression> columns = new ArrayList<>();
-        GenericQueryDTO genericQueryDTO = initGroupTable();
-        TableInfoDTO table = genericQueryDTO.getTables().get(0);
-        Map<String,List<Expression>> tableColumnsMap = ModelSqlHelper.getColumnsGeneric(genericQueryDTO);
+        GenericQueryDTO genericQueryDTO = this.genericQueryDTO;
+        TableInfoDTO table = genericQueryDTO.getTables().stream()
+                .filter(tableName -> "rel_model__groups".equals(tableName.getTable().getName().toString())).findFirst().orElseThrow(() -> new RuntimeException("Table not found"));
+        Map<String, List<Expression>> tableColumnsMap = ModelSqlHelper.getColumnsGeneric(genericQueryDTO);
         columns.addAll(tableColumnsMap.get(table.getTable().getName().toString()));
         SelectBuilder.SelectFromAndJoinCondition selectFrom = null;
         boolean firstJoin = true;
@@ -671,7 +673,7 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
     }
 
     private Model process(Row row, RowMetadata metadata) {
-        Model entity = modelMapper.apply(row, "e");
+        Model entity = modelMapper.apply(row, "Model");
         entity.setMlTask(mltasktypeMapper.apply(row, "mlTask"));
         entity.setStructure(modelstructuretypeMapper.apply(row, "structure"));
         entity.setType(modeltypeMapper.apply(row, "modelType"));
@@ -690,6 +692,7 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
         }
         return entity;
     }
+
     private <T, U> void setProperty(T entity, String propertyName, U value) {
         try {
             // Convert the property name to upper camel case to match method naming convention

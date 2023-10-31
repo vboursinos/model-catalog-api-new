@@ -43,7 +43,7 @@ public class ModelSqlHelper {
         return columns;
     }
 
-    public static Map<String, List<Expression>> getColumnsGeneric(GenericQueryDTO genericQueryDTO) {
+/*    public static Map<String, List<Expression>> getColumnsGeneric(GenericQueryDTO genericQueryDTO) {
         Map<String, List<Expression>> columnsMap = new HashMap<>();
         for (TableInfoDTO tableInfoDTO : genericQueryDTO.getTables()) {
             List<Expression> columns = null;
@@ -53,53 +53,66 @@ public class ModelSqlHelper {
                     columns.add(Column.aliased(column, tableInfoDTO.getTable(), tableInfoDTO.getColumnPrefix() + "_" + column));
                 }
                 for (RelationshipDTO relationship : tableInfoDTO.getRelationships()) {
-                    for (Map.Entry<String, List<String>> table : genericQueryDTO.getTableColumnsMap().entrySet()) {
-                        if (table.getKey().equals(relationship.getToTable())) {
-                            for (String column : table.getValue()) {
-                                columns.add(Column.aliased(column, relationship.getToTableObject(), relationship.getToColumnPrefix() + "_" + column));
+                    if (relationship.getType().getValue().equals("many-to-one") || relationship.getType().getValue().equals("many-to-many")) {
+                        for (Map.Entry<String, List<String>> table : genericQueryDTO.getTableColumnsMap().entrySet()) {
+                            if (table.getKey().equals(relationship.getToTable())) {
+                                for (String column : table.getValue()) {
+                                    columns.add(Column.aliased(column, relationship.getToTableObject(), relationship.getToColumnPrefix() + "_" + column));
+                                }
                             }
                         }
                     }
+                    columnsMap.put(tableInfoDTO.getTable().getName().toString(), columns);
                 }
-                columnsMap.put(tableInfoDTO.getTable().getName().toString(), columns);
             }
         }
         return columnsMap;
+    }*/
+
+
+    public static Map<String, List<Expression>> getColumnsGeneric(GenericQueryDTO genericQueryDTO) {
+        Map<String, List<Expression>> columnsMap = new HashMap<>();
+
+        // Looping through tables in the DTO
+        for (TableInfoDTO tableInfoDTO : genericQueryDTO.getTables()) {
+
+            // Only work with tables that have relationships
+            if (!tableInfoDTO.getRelationships().isEmpty()) {
+                List<Expression> columns = generateExpressionList(tableInfoDTO);
+                addRelationshipColumnsToMap(tableInfoDTO, genericQueryDTO, columnsMap, columns);
+            }
+        }
+
+        return columnsMap;
     }
 
+    // Helper method to create a list of Expressions for a given table
+    private static List<Expression> generateExpressionList(TableInfoDTO tableInfoDTO) {
+        List<Expression> columns = new ArrayList<>();
+        for (String column : tableInfoDTO.getColumns()) {
+            columns.add(Column.aliased(column, tableInfoDTO.getTable(), tableInfoDTO.getColumnPrefix() + "_" + column));
+        }
+        return columns;
+    }
 
-//    public static Map<String, List<Expression>> getColumnsGeneric(GenericQueryDTO genericQueryDTO) {
-//        Map<String, List<Expression>> columnsMap = new HashMap<>();
-//        for (TableInfoDTO tableInfoDTO : genericQueryDTO.getTables()) {
-//            List<Expression> columns = getColumns(tableInfoDTO);
-//            if (!tableInfoDTO.getRelationships().isEmpty()) {
-//                columns.addAll(getColumnsFromRelationships(tableInfoDTO, genericQueryDTO.getTableColumnsMap()));
-//            }
-//            columnsMap.put(tableInfoDTO.getTable().getName().toString(), columns);
-//        }
-//        return columnsMap;
-//    }
-//
-//    private static List<Expression> getColumns(TableInfoDTO tableInfoDTO) {
-//        List<Expression> columns = new ArrayList<>();
-//        for (String column : tableInfoDTO.getColumns()) {
-//            columns.add(Column.aliased(column, tableInfoDTO.getTable(), tableInfoDTO.getColumnPrefix() + "_" + column));
-//        }
-//        return columns;
-//    }
-//
-//    private static List<Expression> getColumnsFromRelationships(TableInfoDTO tableInfoDTO, Map<String, List<String>> tableColumnsMap) {
-//        List<Expression> columns = new ArrayList<>();
-//        for (RelationshipDTO relationship : tableInfoDTO.getRelationships()) {
-//            for (Map.Entry<String, List<String>> table : tableColumnsMap.entrySet()) {
-//                if (table.getKey().equals(relationship.getToTable())) {
-//                    for (String column : table.getValue()) {
-//                        columns.add(Column.aliased(column, tableInfoDTO.getTable(), tableInfoDTO.getColumnPrefix() + "_" + column));
-//                    }
-//                }
-//            }
-//        }
-//        return columns;
-//    }
+    // Helper method to update the columnsMap for relationships
+    private static void addRelationshipColumnsToMap(TableInfoDTO tableInfoDTO, GenericQueryDTO genericQueryDTO, Map<String, List<Expression>> columnsMap, List<Expression> columns) {
+        for (RelationshipDTO relationship : tableInfoDTO.getRelationships()) {
+            if (relationship.getType().getValue().equals("many-to-one") || relationship.getType().getValue().equals("many-to-many")) {
+                addColumnsForRelationship(genericQueryDTO, relationship, columns);
+            }
+            columnsMap.put(tableInfoDTO.getTable().getName().toString(), columns);
+        }
+    }
 
+    // Helper method to update the expressions list for a given relationship
+    private static void addColumnsForRelationship(GenericQueryDTO genericQueryDTO, RelationshipDTO relationship, List<Expression> columns) {
+        for (Map.Entry<String, List<String>> table : genericQueryDTO.getTableColumnsMap().entrySet()) {
+            if (table.getKey().equals(relationship.getToTable())) {
+                for (String column : table.getValue()) {
+                    columns.add(Column.aliased(column, relationship.getToTableObject(), relationship.getToColumnPrefix() + "_" + column));
+                }
+            }
+        }
+    }
 }

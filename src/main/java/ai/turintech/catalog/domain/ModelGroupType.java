@@ -1,5 +1,6 @@
 package ai.turintech.catalog.domain;
 
+import ai.turintech.catalog.anotatation.Columns;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.*;
 import java.io.Serializable;
@@ -15,6 +16,7 @@ import org.springframework.data.relational.core.mapping.Table;
 /**
  * A ModelGroupType.
  */
+@Columns(names = { "id", "name" })
 @Table("model_group_type")
 @JsonIgnoreProperties(value = { "new" })
 @SuppressWarnings("common-java:DuplicatedBlocks")
