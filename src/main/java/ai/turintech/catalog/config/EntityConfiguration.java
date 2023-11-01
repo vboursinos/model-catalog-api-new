@@ -53,9 +53,9 @@ public class EntityConfiguration {
         Map<String, List<String>> tableColumnMap = new HashMap<>();
         Reflections reflections = new Reflections("ai.turintech.catalog.domain");
 
-        Set<Class<?>> annotated = reflections.getTypesAnnotatedWith(Columns.class);
+        Set<Class<?>> annotated = reflections.getTypesAnnotatedWith(org.springframework.data.relational.core.mapping.Table.class);
         for (Class<?> clazz : annotated) {
-            if (clazz.isAnnotationPresent(Columns.class)) {
+            if (clazz.isAnnotationPresent(org.springframework.data.relational.core.mapping.Table.class)) {
                 String tableName = null;
                 TableInfoDTO tableInfoDTO = new TableInfoDTO();
                 if (clazz.isAnnotationPresent(org.springframework.data.relational.core.mapping.Table.class)) {
