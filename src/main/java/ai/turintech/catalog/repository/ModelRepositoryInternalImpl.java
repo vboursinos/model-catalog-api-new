@@ -165,6 +165,49 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
         return findAllBy(pageable);
     }
 
+    @Override
+    public Flux<Model> findAll() {
+        return findAllBy(null);
+    }
+
+    @Override
+    public Mono<Model> findOneWithEagerRelationships(UUID id) {
+        return findById(id);
+    }
+
+    @Override
+    public Flux<Model> findAllWithEagerRelationships() {
+        return findAll();
+    }
+
+    @Override
+    public Flux<Model> findAllWithEagerRelationships(Pageable page) {
+        Flux<Model> models = findAllBy(page);
+        return models;
+    }
+
+    @Override
+    public Mono<Model> findById(UUID id) {
+        Comparison whereClause = Conditions.isEqual(entityTable.column("id"), Conditions.just(StringUtils.wrap(id.toString(), "'")));
+        return Mono.zip(
+                        fetchModel(whereClause),
+                        fetchParameters(whereClause),
+                        fetchModelGroupJoinQuery(whereClause),
+                        fetchModelMetricJoinQuery(whereClause)
+                )
+                .flatMap(this::createModelWithParametersAndMetrics);
+    }
+
+    public Mono<Model> findByIdWithoutParameters(UUID id) {
+        Comparison whereClause = Conditions.isEqual(entityTable.column("id"), Conditions.just(StringUtils.wrap(id.toString(), "'")));
+        return Mono.zip(
+                        fetchModel(whereClause),
+                        fetchModelGroupJoinQuery(whereClause),
+                        fetchModelMetricJoinQuery(whereClause)
+                )
+                .flatMap(this::createModelWithGroupsAndMetrics);
+    }
+
     RowsFetchSpec<Model> createModelJoinQuery(Pageable pageable, Condition whereClause) {
         List<Expression> columns = new ArrayList<>();
         GenericQueryDTO genericQueryDTO = this.genericQueryDTO;
@@ -370,34 +413,6 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
         return mappedResults;
     }
 
-    @Override
-    public Flux<Model> findAll() {
-        return findAllBy(null);
-    }
-
-    @Override
-    public Mono<Model> findById(UUID id) {
-        Comparison whereClause = Conditions.isEqual(entityTable.column("id"), Conditions.just(StringUtils.wrap(id.toString(), "'")));
-        return Mono.zip(
-                        fetchModel(whereClause),
-                        fetchParameters(whereClause),
-                        fetchModelGroupJoinQuery(whereClause),
-                        fetchModelMetricJoinQuery(whereClause)
-                )
-                .flatMap(this::createModelWithParametersAndMetrics);
-    }
-
-    public Mono<Model> findByIdWithoutParameters(UUID id) {
-        Comparison whereClause = Conditions.isEqual(entityTable.column("id"), Conditions.just(StringUtils.wrap(id.toString(), "'")));
-        return Mono.zip(
-                        fetchModel(whereClause),
-                        fetchModelGroupJoinQuery(whereClause),
-                        fetchModelMetricJoinQuery(whereClause)
-                )
-                .flatMap(this::createModelWithGroupsAndMetrics);
-    }
-
-
     private Mono<Model> fetchModel(Comparison whereClause) {
         return createModelJoinQuery(null, whereClause).one();
     }
@@ -518,22 +533,6 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
 //                    System.out.println("Float Parameter Values fetched: " + floatParameterRanges);
                 })
                 .thenReturn(def);
-    }
-
-    @Override
-    public Mono<Model> findOneWithEagerRelationships(UUID id) {
-        return findById(id);
-    }
-
-    @Override
-    public Flux<Model> findAllWithEagerRelationships() {
-        return findAll();
-    }
-
-    @Override
-    public Flux<Model> findAllWithEagerRelationships(Pageable page) {
-        Flux<Model> models = findAllBy(page);
-        return models;
     }
 
     @Override
