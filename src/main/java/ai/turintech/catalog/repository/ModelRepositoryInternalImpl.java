@@ -150,7 +150,6 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
         return createModelJoinQuery(pageable, conditions)
                 .all()
                 .flatMap(model -> {
-                    findByIdWithoutParameters(model.getId()).subscribe();
                     Comparison whereClause = Conditions.isEqual(entityTable.column("id"), Conditions.just(StringUtils.wrap(model.getId().toString(), "'")));
                     return Mono.zip(
                             Mono.just(model),
