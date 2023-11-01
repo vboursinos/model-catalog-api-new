@@ -46,7 +46,7 @@ public class EntityConfiguration {
     }
 
     @Bean
-    public GenericQueryDTO scanPackageForTableInfo2() {
+    public GenericQueryDTO scanPackageForTableInfo() {
         GenericQueryDTO genericQueryDTO = new GenericQueryDTO();
         List<TableInfoDTO> tableInfoList = new ArrayList<>();
 
@@ -63,18 +63,14 @@ public class EntityConfiguration {
                     tableInfoDTO.setTable(Table.aliased(tableName, clazz.getSimpleName()));
                     tableInfoDTO.setColumnPrefix(clazz.getSimpleName());
                 }
-                Columns columns = clazz.getAnnotation(Columns.class);
                 List<String> columnList = new ArrayList<>();
                 List<RelationshipDTO> relationshipDTOList = new ArrayList();
 
-                for (String column : columns.names()) {
-                    columnList.add(column);
-                }
-
-                tableInfoDTO.setColumns(columnList);
-                tableColumnMap.put(tableName, columnList);
-
                 for (Field field : clazz.getDeclaredFields()) {
+                    org.springframework.data.relational.core.mapping.Column column = field.getAnnotation(org.springframework.data.relational.core.mapping.Column.class);
+                    if (column != null) {
+                        columnList.add(column.value());
+                    }
                     Relationship relationship = field.getAnnotation(Relationship.class);
                     if (relationship != null) {
                         Table tableObj = Table.aliased(relationship.toTable(), relationship.toColumnPrefix());
@@ -82,6 +78,8 @@ public class EntityConfiguration {
                         relationshipDTOList.add(relationshipDTO);
                     }
                 }
+                tableInfoDTO.setColumns(columnList);
+                tableColumnMap.put(tableName, columnList);
 
                 tableInfoDTO.setRelationships(relationshipDTOList);
                 tableInfoList.add(tableInfoDTO);

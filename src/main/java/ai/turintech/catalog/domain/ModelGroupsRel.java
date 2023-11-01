@@ -3,15 +3,18 @@ package ai.turintech.catalog.domain;
 import ai.turintech.catalog.anotatation.Columns;
 import ai.turintech.catalog.anotatation.Relationship;
 import ai.turintech.catalog.service.dto.RelationshipTypeDTO;
+import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 @Columns(names = {"model_id", "group_id"})
 @Table("rel_model__groups")
 public class ModelGroupsRel {
 
+    @Column("model_id")
     @Relationship(type = RelationshipTypeDTO.MANY_TO_MANY, fromColumn = "model_id", toTable = "model", toColumn = "id", toColumnPrefix = "Model")
     private Model model;
 
+    @Column("group_id")
     @Relationship(type = RelationshipTypeDTO.MANY_TO_MANY, fromColumn = "group_id", toTable = "model_group_type", toColumn = "id", toColumnPrefix = "modelGroup")
     private ModelGroupType groupType;
 
