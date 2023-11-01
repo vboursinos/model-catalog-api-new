@@ -5,25 +5,24 @@ import ai.turintech.catalog.service.dto.RelationshipTypeDTO;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
-@Table("rel_model__groups")
-public class ModelGroupsRel {
+@Table("rel_model__incompatible_metrics")
+public class ModelMetricsRel {
 
-    @Column("model_id")
+    @Column("model=_id")
     @Relationship(type = RelationshipTypeDTO.MANY_TO_MANY, fromColumn = "model_id", toTable = "model", toColumn = "id", toColumnPrefix = "Model")
     private Model model;
 
-    @Column("group_id")
-    @Relationship(type = RelationshipTypeDTO.MANY_TO_MANY, fromColumn = "group_id", toTable = "model_group_type", toColumn = "id", toColumnPrefix = "modelGroup")
-    private ModelGroupType groupType;
+    @Column("metric_id")
+    @Relationship(type = RelationshipTypeDTO.MANY_TO_MANY, fromColumn = "metric_id", toTable = "metric", toColumn = "id", toColumnPrefix = "metric")
+    private Metric metric;
 
-    public ModelGroupsRel() {
+    public ModelMetricsRel() {
     }
 
-    public ModelGroupsRel(Model model, ModelGroupType groupType) {
+    public ModelMetricsRel(Model model, Metric metric) {
         this.model = model;
-        this.groupType = groupType;
+        this.metric = metric;
     }
-
 
     public Model getModel() {
         return model;
@@ -33,19 +32,19 @@ public class ModelGroupsRel {
         this.model = model;
     }
 
-    public ModelGroupType getGroupType() {
-        return groupType;
+    public Metric getMetric() {
+        return metric;
     }
 
-    public void setGroupType(ModelGroupType groupType) {
-        this.groupType = groupType;
+    public void setMetric(Metric metric) {
+        this.metric = metric;
     }
 
     @Override
     public String toString() {
-        return "ModelGroupsRel{" +
+        return "ModelMetricsRel{" +
             "model=" + model +
-            ", groupType=" + groupType +
+            ", metric=" + metric +
             '}';
     }
 

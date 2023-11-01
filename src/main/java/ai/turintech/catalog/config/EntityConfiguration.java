@@ -1,8 +1,6 @@
 package ai.turintech.catalog.config;
 
-import ai.turintech.catalog.anotatation.Columns;
 import ai.turintech.catalog.anotatation.Relationship;
-import ai.turintech.catalog.domain.Model;
 import ai.turintech.catalog.service.dto.GenericQueryDTO;
 import ai.turintech.catalog.service.dto.RelationshipDTO;
 import ai.turintech.catalog.service.dto.TableInfoDTO;
@@ -16,34 +14,6 @@ import java.util.*;
 
 @Configuration
 public class EntityConfiguration {
-
-    @Bean
-    public TableInfoDTO getTableInfo() {
-        TableInfoDTO tableInfoDTO = new TableInfoDTO();
-        Model model = new Model();
-        List<String> columnList = new ArrayList<>();
-        List<RelationshipDTO> relationshipDTOList = new ArrayList<>();
-        if (model.getClass().isAnnotationPresent(Columns.class)) {
-            Columns columns = model.getClass().getAnnotation(Columns.class);
-            for (String column : columns.names()) {
-                System.out.println(column);
-                columnList.add(column);
-            }
-        }
-        tableInfoDTO.setColumns(columnList);
-        for (Field field : model.getClass().getDeclaredFields()) {
-            System.out.println(field.getName());
-            Relationship relationship = field.getAnnotation(Relationship.class);
-            if (relationship == null) {
-                continue;
-            }
-            Table tableObj = Table.aliased(relationship.toTable(), relationship.toColumnPrefix());
-            RelationshipDTO relationshipDTO = new RelationshipDTO(relationship.type(), relationship.toTable(), tableObj, relationship.fromColumn(), relationship.toColumn(), relationship.toColumnPrefix());
-            relationshipDTOList.add(relationshipDTO);
-        }
-        tableInfoDTO.setRelationships(relationshipDTOList);
-        return tableInfoDTO;
-    }
 
     @Bean
     public GenericQueryDTO scanPackageForTableInfo() {

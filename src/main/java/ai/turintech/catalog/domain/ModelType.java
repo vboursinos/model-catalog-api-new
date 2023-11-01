@@ -1,22 +1,21 @@
 package ai.turintech.catalog.domain;
 
-import ai.turintech.catalog.anotatation.Columns;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import jakarta.validation.constraints.*;
-import java.io.Serializable;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.domain.Persistable;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
+import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
+
 /**
  * A ModelType.
  */
-@Columns(names = { "id", "name" })
 @Table("model_type")
 @JsonIgnoreProperties(value = { "new" })
 @SuppressWarnings("common-java:DuplicatedBlocks")

@@ -1,6 +1,5 @@
 package ai.turintech.catalog.domain;
 
-import ai.turintech.catalog.anotatation.Columns;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.*;
 import java.io.Serializable;
@@ -16,7 +15,6 @@ import org.springframework.data.relational.core.mapping.Table;
 /**
  * A MlTaskType.
  */
-@Columns(names = { "id", "name" })
 @Table("ml_task_type")
 @JsonIgnoreProperties(value = { "new" })
 @SuppressWarnings("common-java:DuplicatedBlocks")

@@ -35,10 +35,6 @@ import java.util.stream.Collectors;
 @SuppressWarnings("unused")
 @Repository
 class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> implements ModelRepositoryInternal {
-
-    @Autowired
-    private TableInfoDTO tableInfoDTONew;
-
     @Autowired
     private GenericQueryDTO genericQueryDTO;
     private final DatabaseClient db;
@@ -169,9 +165,6 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
         return findAllBy(pageable);
     }
 
-    public GenericQueryDTO initModel2() {
-        return this.genericQueryDTO;
-    }
 
 //    public static GenericQueryDTO initModel() {
 //        String[] modelColumnsArray = {"id", "name", "description", "display_name", "advantages", "enabled", "decision_tree", "disadvantages", "model_type_id", "structure_id", "family_type_id", "ensemble_type_id", "ml_task_id"};
