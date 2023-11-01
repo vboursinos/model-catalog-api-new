@@ -8,7 +8,7 @@ import org.springframework.data.relational.core.mapping.Table;
 @Table("rel_model__incompatible_metrics")
 public class ModelMetricsRel {
 
-    @Column("model=_id")
+    @Column("model_id")
     @Relationship(type = RelationshipTypeDTO.MANY_TO_MANY, fromColumn = "model_id", toTable = "model", toColumn = "id", toColumnPrefix = "Model")
     private Model model;
 

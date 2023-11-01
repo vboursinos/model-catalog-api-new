@@ -25,8 +25,8 @@ public class Metric implements Serializable, Persistable<UUID> {
     @Column("id")
     private UUID id;
 
-    @Column("metric")
-    private String metric;
+    @Column("name")
+    private String name;
 
     @Transient
     private boolean isPersisted;
@@ -53,17 +53,17 @@ public class Metric implements Serializable, Persistable<UUID> {
         this.id = id;
     }
 
-    public String getMetric() {
-        return this.metric;
+    public String getName() {
+        return this.name;
     }
 
-    public Metric metric(String metric) {
-        this.setMetric(metric);
+    public Metric name(String name) {
+        this.setName(name);
         return this;
     }
 
-    public void setMetric(String metric) {
-        this.metric = metric;
+    public void setName(String name) {
+        this.name = name;
     }
 
     @Transient
@@ -132,7 +132,7 @@ public class Metric implements Serializable, Persistable<UUID> {
     public String toString() {
         return "Metric{" +
             "id=" + getId() +
-            ", metric='" + getMetric() + "'" +
+            ", name='" + getName() + "'" +
             "}";
     }
 }
