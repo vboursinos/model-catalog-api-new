@@ -302,18 +302,30 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
     }
 
     RowsFetchSpec<Metric> createModelMetricJoinQuery(Pageable pageable, Condition whereClause) {
-        List<Expression> columns = ModelSqlHelper.getColumns(entityTable, EntityManager.ENTITY_ALIAS);
-        columns.addAll(ModelGroupTypeSqlHelper.getColumns(metricTable, "metric"));
-        SelectFromAndJoinCondition selectFrom = Select
-                .builder()
-                .select(columns)
-                .from(modelIncompatibleMetricsTable)
-                .leftOuterJoin(entityTable)
-                .on(Column.create("id", entityTable))
-                .equals(Column.create("model_id", modelIncompatibleMetricsTable))
-                .leftOuterJoin(metricTable)
-                .on(Column.create("id", metricTable))
-                .equals(Column.create("metric_id", modelIncompatibleMetricsTable));
+        List<Expression> columns = new ArrayList<>();
+        GenericQueryDTO genericQueryDTO = this.genericQueryDTO;
+        TableInfoDTO table = genericQueryDTO.getTables().stream()
+                .filter(tableName -> "rel_model__incompatible_metrics".equals(tableName.getTable().getName().toString())).findFirst().orElseThrow(() -> new RuntimeException("Table not found"));
+        Map<String, List<Expression>> tableColumnsMap = ModelSqlHelper.getColumnsGeneric(genericQueryDTO);
+        columns.addAll(tableColumnsMap.get(table.getTable().getName().toString()));
+        SelectBuilder.SelectFromAndJoinCondition selectFrom = null;
+        boolean firstJoin = true;
+        if (!table.getRelationships().isEmpty()) {
+            for (RelationshipDTO relationship : table.getRelationships()) {
+                String foreignKey = relationship.getFromColumn();
+                Table tableName = relationship.getToTableObject();
+                String pkJoinTable = relationship.getToColumn();
+                if (isRelationshipTypeAllowed(relationship.getType().getValue())) {
+                    if (firstJoin) {
+                        selectFrom = Select.builder().select(columns).from(table.getTable()).leftOuterJoin(tableName).on(Column.create(foreignKey, table.getTable())).equals(Column.create(pkJoinTable, tableName));
+                        firstJoin = false;
+                    } else {
+                        selectFrom = selectFrom.leftOuterJoin(tableName).on(Column.create(foreignKey, table.getTable())).equals(Column.create(pkJoinTable, tableName));
+                    }
+                }
+            }
+        }
+
         String select = entityManager.createSelect(selectFrom, Model.class, pageable, whereClause);
         RowsFetchSpec<Metric> mappedResults = db.sql(select).map(this::metricProcess);
         return mappedResults;
