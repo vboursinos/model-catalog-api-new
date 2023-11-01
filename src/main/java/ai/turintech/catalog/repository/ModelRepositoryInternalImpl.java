@@ -257,7 +257,7 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
                 String foreignKey = relationship.getFromColumn();
                 Table tableName = relationship.getToTableObject();
                 String pkJoinTable = relationship.getToColumn();
-                if ("many-to-one".equals(relationship.getType().getValue())) {
+                if (isRelationshipTypeAllowed(relationship.getType().getValue())) {
                     if (firstJoin) {
                         selectFrom = Select.builder().select(columns).from(table.getTable()).join(tableName).on(Column.create(foreignKey, table.getTable())).equals(Column.create(pkJoinTable, tableName));
                         firstJoin = false;
@@ -285,7 +285,7 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
                 String foreignKey = relationship.getFromColumn();
                 Table tableName = relationship.getToTableObject();
                 String pkJoinTable = relationship.getToColumn();
-                if ("many-to-many".equals(relationship.getType().getValue())) {
+                if (isRelationshipTypeAllowed(relationship.getType().getValue())) {
                     if (firstJoin) {
                         selectFrom = Select.builder().select(columns).from(table.getTable()).leftOuterJoin(tableName).on(Column.create(foreignKey, table.getTable())).equals(Column.create(pkJoinTable, tableName));
                         firstJoin = false;
@@ -799,5 +799,12 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
             combinedConditions = combinedConditions.and(whereEnabledClause);
         }
         return combinedConditions;
+    }
+
+    private boolean isRelationshipTypeAllowed(String relationshipType) {
+        if (relationshipType.equalsIgnoreCase("many-to-many") || relationshipType.equalsIgnoreCase("many-to-one")) {
+            return true;
+        }
+        return false;
     }
 }
