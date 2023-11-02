@@ -1,6 +1,6 @@
 package ai.turintech.catalog.web.rest;
 
-import ai.turintech.catalog.repository2.ModelTypeRepository;
+import ai.turintech.catalog.repository.ModelTypeRepository;
 import ai.turintech.catalog.service.ModelTypeService;
 import ai.turintech.catalog.service.dto.ModelTypeDTO;
 import ai.turintech.catalog.web.rest.errors.BadRequestAlertException;
@@ -10,6 +10,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +23,7 @@ import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import tech.jhipster.web.util.HeaderUtil;
-import tech.jhipster.web.util.reactive.ResponseUtil;
+import tech.jhipster.web.util.ResponseUtil;
 
 /**
  * REST controller for managing {@link ai.turintech.catalog.domain.ModelType}.
@@ -38,14 +39,14 @@ public class ModelTypeResource {
     @Value("${jhipster.clientApp.name}")
     private String applicationName;
 
-    private final ModelTypeService modelTypeService;
+    private ModelTypeService modelTypeService;
 
-    private final ModelTypeRepository modelTypeRepository;
+    private ModelTypeRepository modelTypeRepository;
 
-    public ModelTypeResource(ModelTypeService modelTypeService, ModelTypeRepository modelTypeRepository) {
-        this.modelTypeService = modelTypeService;
-        this.modelTypeRepository = modelTypeRepository;
-    }
+//    public ModelTypeResource(ModelTypeService modelTypeService, ModelTypeRepository modelTypeRepository) {
+//        this.modelTypeService = modelTypeService;
+//        this.modelTypeRepository = modelTypeRepository;
+//    }
 
     /**
      * {@code POST  /model-types} : Create a new modelType.
@@ -60,19 +61,11 @@ public class ModelTypeResource {
         if (modelTypeDTO.getId() != null) {
             throw new BadRequestAlertException("A new modelType cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        modelTypeDTO.setId(UUID.randomUUID());
-        return modelTypeService
-            .save(modelTypeDTO)
-            .map(result -> {
-                try {
-                    return ResponseEntity
-                        .created(new URI("/api/model-types/" + result.getId()))
-                        .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
-                        .body(result);
-                } catch (URISyntaxException e) {
-                    throw new RuntimeException(e);
-                }
-            });
+        ModelTypeDTO result = modelTypeService.save(modelTypeDTO);
+        return Mono.just(ResponseEntity
+                .created(new URI("/api/model-types/" + result.getId()))
+                .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
+                .body(result));
     }
 
     /**
@@ -98,23 +91,15 @@ public class ModelTypeResource {
             throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
         }
 
-        return modelTypeRepository
-            .existsById(id)
-            .flatMap(exists -> {
-                if (!exists) {
-                    return Mono.error(new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound"));
-                }
+        if (!modelTypeRepository.existsById(id)) {
+            throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
+        }
 
-                return modelTypeService
-                    .update(modelTypeDTO)
-                    .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND)))
-                    .map(result ->
-                        ResponseEntity
-                            .ok()
-                            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
-                            .body(result)
-                    );
-            });
+        ModelTypeDTO result = modelTypeService.update(modelTypeDTO);
+        return Mono.just(ResponseEntity
+                .ok()
+                .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, modelTypeDTO.getId().toString()))
+                .body(result));
     }
 
     /**
@@ -141,24 +126,16 @@ public class ModelTypeResource {
             throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
         }
 
-        return modelTypeRepository
-            .existsById(id)
-            .flatMap(exists -> {
-                if (!exists) {
-                    return Mono.error(new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound"));
-                }
+        if (!modelTypeRepository.existsById(id)) {
+            throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
+        }
 
-                Mono<ModelTypeDTO> result = modelTypeService.partialUpdate(modelTypeDTO);
+        Optional<ModelTypeDTO> result = modelTypeService.partialUpdate(modelTypeDTO);
 
-                return result
-                    .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND)))
-                    .map(res ->
-                        ResponseEntity
-                            .ok()
-                            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, res.getId().toString()))
-                            .body(res)
-                    );
-            });
+        return Mono.justOrEmpty(tech.jhipster.web.util.ResponseUtil.wrapOrNotFound(
+                result,
+                HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, modelTypeDTO.getId().toString()))
+        );
     }
 
     /**
@@ -169,7 +146,7 @@ public class ModelTypeResource {
     @GetMapping(value = "/model-types", produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<List<ModelTypeDTO>> getAllModelTypes() {
         log.debug("REST request to get all ModelTypes");
-        return modelTypeService.findAll().collectList();
+        return Mono.justOrEmpty(modelTypeService.findAll());
     }
 
     /**
@@ -179,7 +156,7 @@ public class ModelTypeResource {
     @GetMapping(value = "/model-types", produces = MediaType.APPLICATION_NDJSON_VALUE)
     public Flux<ModelTypeDTO> getAllModelTypesAsStream() {
         log.debug("REST request to get all ModelTypes as a stream");
-        return modelTypeService.findAll();
+        return Flux.fromIterable(modelTypeService.findAll());
     }
 
     /**
@@ -191,8 +168,8 @@ public class ModelTypeResource {
     @GetMapping("/model-types/{id}")
     public Mono<ResponseEntity<ModelTypeDTO>> getModelType(@PathVariable UUID id) {
         log.debug("REST request to get ModelType : {}", id);
-        Mono<ModelTypeDTO> modelTypeDTO = modelTypeService.findOne(id);
-        return ResponseUtil.wrapOrNotFound(modelTypeDTO);
+        Optional<ModelTypeDTO> modelTypeDTO = modelTypeService.findOne(id);
+        return Mono.justOrEmpty(ResponseUtil.wrapOrNotFound(modelTypeDTO));
     }
 
     /**
@@ -204,15 +181,10 @@ public class ModelTypeResource {
     @DeleteMapping("/model-types/{id}")
     public Mono<ResponseEntity<Void>> deleteModelType(@PathVariable UUID id) {
         log.debug("REST request to delete ModelType : {}", id);
-        return modelTypeService
-            .delete(id)
-            .then(
-                Mono.just(
-                    ResponseEntity
-                        .noContent()
-                        .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
-                        .build()
-                )
-            );
+        modelTypeService.delete(id);
+        return Mono.just(ResponseEntity
+                .noContent()
+                .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
+                .build());
     }
 }

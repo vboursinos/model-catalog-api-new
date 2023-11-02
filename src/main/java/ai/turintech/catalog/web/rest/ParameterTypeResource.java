@@ -1,6 +1,6 @@
 package ai.turintech.catalog.web.rest;
 
-import ai.turintech.catalog.repository2.ParameterTypeRepository;
+import ai.turintech.catalog.repository.ParameterTypeRepository;
 import ai.turintech.catalog.service.ParameterTypeService;
 import ai.turintech.catalog.service.dto.ParameterTypeDTO;
 import ai.turintech.catalog.web.rest.errors.BadRequestAlertException;
@@ -10,6 +10,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +23,7 @@ import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import tech.jhipster.web.util.HeaderUtil;
-import tech.jhipster.web.util.reactive.ResponseUtil;
+import tech.jhipster.web.util.ResponseUtil;
 
 /**
  * REST controller for managing {@link ai.turintech.catalog.domain.ParameterType}.
@@ -38,14 +39,14 @@ public class ParameterTypeResource {
     @Value("${jhipster.clientApp.name}")
     private String applicationName;
 
-    private final ParameterTypeService parameterTypeService;
+    private ParameterTypeService parameterTypeService;
 
-    private final ParameterTypeRepository parameterTypeRepository;
+    private ParameterTypeRepository parameterTypeRepository;
 
-    public ParameterTypeResource(ParameterTypeService parameterTypeService, ParameterTypeRepository parameterTypeRepository) {
-        this.parameterTypeService = parameterTypeService;
-        this.parameterTypeRepository = parameterTypeRepository;
-    }
+//    public ParameterTypeResource(ParameterTypeService parameterTypeService, ParameterTypeRepository parameterTypeRepository) {
+//        this.parameterTypeService = parameterTypeService;
+//        this.parameterTypeRepository = parameterTypeRepository;
+//    }
 
     /**
      * {@code POST  /parameter-types} : Create a new parameterType.
@@ -61,19 +62,11 @@ public class ParameterTypeResource {
         if (parameterTypeDTO.getId() != null) {
             throw new BadRequestAlertException("A new parameterType cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        parameterTypeDTO.setId(UUID.randomUUID());
-        return parameterTypeService
-            .save(parameterTypeDTO)
-            .map(result -> {
-                try {
-                    return ResponseEntity
-                        .created(new URI("/api/parameter-types/" + result.getId()))
-                        .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
-                        .body(result);
-                } catch (URISyntaxException e) {
-                    throw new RuntimeException(e);
-                }
-            });
+        ParameterTypeDTO result = parameterTypeService.save(parameterTypeDTO);
+        return Mono.just(ResponseEntity
+                .created(new URI("/api/parameter-types/" + result.getId()))
+                .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
+                .body(result));
     }
 
     /**
@@ -99,23 +92,15 @@ public class ParameterTypeResource {
             throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
         }
 
-        return parameterTypeRepository
-            .existsById(id)
-            .flatMap(exists -> {
-                if (!exists) {
-                    return Mono.error(new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound"));
-                }
+        if (!parameterTypeRepository.existsById(id)) {
+            throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
+        }
 
-                return parameterTypeService
-                    .update(parameterTypeDTO)
-                    .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND)))
-                    .map(result ->
-                        ResponseEntity
-                            .ok()
-                            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
-                            .body(result)
-                    );
-            });
+        ParameterTypeDTO result = parameterTypeService.update(parameterTypeDTO);
+        return Mono.just(ResponseEntity
+                .ok()
+                .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, parameterTypeDTO.getId().toString()))
+                .body(result));
     }
 
     /**
@@ -142,24 +127,16 @@ public class ParameterTypeResource {
             throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
         }
 
-        return parameterTypeRepository
-            .existsById(id)
-            .flatMap(exists -> {
-                if (!exists) {
-                    return Mono.error(new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound"));
-                }
+        if (!parameterTypeRepository.existsById(id)) {
+            throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
+        }
 
-                Mono<ParameterTypeDTO> result = parameterTypeService.partialUpdate(parameterTypeDTO);
+        Optional<ParameterTypeDTO> result = parameterTypeService.partialUpdate(parameterTypeDTO);
 
-                return result
-                    .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND)))
-                    .map(res ->
-                        ResponseEntity
-                            .ok()
-                            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, res.getId().toString()))
-                            .body(res)
-                    );
-            });
+        return Mono.justOrEmpty(tech.jhipster.web.util.ResponseUtil.wrapOrNotFound(
+                result,
+                HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, parameterTypeDTO.getId().toString()))
+        );
     }
 
     /**
@@ -170,7 +147,7 @@ public class ParameterTypeResource {
     @GetMapping(value = "/parameter-types", produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<List<ParameterTypeDTO>> getAllParameterTypes() {
         log.debug("REST request to get all ParameterTypes");
-        return parameterTypeService.findAll().collectList();
+        return Mono.justOrEmpty(parameterTypeService.findAll());
     }
 
     /**
@@ -180,7 +157,7 @@ public class ParameterTypeResource {
     @GetMapping(value = "/parameter-types", produces = MediaType.APPLICATION_NDJSON_VALUE)
     public Flux<ParameterTypeDTO> getAllParameterTypesAsStream() {
         log.debug("REST request to get all ParameterTypes as a stream");
-        return parameterTypeService.findAll();
+        return Flux.fromIterable(parameterTypeService.findAll());
     }
 
     /**
@@ -192,8 +169,8 @@ public class ParameterTypeResource {
     @GetMapping("/parameter-types/{id}")
     public Mono<ResponseEntity<ParameterTypeDTO>> getParameterType(@PathVariable UUID id) {
         log.debug("REST request to get ParameterType : {}", id);
-        Mono<ParameterTypeDTO> parameterTypeDTO = parameterTypeService.findOne(id);
-        return ResponseUtil.wrapOrNotFound(parameterTypeDTO);
+        Optional<ParameterTypeDTO> parameterTypeDTO = parameterTypeService.findOne(id);
+        return Mono.justOrEmpty(ResponseUtil.wrapOrNotFound(parameterTypeDTO));
     }
 
     /**
@@ -205,15 +182,10 @@ public class ParameterTypeResource {
     @DeleteMapping("/parameter-types/{id}")
     public Mono<ResponseEntity<Void>> deleteParameterType(@PathVariable UUID id) {
         log.debug("REST request to delete ParameterType : {}", id);
-        return parameterTypeService
-            .delete(id)
-            .then(
-                Mono.just(
-                    ResponseEntity
-                        .noContent()
-                        .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
-                        .build()
-                )
-            );
+        parameterTypeService.delete(id);
+        return Mono.just(ResponseEntity
+                .noContent()
+                .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
+                .build());
     }
 }

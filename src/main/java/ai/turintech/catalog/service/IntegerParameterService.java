@@ -6,19 +6,17 @@ import ai.turintech.catalog.service.dto.IntegerParameterDTO;
 import ai.turintech.catalog.service.mapper.IntegerParameterMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
- * Service Implementation for managing {@link ai.turintech.catalog.domain.IntegerParameter}.
+ * Service Implementation for managing {@link IntegerParameter}.
  */
 @Service
 @Transactional
@@ -26,15 +24,14 @@ public class IntegerParameterService {
 
     private final Logger log = LoggerFactory.getLogger(IntegerParameterService.class);
 
-    @Autowired
-    private final IntegerParameterRepository integerParameterRepository;
+    private IntegerParameterRepository integerParameterRepository;
 
-    private final IntegerParameterMapper integerParameterMapper;
+    private IntegerParameterMapper integerParameterMapper;
 
-    public IntegerParameterService(IntegerParameterRepository integerParameterRepository, IntegerParameterMapper integerParameterMapper) {
-        this.integerParameterRepository = integerParameterRepository;
-        this.integerParameterMapper = integerParameterMapper;
-    }
+//    public IntegerParameterService(IntegerParameterRepository integerParameterRepository, IntegerParameterMapper integerParameterMapper) {
+//        this.integerParameterRepository = integerParameterRepository;
+//        this.integerParameterMapper = integerParameterMapper;
+//    }
 
     /**
      * Save a integerParameter.
@@ -42,11 +39,11 @@ public class IntegerParameterService {
      * @param integerParameterDTO the entity to save.
      * @return the persisted entity.
      */
-    public Mono<IntegerParameterDTO> save(IntegerParameterDTO integerParameterDTO) {
+    public IntegerParameterDTO save(IntegerParameterDTO integerParameterDTO) {
         log.debug("Request to save IntegerParameter : {}", integerParameterDTO);
         IntegerParameter integerParameter = integerParameterMapper.toEntity(integerParameterDTO);
         integerParameter = integerParameterRepository.save(integerParameter);
-        return Mono.just(integerParameterMapper.toDto(integerParameter));
+        return integerParameterMapper.toDto(integerParameter);
     }
 
     /**
@@ -55,11 +52,11 @@ public class IntegerParameterService {
      * @param integerParameterDTO the entity to save.
      * @return the persisted entity.
      */
-    public Mono<IntegerParameterDTO> update(IntegerParameterDTO integerParameterDTO) {
+    public IntegerParameterDTO update(IntegerParameterDTO integerParameterDTO) {
         log.debug("Request to update IntegerParameter : {}", integerParameterDTO);
         IntegerParameter integerParameter = integerParameterMapper.toEntity(integerParameterDTO);
         integerParameter = integerParameterRepository.save(integerParameter);
-        return Mono.just(integerParameterMapper.toDto(integerParameter));
+        return integerParameterMapper.toDto(integerParameter);
     }
 
     /**
@@ -68,18 +65,18 @@ public class IntegerParameterService {
      * @param integerParameterDTO the entity to update partially.
      * @return the persisted entity.
      */
-    public Mono<IntegerParameterDTO> partialUpdate(IntegerParameterDTO integerParameterDTO) {
+    public Optional<IntegerParameterDTO> partialUpdate(IntegerParameterDTO integerParameterDTO) {
         log.debug("Request to partially update IntegerParameter : {}", integerParameterDTO);
 
-        return Mono.justOrEmpty(integerParameterRepository
-                .findById(integerParameterDTO.getParameterTypeDefinitionId())
-                .map(existingIntegerParameter -> {
-                    integerParameterMapper.partialUpdate(existingIntegerParameter, integerParameterDTO);
+        return integerParameterRepository
+            .findById(integerParameterDTO.getParameterTypeDefinitionId())
+            .map(existingIntegerParameter -> {
+                integerParameterMapper.partialUpdate(existingIntegerParameter, integerParameterDTO);
 
-                    return existingIntegerParameter;
-                })
-                .map(integerParameterRepository::save)
-                .map(integerParameterMapper::toDto));
+                return existingIntegerParameter;
+            })
+            .map(integerParameterRepository::save)
+            .map(integerParameterMapper::toDto);
     }
 
     /**
@@ -88,14 +85,13 @@ public class IntegerParameterService {
      * @return the list of entities.
      */
     @Transactional(readOnly = true)
-    public Flux<IntegerParameterDTO> findAll() {
+    public List<IntegerParameterDTO> findAll() {
         log.debug("Request to get all IntegerParameters");
-        List<IntegerParameterDTO> integerParameterDTOS =  integerParameterRepository
-                .findAll()
-                .stream()
-                .map(integerParameterMapper::toDto)
-                .collect(Collectors.toCollection(LinkedList::new));
-        return Flux.fromIterable(integerParameterDTOS);
+        return integerParameterRepository
+            .findAll()
+            .stream()
+            .map(integerParameterMapper::toDto)
+            .collect(Collectors.toCollection(LinkedList::new));
     }
 
     /**
@@ -105,16 +101,15 @@ public class IntegerParameterService {
      * @return the entity.
      */
     @Transactional(readOnly = true)
-    public Mono<IntegerParameterDTO> findOne(UUID id) {
+    public Optional<IntegerParameterDTO> findOne(UUID id) {
         log.debug("Request to get IntegerParameter : {}", id);
-        return Mono.justOrEmpty(integerParameterRepository.findById(id).map(integerParameterMapper::toDto));
+        return integerParameterRepository.findById(id).map(integerParameterMapper::toDto);
     }
 
     /**
      * Delete the integerParameter by id.
      *
      * @param id the id of the entity.
-     * @return a Mono to signal the deletion
      */
     public void delete(UUID id) {
         log.debug("Request to delete IntegerParameter : {}", id);

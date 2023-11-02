@@ -6,6 +6,7 @@ import ai.turintech.catalog.service.dto.BooleanParameterDTO;
 import ai.turintech.catalog.service.mapper.BooleanParameterMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,14 +25,15 @@ public class BooleanParameterService {
 
     private final Logger log = LoggerFactory.getLogger(BooleanParameterService.class);
 
-    private final BooleanParameterRepository booleanParameterRepository;
+    private BooleanParameterRepository booleanParameterRepository;
 
-    private final BooleanParameterMapper booleanParameterMapper;
+    private BooleanParameterMapper booleanParameterMapper;
 
-    public BooleanParameterService(BooleanParameterRepository booleanParameterRepository, BooleanParameterMapper booleanParameterMapper) {
-        this.booleanParameterRepository = booleanParameterRepository;
-        this.booleanParameterMapper = booleanParameterMapper;
-    }
+//    @Autowired
+//    public BooleanParameterService(BooleanParameterRepository booleanParameterRepository, BooleanParameterMapper booleanParameterMapper) {
+//        this.booleanParameterRepository = booleanParameterRepository;
+//        this.booleanParameterMapper = booleanParameterMapper;
+//    }
 
     /**
      * Save a booleanParameter.

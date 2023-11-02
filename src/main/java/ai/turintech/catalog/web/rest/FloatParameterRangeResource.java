@@ -1,6 +1,6 @@
 package ai.turintech.catalog.web.rest;
 
-import ai.turintech.catalog.repository2.FloatParameterRangeRepository;
+import ai.turintech.catalog.repository.FloatParameterRangeRepository;
 import ai.turintech.catalog.service.FloatParameterRangeService;
 import ai.turintech.catalog.service.dto.FloatParameterRangeDTO;
 import ai.turintech.catalog.web.rest.errors.BadRequestAlertException;
@@ -10,6 +10,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -23,7 +24,7 @@ import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import tech.jhipster.web.util.HeaderUtil;
-import tech.jhipster.web.util.reactive.ResponseUtil;
+import tech.jhipster.web.util.ResponseUtil;
 
 /**
  * REST controller for managing {@link ai.turintech.catalog.domain.FloatParameterRange}.
@@ -39,17 +40,17 @@ public class FloatParameterRangeResource {
     @Value("${jhipster.clientApp.name}")
     private String applicationName;
 
-    private final FloatParameterRangeService floatParameterRangeService;
+    private FloatParameterRangeService floatParameterRangeService;
 
-    private final FloatParameterRangeRepository floatParameterRangeRepository;
+    private FloatParameterRangeRepository floatParameterRangeRepository;
 
-    public FloatParameterRangeResource(
-        FloatParameterRangeService floatParameterRangeService,
-        FloatParameterRangeRepository floatParameterRangeRepository
-    ) {
-        this.floatParameterRangeService = floatParameterRangeService;
-        this.floatParameterRangeRepository = floatParameterRangeRepository;
-    }
+//    public FloatParameterRangeResource(
+//        FloatParameterRangeService floatParameterRangeService,
+//        FloatParameterRangeRepository floatParameterRangeRepository
+//    ) {
+//        this.floatParameterRangeService = floatParameterRangeService;
+//        this.floatParameterRangeRepository = floatParameterRangeRepository;
+//    }
 
     /**
      * {@code POST  /float-parameter-ranges} : Create a new floatParameterRange.
@@ -66,18 +67,11 @@ public class FloatParameterRangeResource {
         if (floatParameterRangeDTO.getId() != null) {
             throw new BadRequestAlertException("A new floatParameterRange cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        return floatParameterRangeService
-            .save(floatParameterRangeDTO)
-            .map(result -> {
-                try {
-                    return ResponseEntity
-                        .created(new URI("/api/float-parameter-ranges/" + result.getId()))
-                        .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
-                        .body(result);
-                } catch (URISyntaxException e) {
-                    throw new RuntimeException(e);
-                }
-            });
+        FloatParameterRangeDTO result = floatParameterRangeService.save(floatParameterRangeDTO);
+        return Mono.justOrEmpty(ResponseEntity
+                .created(new URI("/api/float-parameter-ranges/" + result.getId()))
+                .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
+                .body(result));
     }
 
     /**
@@ -103,23 +97,15 @@ public class FloatParameterRangeResource {
             throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
         }
 
-        return floatParameterRangeRepository
-            .existsById(id)
-            .flatMap(exists -> {
-                if (!exists) {
-                    return Mono.error(new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound"));
-                }
+        if (!floatParameterRangeRepository.existsById(id)) {
+            throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
+        }
 
-                return floatParameterRangeService
-                    .update(floatParameterRangeDTO)
-                    .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND)))
-                    .map(result ->
-                        ResponseEntity
-                            .ok()
-                            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
-                            .body(result)
-                    );
-            });
+        FloatParameterRangeDTO result = floatParameterRangeService.update(floatParameterRangeDTO);
+        return Mono.justOrEmpty(ResponseEntity
+                .ok()
+                .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, floatParameterRangeDTO.getId().toString()))
+                .body(result));
     }
 
     /**
@@ -146,24 +132,16 @@ public class FloatParameterRangeResource {
             throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
         }
 
-        return floatParameterRangeRepository
-            .existsById(id)
-            .flatMap(exists -> {
-                if (!exists) {
-                    return Mono.error(new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound"));
-                }
+        if (!floatParameterRangeRepository.existsById(id)) {
+            throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
+        }
 
-                Mono<FloatParameterRangeDTO> result = floatParameterRangeService.partialUpdate(floatParameterRangeDTO);
+        Optional<FloatParameterRangeDTO> result = floatParameterRangeService.partialUpdate(floatParameterRangeDTO);
 
-                return result
-                    .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND)))
-                    .map(res ->
-                        ResponseEntity
-                            .ok()
-                            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, res.getId().toString()))
-                            .body(res)
-                    );
-            });
+        return Mono.justOrEmpty(tech.jhipster.web.util.ResponseUtil.wrapOrNotFound(
+                result,
+                HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, floatParameterRangeDTO.getId().toString()))
+        );
     }
 
     /**
@@ -174,7 +152,7 @@ public class FloatParameterRangeResource {
     @GetMapping(value = "/float-parameter-ranges", produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<List<FloatParameterRangeDTO>> getAllFloatParameterRanges() {
         log.debug("REST request to get all FloatParameterRanges");
-        return floatParameterRangeService.findAll().collectList();
+        return Mono.justOrEmpty(floatParameterRangeService.findAll());
     }
 
     /**
@@ -184,7 +162,7 @@ public class FloatParameterRangeResource {
     @GetMapping(value = "/float-parameter-ranges", produces = MediaType.APPLICATION_NDJSON_VALUE)
     public Flux<FloatParameterRangeDTO> getAllFloatParameterRangesAsStream() {
         log.debug("REST request to get all FloatParameterRanges as a stream");
-        return floatParameterRangeService.findAll();
+        return Flux.fromIterable(floatParameterRangeService.findAll());
     }
 
     /**
@@ -196,8 +174,8 @@ public class FloatParameterRangeResource {
     @GetMapping("/float-parameter-ranges/{id}")
     public Mono<ResponseEntity<FloatParameterRangeDTO>> getFloatParameterRange(@PathVariable UUID id) {
         log.debug("REST request to get FloatParameterRange : {}", id);
-        Mono<FloatParameterRangeDTO> floatParameterRangeDTO = floatParameterRangeService.findOne(id);
-        return ResponseUtil.wrapOrNotFound(floatParameterRangeDTO);
+        Optional<FloatParameterRangeDTO> floatParameterRangeDTO = floatParameterRangeService.findOne(id);
+        return Mono.justOrEmpty(ResponseUtil.wrapOrNotFound(floatParameterRangeDTO));
     }
 
     /**
@@ -209,15 +187,10 @@ public class FloatParameterRangeResource {
     @DeleteMapping("/float-parameter-ranges/{id}")
     public Mono<ResponseEntity<Void>> deleteFloatParameterRange(@PathVariable UUID id) {
         log.debug("REST request to delete FloatParameterRange : {}", id);
-        return floatParameterRangeService
-            .delete(id)
-            .then(
-                Mono.just(
-                    ResponseEntity
-                        .noContent()
-                        .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
-                        .build()
-                )
-            );
+        floatParameterRangeService.delete(id);
+        return Mono.justOrEmpty(ResponseEntity
+                .noContent()
+                .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
+                .build());
     }
 }

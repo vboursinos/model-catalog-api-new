@@ -1,6 +1,6 @@
 package ai.turintech.catalog.web.rest;
 
-import ai.turintech.catalog.repository2.ModelFamilyTypeRepository;
+import ai.turintech.catalog.repository.ModelFamilyTypeRepository;
 import ai.turintech.catalog.service.ModelFamilyTypeService;
 import ai.turintech.catalog.service.dto.ModelFamilyTypeDTO;
 import ai.turintech.catalog.web.rest.errors.BadRequestAlertException;
@@ -10,6 +10,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +23,7 @@ import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import tech.jhipster.web.util.HeaderUtil;
-import tech.jhipster.web.util.reactive.ResponseUtil;
+import tech.jhipster.web.util.ResponseUtil;
 
 /**
  * REST controller for managing {@link ai.turintech.catalog.domain.ModelFamilyType}.
@@ -38,14 +39,14 @@ public class ModelFamilyTypeResource {
     @Value("${jhipster.clientApp.name}")
     private String applicationName;
 
-    private final ModelFamilyTypeService modelFamilyTypeService;
+    private ModelFamilyTypeService modelFamilyTypeService;
 
-    private final ModelFamilyTypeRepository modelFamilyTypeRepository;
+    private ModelFamilyTypeRepository modelFamilyTypeRepository;
 
-    public ModelFamilyTypeResource(ModelFamilyTypeService modelFamilyTypeService, ModelFamilyTypeRepository modelFamilyTypeRepository) {
-        this.modelFamilyTypeService = modelFamilyTypeService;
-        this.modelFamilyTypeRepository = modelFamilyTypeRepository;
-    }
+//    public ModelFamilyTypeResource(ModelFamilyTypeService modelFamilyTypeService, ModelFamilyTypeRepository modelFamilyTypeRepository) {
+//        this.modelFamilyTypeService = modelFamilyTypeService;
+//        this.modelFamilyTypeRepository = modelFamilyTypeRepository;
+//    }
 
     /**
      * {@code POST  /model-family-types} : Create a new modelFamilyType.
@@ -61,19 +62,11 @@ public class ModelFamilyTypeResource {
         if (modelFamilyTypeDTO.getId() != null) {
             throw new BadRequestAlertException("A new modelFamilyType cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        modelFamilyTypeDTO.setId(UUID.randomUUID());
-        return modelFamilyTypeService
-            .save(modelFamilyTypeDTO)
-            .map(result -> {
-                try {
-                    return ResponseEntity
-                        .created(new URI("/api/model-family-types/" + result.getId()))
-                        .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
-                        .body(result);
-                } catch (URISyntaxException e) {
-                    throw new RuntimeException(e);
-                }
-            });
+        ModelFamilyTypeDTO result = modelFamilyTypeService.save(modelFamilyTypeDTO);
+        return Mono.just(ResponseEntity
+                .created(new URI("/api/model-family-types/" + result.getId()))
+                .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
+                .body(result));
     }
 
     /**
@@ -99,23 +92,15 @@ public class ModelFamilyTypeResource {
             throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
         }
 
-        return modelFamilyTypeRepository
-            .existsById(id)
-            .flatMap(exists -> {
-                if (!exists) {
-                    return Mono.error(new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound"));
-                }
+        if (!modelFamilyTypeRepository.existsById(id)) {
+            throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
+        }
 
-                return modelFamilyTypeService
-                    .update(modelFamilyTypeDTO)
-                    .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND)))
-                    .map(result ->
-                        ResponseEntity
-                            .ok()
-                            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
-                            .body(result)
-                    );
-            });
+        ModelFamilyTypeDTO result = modelFamilyTypeService.update(modelFamilyTypeDTO);
+        return Mono.just(ResponseEntity
+                .ok()
+                .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, modelFamilyTypeDTO.getId().toString()))
+                .body(result));
     }
 
     /**
@@ -142,24 +127,16 @@ public class ModelFamilyTypeResource {
             throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
         }
 
-        return modelFamilyTypeRepository
-            .existsById(id)
-            .flatMap(exists -> {
-                if (!exists) {
-                    return Mono.error(new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound"));
-                }
+        if (!modelFamilyTypeRepository.existsById(id)) {
+            throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
+        }
 
-                Mono<ModelFamilyTypeDTO> result = modelFamilyTypeService.partialUpdate(modelFamilyTypeDTO);
+        Optional<ModelFamilyTypeDTO> result = modelFamilyTypeService.partialUpdate(modelFamilyTypeDTO);
 
-                return result
-                    .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND)))
-                    .map(res ->
-                        ResponseEntity
-                            .ok()
-                            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, res.getId().toString()))
-                            .body(res)
-                    );
-            });
+        return Mono.justOrEmpty(tech.jhipster.web.util.ResponseUtil.wrapOrNotFound(
+                result,
+                HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, modelFamilyTypeDTO.getId().toString()))
+        );
     }
 
     /**
@@ -170,7 +147,7 @@ public class ModelFamilyTypeResource {
     @GetMapping(value = "/model-family-types", produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<List<ModelFamilyTypeDTO>> getAllModelFamilyTypes() {
         log.debug("REST request to get all ModelFamilyTypes");
-        return modelFamilyTypeService.findAll().collectList();
+        return Mono.justOrEmpty(modelFamilyTypeService.findAll());
     }
 
     /**
@@ -180,7 +157,7 @@ public class ModelFamilyTypeResource {
     @GetMapping(value = "/model-family-types", produces = MediaType.APPLICATION_NDJSON_VALUE)
     public Flux<ModelFamilyTypeDTO> getAllModelFamilyTypesAsStream() {
         log.debug("REST request to get all ModelFamilyTypes as a stream");
-        return modelFamilyTypeService.findAll();
+        return Flux.fromIterable(modelFamilyTypeService.findAll());
     }
 
     /**
@@ -192,8 +169,8 @@ public class ModelFamilyTypeResource {
     @GetMapping("/model-family-types/{id}")
     public Mono<ResponseEntity<ModelFamilyTypeDTO>> getModelFamilyType(@PathVariable UUID id) {
         log.debug("REST request to get ModelFamilyType : {}", id);
-        Mono<ModelFamilyTypeDTO> modelFamilyTypeDTO = modelFamilyTypeService.findOne(id);
-        return ResponseUtil.wrapOrNotFound(modelFamilyTypeDTO);
+        Optional<ModelFamilyTypeDTO> modelFamilyTypeDTO = modelFamilyTypeService.findOne(id);
+        return Mono.justOrEmpty(ResponseUtil.wrapOrNotFound(modelFamilyTypeDTO));
     }
 
     /**
@@ -205,15 +182,10 @@ public class ModelFamilyTypeResource {
     @DeleteMapping("/model-family-types/{id}")
     public Mono<ResponseEntity<Void>> deleteModelFamilyType(@PathVariable UUID id) {
         log.debug("REST request to delete ModelFamilyType : {}", id);
-        return modelFamilyTypeService
-            .delete(id)
-            .then(
-                Mono.just(
-                    ResponseEntity
-                        .noContent()
-                        .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
-                        .build()
-                )
-            );
+        modelFamilyTypeService.delete(id);
+        return Mono.justOrEmpty(ResponseEntity
+                .noContent()
+                .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
+                .build());
     }
 }

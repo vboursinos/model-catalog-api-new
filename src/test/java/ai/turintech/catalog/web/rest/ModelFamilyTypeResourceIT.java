@@ -6,8 +6,8 @@ import static org.hamcrest.Matchers.is;
 
 import ai.turintech.catalog.IntegrationTest;
 import ai.turintech.catalog.domain.ModelFamilyType;
-import ai.turintech.catalog.repository.EntityManager;
-import ai.turintech.catalog.repository.ModelFamilyTypeRepository;
+import ai.turintech.catalog.repository2.EntityManager;
+import ai.turintech.catalog.repository2.ModelFamilyTypeRepository;
 import ai.turintech.catalog.service.dto.ModelFamilyTypeDTO;
 import ai.turintech.catalog.service.mapper.ModelFamilyTypeMapper;
 import java.time.Duration;

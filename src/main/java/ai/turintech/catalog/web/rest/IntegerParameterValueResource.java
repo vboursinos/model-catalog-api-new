@@ -1,6 +1,6 @@
 package ai.turintech.catalog.web.rest;
 
-import ai.turintech.catalog.repository2.IntegerParameterValueRepository;
+import ai.turintech.catalog.repository.IntegerParameterValueRepository;
 import ai.turintech.catalog.service.IntegerParameterValueService;
 import ai.turintech.catalog.service.dto.IntegerParameterValueDTO;
 import ai.turintech.catalog.web.rest.errors.BadRequestAlertException;
@@ -10,6 +10,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -23,7 +24,7 @@ import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import tech.jhipster.web.util.HeaderUtil;
-import tech.jhipster.web.util.reactive.ResponseUtil;
+import tech.jhipster.web.util.ResponseUtil;
 
 /**
  * REST controller for managing {@link ai.turintech.catalog.domain.IntegerParameterValue}.
@@ -39,17 +40,17 @@ public class IntegerParameterValueResource {
     @Value("${jhipster.clientApp.name}")
     private String applicationName;
 
-    private final IntegerParameterValueService integerParameterValueService;
+    private IntegerParameterValueService integerParameterValueService;
 
-    private final IntegerParameterValueRepository integerParameterValueRepository;
+    private IntegerParameterValueRepository integerParameterValueRepository;
 
-    public IntegerParameterValueResource(
-        IntegerParameterValueService integerParameterValueService,
-        IntegerParameterValueRepository integerParameterValueRepository
-    ) {
-        this.integerParameterValueService = integerParameterValueService;
-        this.integerParameterValueRepository = integerParameterValueRepository;
-    }
+//    public IntegerParameterValueResource(
+//        IntegerParameterValueService integerParameterValueService,
+//        IntegerParameterValueRepository integerParameterValueRepository
+//    ) {
+//        this.integerParameterValueService = integerParameterValueService;
+//        this.integerParameterValueRepository = integerParameterValueRepository;
+//    }
 
     /**
      * {@code POST  /integer-parameter-values} : Create a new integerParameterValue.
@@ -66,18 +67,11 @@ public class IntegerParameterValueResource {
         if (integerParameterValueDTO.getId() != null) {
             throw new BadRequestAlertException("A new integerParameterValue cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        return integerParameterValueService
-            .save(integerParameterValueDTO)
-            .map(result -> {
-                try {
-                    return ResponseEntity
-                        .created(new URI("/api/integer-parameter-values/" + result.getId()))
-                        .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
-                        .body(result);
-                } catch (URISyntaxException e) {
-                    throw new RuntimeException(e);
-                }
-            });
+        IntegerParameterValueDTO result = integerParameterValueService.save(integerParameterValueDTO);
+        return Mono.just(ResponseEntity
+                .created(new URI("/api/integer-parameter-values/" + result.getId()))
+                .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
+                .body(result));
     }
 
     /**
@@ -103,23 +97,15 @@ public class IntegerParameterValueResource {
             throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
         }
 
-        return integerParameterValueRepository
-            .existsById(id)
-            .flatMap(exists -> {
-                if (!exists) {
-                    return Mono.error(new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound"));
-                }
+        if (!integerParameterValueRepository.existsById(id)) {
+            throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
+        }
 
-                return integerParameterValueService
-                    .update(integerParameterValueDTO)
-                    .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND)))
-                    .map(result ->
-                        ResponseEntity
-                            .ok()
-                            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
-                            .body(result)
-                    );
-            });
+        IntegerParameterValueDTO result = integerParameterValueService.update(integerParameterValueDTO);
+        return Mono.just(ResponseEntity
+                .ok()
+                .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, integerParameterValueDTO.getId().toString()))
+                .body(result));
     }
 
     /**
@@ -146,24 +132,16 @@ public class IntegerParameterValueResource {
             throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
         }
 
-        return integerParameterValueRepository
-            .existsById(id)
-            .flatMap(exists -> {
-                if (!exists) {
-                    return Mono.error(new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound"));
-                }
+        if (!integerParameterValueRepository.existsById(id)) {
+            throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
+        }
 
-                Mono<IntegerParameterValueDTO> result = integerParameterValueService.partialUpdate(integerParameterValueDTO);
+        Optional<IntegerParameterValueDTO> result = integerParameterValueService.partialUpdate(integerParameterValueDTO);
 
-                return result
-                    .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND)))
-                    .map(res ->
-                        ResponseEntity
-                            .ok()
-                            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, res.getId().toString()))
-                            .body(res)
-                    );
-            });
+        return Mono.justOrEmpty(tech.jhipster.web.util.ResponseUtil.wrapOrNotFound(
+                result,
+                HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, integerParameterValueDTO.getId().toString()))
+        );
     }
 
     /**
@@ -174,7 +152,7 @@ public class IntegerParameterValueResource {
     @GetMapping(value = "/integer-parameter-values", produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<List<IntegerParameterValueDTO>> getAllIntegerParameterValues() {
         log.debug("REST request to get all IntegerParameterValues");
-        return integerParameterValueService.findAll().collectList();
+        return Mono.justOrEmpty(integerParameterValueService.findAll());
     }
 
     /**
@@ -184,7 +162,7 @@ public class IntegerParameterValueResource {
     @GetMapping(value = "/integer-parameter-values", produces = MediaType.APPLICATION_NDJSON_VALUE)
     public Flux<IntegerParameterValueDTO> getAllIntegerParameterValuesAsStream() {
         log.debug("REST request to get all IntegerParameterValues as a stream");
-        return integerParameterValueService.findAll();
+        return Flux.fromIterable(integerParameterValueService.findAll());
     }
 
     /**
@@ -196,8 +174,8 @@ public class IntegerParameterValueResource {
     @GetMapping("/integer-parameter-values/{id}")
     public Mono<ResponseEntity<IntegerParameterValueDTO>> getIntegerParameterValue(@PathVariable UUID id) {
         log.debug("REST request to get IntegerParameterValue : {}", id);
-        Mono<IntegerParameterValueDTO> integerParameterValueDTO = integerParameterValueService.findOne(id);
-        return ResponseUtil.wrapOrNotFound(integerParameterValueDTO);
+        Optional<IntegerParameterValueDTO> integerParameterValueDTO = integerParameterValueService.findOne(id);
+        return Mono.justOrEmpty(ResponseUtil.wrapOrNotFound(integerParameterValueDTO));
     }
 
     /**
@@ -209,15 +187,10 @@ public class IntegerParameterValueResource {
     @DeleteMapping("/integer-parameter-values/{id}")
     public Mono<ResponseEntity<Void>> deleteIntegerParameterValue(@PathVariable UUID id) {
         log.debug("REST request to delete IntegerParameterValue : {}", id);
-        return integerParameterValueService
-            .delete(id)
-            .then(
-                Mono.just(
-                    ResponseEntity
-                        .noContent()
-                        .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
-                        .build()
-                )
-            );
+        integerParameterValueService.delete(id);
+        return Mono.justOrEmpty(ResponseEntity
+                .noContent()
+                .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
+                .build());
     }
 }

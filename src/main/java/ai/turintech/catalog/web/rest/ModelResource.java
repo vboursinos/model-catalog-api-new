@@ -1,6 +1,6 @@
 package ai.turintech.catalog.web.rest;
 
-import ai.turintech.catalog.repository2.ModelRepository;
+import ai.turintech.catalog.repository.ModelRepository;
 import ai.turintech.catalog.service.ModelService;
 import ai.turintech.catalog.service.dto.ModelDTO;
 import ai.turintech.catalog.service.dto.ModelPaginatedListDTO;
@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
@@ -24,18 +25,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
 import tech.jhipster.web.util.HeaderUtil;
 import tech.jhipster.web.util.PaginationUtil;
-import tech.jhipster.web.util.reactive.ResponseUtil;
+import tech.jhipster.web.util.ResponseUtil;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -55,14 +54,15 @@ public class ModelResource {
 
     @Autowired
     private PaginationConverter paginationConverter;
-    private final ModelService modelService;
+    @Autowired
+    private ModelService modelService;
+//    @Autowired
+//    private ModelRepository modelRepository;
 
-    private final ModelRepository modelRepository;
-
-    public ModelResource(ModelService modelService, ModelRepository modelRepository) {
-        this.modelService = modelService;
-        this.modelRepository = modelRepository;
-    }
+//    public ModelResource(ModelService modelService, ModelRepository modelRepository) {
+//        this.modelService = modelService;
+//        this.modelRepository = modelRepository;
+//    }
 
     /**
      * {@code POST  /models} : Create a new model.
@@ -77,19 +77,11 @@ public class ModelResource {
         if (modelDTO.getId() != null) {
             throw new BadRequestAlertException("A new model cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        modelDTO.setId(UUID.randomUUID());
-        return modelService
-            .save(modelDTO)
-            .map(result -> {
-                try {
-                    return ResponseEntity
-                        .created(new URI("/api/models/" + result.getId()))
-                        .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
-                        .body(result);
-                } catch (URISyntaxException e) {
-                    throw new RuntimeException(e);
-                }
-            });
+        ModelDTO result = modelService.save(modelDTO);
+        return Mono.just(ResponseEntity
+                .created(new URI("/api/models/" + result.getId()))
+                .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
+                .body(result));
     }
 
     /**
@@ -115,23 +107,15 @@ public class ModelResource {
             throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
         }
 
-        return modelRepository
-            .existsById(id)
-            .flatMap(exists -> {
-                if (!exists) {
-                    return Mono.error(new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound"));
-                }
+//        if (!modelRepository.existsById(id)) {
+//            throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
+//        }
 
-                return modelService
-                    .update(modelDTO)
-                    .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND)))
-                    .map(result ->
-                        ResponseEntity
-                            .ok()
-                            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
-                            .body(result)
-                    );
-            });
+        ModelDTO result = modelService.update(modelDTO);
+        return Mono.just(ResponseEntity
+                .ok()
+                .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, modelDTO.getId().toString()))
+                .body(result));
     }
 
     /**
@@ -158,69 +142,76 @@ public class ModelResource {
             throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
         }
 
-        return modelRepository
-            .existsById(id)
-            .flatMap(exists -> {
-                if (!exists) {
-                    return Mono.error(new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound"));
-                }
+//        if (!modelRepository.existsById(id)) {
+//            throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
+//        }
 
-                Mono<ModelDTO> result = modelService.partialUpdate(modelDTO);
+        Optional<ModelDTO> result = modelService.partialUpdate(modelDTO);
 
-                return result
-                    .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND)))
-                    .map(res ->
-                        ResponseEntity
-                            .ok()
-                            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, res.getId().toString()))
-                            .body(res)
-                    );
-            });
+        return Mono.justOrEmpty(tech.jhipster.web.util.ResponseUtil.wrapOrNotFound(
+                result,
+                HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, modelDTO.getId().toString()))
+        );
     }
 
     /**
      * {@code GET  /models} : get all the models.
      *
      * @param pageable the pagination information.
-     * @param request a {@link ServerHttpRequest} request.
      * @param eagerload flag to eager load entities from relationships (This is applicable for many-to-many).
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of models in body.
      */
-    @GetMapping(value = "/models", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Mono<ResponseEntity<ModelPaginatedListDTO>> getAllModels(
-            @ParameterObject Pageable pageable,
-            ServerHttpRequest request,
-            @RequestParam(required = false, defaultValue = "false") boolean eagerload,
-            FilterDTO filterDTO,
-            @RequestParam(value = "search", required = false) String search
+//    @GetMapping(value = "/models", produces = MediaType.APPLICATION_JSON_VALUE)
+//    public Mono<ResponseEntity<ModelPaginatedListDTO>> getAllModels(
+//            @ParameterObject Pageable pageable,
+//            ServerHttpRequest request,
+//            @RequestParam(required = false, defaultValue = "false") boolean eagerload,
+//            FilterDTO filterDTO,
+//            @RequestParam(value = "search", required = false) String search
+//    ) {
+//        log.debug("REST request to get a page of Models");
+//        List<SearchDTO> searchParams = new ArrayList<SearchDTO>();
+//        if (search != null) {
+//            Pattern pattern = Pattern.compile("(\\w+)(:)([^,]+),?");
+//            Matcher matcher = pattern.matcher(search);
+//
+//            while (matcher.find()) {
+//                searchParams.add(new SearchDTO(matcher.group(1), matcher.group(2), matcher.group(3)));
+//            }
+//        }
+//        return modelService
+//                .countAll(filterDTO, searchParams)
+//                .zipWith(modelService.findAll(pageable, filterDTO, searchParams).collectList())
+//                .map(countWithEntities -> {
+//                    ModelPaginatedListDTO paginatedList = paginationConverter.getPaginatedList(
+//                            countWithEntities.getT2(),
+//                            pageable.getPageNumber(),
+//                            pageable.getPageSize(),
+//                            countWithEntities.getT1()
+//                    );
+//
+//                    HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(
+//                            UriComponentsBuilder.fromHttpRequest(request),
+//                            new PageImpl<>(countWithEntities.getT2(), pageable, countWithEntities.getT1()));
+//
+//                    return ResponseEntity.ok().headers(headers).body(paginatedList);
+//                });
+//    }
+
+    @GetMapping("")
+    public ResponseEntity<List<ModelDTO>> getAllModels(
+            @org.springdoc.core.annotations.ParameterObject Pageable pageable,
+            @RequestParam(required = false, defaultValue = "true") boolean eagerload
     ) {
         log.debug("REST request to get a page of Models");
-        List<SearchDTO> searchParams = new ArrayList<SearchDTO>();
-        if (search != null) {
-            Pattern pattern = Pattern.compile("(\\w+)(:)([^,]+),?");
-            Matcher matcher = pattern.matcher(search);
-
-            while (matcher.find()) {
-                searchParams.add(new SearchDTO(matcher.group(1), matcher.group(2), matcher.group(3)));
-            }
+        Page<ModelDTO> page;
+        if (eagerload) {
+            page = modelService.findAllWithEagerRelationships(pageable);
+        } else {
+            page = modelService.findAll(pageable);
         }
-        return modelService
-                .countAll(filterDTO, searchParams)
-                .zipWith(modelService.findAll(pageable, filterDTO, searchParams).collectList())
-                .map(countWithEntities -> {
-                    ModelPaginatedListDTO paginatedList = paginationConverter.getPaginatedList(
-                            countWithEntities.getT2(),
-                            pageable.getPageNumber(),
-                            pageable.getPageSize(),
-                            countWithEntities.getT1()
-                    );
-
-                    HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(
-                            UriComponentsBuilder.fromHttpRequest(request),
-                            new PageImpl<>(countWithEntities.getT2(), pageable, countWithEntities.getT1()));
-
-                    return ResponseEntity.ok().headers(headers).body(paginatedList);
-                });
+        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
+        return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
 
     /**
@@ -232,8 +223,8 @@ public class ModelResource {
     @GetMapping("/models/{id}")
     public Mono<ResponseEntity<ModelDTO>> getModel(@PathVariable UUID id) {
         log.debug("REST request to get Model : {}", id);
-        Mono<ModelDTO> modelDTO = modelService.findOne(id);
-        return ResponseUtil.wrapOrNotFound(modelDTO);
+        Optional<ModelDTO> modelDTO = modelService.findOne(id);
+        return Mono.justOrEmpty(ResponseUtil.wrapOrNotFound(modelDTO));
     }
 
     /**
@@ -245,15 +236,10 @@ public class ModelResource {
     @DeleteMapping("/models/{id}")
     public Mono<ResponseEntity<Void>> deleteModel(@PathVariable UUID id) {
         log.debug("REST request to delete Model : {}", id);
-        return modelService
-            .delete(id)
-            .then(
-                Mono.just(
-                    ResponseEntity
-                        .noContent()
-                        .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
-                        .build()
-                )
-            );
+        modelService.delete(id);
+        return Mono.justOrEmpty(ResponseEntity
+                .noContent()
+                .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
+                .build());
     }
 }

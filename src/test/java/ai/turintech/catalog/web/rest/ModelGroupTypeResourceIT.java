@@ -6,8 +6,8 @@ import static org.hamcrest.Matchers.is;
 
 import ai.turintech.catalog.IntegrationTest;
 import ai.turintech.catalog.domain.ModelGroupType;
-import ai.turintech.catalog.repository.EntityManager;
-import ai.turintech.catalog.repository.ModelGroupTypeRepository;
+import ai.turintech.catalog.repository2.EntityManager;
+import ai.turintech.catalog.repository2.ModelGroupTypeRepository;
 import ai.turintech.catalog.service.dto.ModelGroupTypeDTO;
 import ai.turintech.catalog.service.mapper.ModelGroupTypeMapper;
 import java.time.Duration;

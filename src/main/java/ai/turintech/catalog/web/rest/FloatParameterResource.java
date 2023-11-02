@@ -1,6 +1,6 @@
 package ai.turintech.catalog.web.rest;
 
-import ai.turintech.catalog.repository2.FloatParameterRepository;
+import ai.turintech.catalog.repository.FloatParameterRepository;
 import ai.turintech.catalog.service.FloatParameterService;
 import ai.turintech.catalog.service.dto.FloatParameterDTO;
 import ai.turintech.catalog.web.rest.errors.BadRequestAlertException;
@@ -8,6 +8,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -21,7 +22,7 @@ import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import tech.jhipster.web.util.HeaderUtil;
-import tech.jhipster.web.util.reactive.ResponseUtil;
+import tech.jhipster.web.util.ResponseUtil;
 
 /**
  * REST controller for managing {@link ai.turintech.catalog.domain.FloatParameter}.
@@ -37,14 +38,14 @@ public class FloatParameterResource {
     @Value("${jhipster.clientApp.name}")
     private String applicationName;
 
-    private final FloatParameterService floatParameterService;
+    private FloatParameterService floatParameterService;
 
-    private final FloatParameterRepository floatParameterRepository;
+    private FloatParameterRepository floatParameterRepository;
 
-    public FloatParameterResource(FloatParameterService floatParameterService, FloatParameterRepository floatParameterRepository) {
-        this.floatParameterService = floatParameterService;
-        this.floatParameterRepository = floatParameterRepository;
-    }
+//    public FloatParameterResource(FloatParameterService floatParameterService, FloatParameterRepository floatParameterRepository) {
+//        this.floatParameterService = floatParameterService;
+//        this.floatParameterRepository = floatParameterRepository;
+//    }
 
     /**
      * {@code POST  /float-parameters} : Create a new floatParameter.
@@ -60,18 +61,11 @@ public class FloatParameterResource {
         if (floatParameterDTO.getParameterTypeDefinitionId() != null) {
             throw new BadRequestAlertException("A new floatParameter cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        return floatParameterService
-            .save(floatParameterDTO)
-            .map(result -> {
-                try {
-                    return ResponseEntity
-                        .created(new URI("/api/float-parameters/" + result.getParameterTypeDefinitionId()))
-                        .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getParameterTypeDefinitionId().toString()))
-                        .body(result);
-                } catch (URISyntaxException e) {
-                    throw new RuntimeException(e);
-                }
-            });
+        FloatParameterDTO result = floatParameterService.save(floatParameterDTO);
+        return Mono.just(ResponseEntity
+                .created(new URI("/api/float-parameters/" + result.getParameterTypeDefinitionId()))
+                .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getParameterTypeDefinitionId().toString()))
+                .body(result));
     }
 
     /**
@@ -97,23 +91,15 @@ public class FloatParameterResource {
             throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
         }
 
-        return floatParameterRepository
-            .existsById(id)
-            .flatMap(exists -> {
-                if (!exists) {
-                    return Mono.error(new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound"));
-                }
+        if (!floatParameterRepository.existsById(id)) {
+            throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
+        }
 
-                return floatParameterService
-                    .update(floatParameterDTO)
-                    .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND)))
-                    .map(result ->
-                        ResponseEntity
-                            .ok()
-                            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, result.getParameterTypeDefinitionId().toString()))
-                            .body(result)
-                    );
-            });
+        FloatParameterDTO result = floatParameterService.update(floatParameterDTO);
+        return Mono.just(ResponseEntity
+                .ok()
+                .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, floatParameterDTO.getParameterTypeDefinitionId().toString()))
+                .body(result));
     }
 
     /**
@@ -140,24 +126,16 @@ public class FloatParameterResource {
             throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
         }
 
-        return floatParameterRepository
-            .existsById(id)
-            .flatMap(exists -> {
-                if (!exists) {
-                    return Mono.error(new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound"));
-                }
+        if (!floatParameterRepository.existsById(id)) {
+            throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
+        }
 
-                Mono<FloatParameterDTO> result = floatParameterService.partialUpdate(floatParameterDTO);
+        Optional<FloatParameterDTO> result = floatParameterService.partialUpdate(floatParameterDTO);
 
-                return result
-                    .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND)))
-                    .map(res ->
-                        ResponseEntity
-                            .ok()
-                            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, res.getParameterTypeDefinitionId().toString()))
-                            .body(res)
-                    );
-            });
+        return Mono.justOrEmpty(tech.jhipster.web.util.ResponseUtil.wrapOrNotFound(
+                result,
+                HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, floatParameterDTO.getParameterTypeDefinitionId().toString()))
+        );
     }
 
     /**
@@ -168,7 +146,7 @@ public class FloatParameterResource {
     @GetMapping(value = "/float-parameters", produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<List<FloatParameterDTO>> getAllFloatParameters() {
         log.debug("REST request to get all FloatParameters");
-        return floatParameterService.findAll().collectList();
+        return Mono.justOrEmpty(floatParameterService.findAll());
     }
 
     /**
@@ -178,7 +156,7 @@ public class FloatParameterResource {
     @GetMapping(value = "/float-parameters", produces = MediaType.APPLICATION_NDJSON_VALUE)
     public Flux<FloatParameterDTO> getAllFloatParametersAsStream() {
         log.debug("REST request to get all FloatParameters as a stream");
-        return floatParameterService.findAll();
+        return Flux.fromIterable(floatParameterService.findAll());
     }
 
     /**
@@ -190,8 +168,8 @@ public class FloatParameterResource {
     @GetMapping("/float-parameters/{id}")
     public Mono<ResponseEntity<FloatParameterDTO>> getFloatParameter(@PathVariable UUID id) {
         log.debug("REST request to get FloatParameter : {}", id);
-        Mono<FloatParameterDTO> floatParameterDTO = floatParameterService.findOne(id);
-        return ResponseUtil.wrapOrNotFound(floatParameterDTO);
+        Optional<FloatParameterDTO> floatParameterDTO = floatParameterService.findOne(id);
+        return Mono.justOrEmpty(ResponseUtil.wrapOrNotFound(floatParameterDTO));
     }
 
     /**
@@ -203,15 +181,10 @@ public class FloatParameterResource {
     @DeleteMapping("/float-parameters/{id}")
     public Mono<ResponseEntity<Void>> deleteFloatParameter(@PathVariable UUID id) {
         log.debug("REST request to delete FloatParameter : {}", id);
-        return floatParameterService
-            .delete(id)
-            .then(
-                Mono.just(
-                    ResponseEntity
-                        .noContent()
-                        .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
-                        .build()
-                )
-            );
+        floatParameterService.delete(id);
+        return Mono.justOrEmpty(ResponseEntity
+                .noContent()
+                .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
+                .build());
     }
 }

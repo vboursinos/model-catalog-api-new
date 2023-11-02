@@ -1,6 +1,6 @@
 package ai.turintech.catalog.web.rest;
 
-import ai.turintech.catalog.repository2.ModelEnsembleTypeRepository;
+import ai.turintech.catalog.repository.ModelEnsembleTypeRepository;
 import ai.turintech.catalog.service.ModelEnsembleTypeService;
 import ai.turintech.catalog.service.dto.ModelEnsembleTypeDTO;
 import ai.turintech.catalog.web.rest.errors.BadRequestAlertException;
@@ -10,6 +10,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +23,7 @@ import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import tech.jhipster.web.util.HeaderUtil;
-import tech.jhipster.web.util.reactive.ResponseUtil;
+import tech.jhipster.web.util.ResponseUtil;
 
 /**
  * REST controller for managing {@link ai.turintech.catalog.domain.ModelEnsembleType}.
@@ -38,17 +39,17 @@ public class ModelEnsembleTypeResource {
     @Value("${jhipster.clientApp.name}")
     private String applicationName;
 
-    private final ModelEnsembleTypeService modelEnsembleTypeService;
+    private ModelEnsembleTypeService modelEnsembleTypeService;
 
-    private final ModelEnsembleTypeRepository modelEnsembleTypeRepository;
+    private ModelEnsembleTypeRepository modelEnsembleTypeRepository;
 
-    public ModelEnsembleTypeResource(
-        ModelEnsembleTypeService modelEnsembleTypeService,
-        ModelEnsembleTypeRepository modelEnsembleTypeRepository
-    ) {
-        this.modelEnsembleTypeService = modelEnsembleTypeService;
-        this.modelEnsembleTypeRepository = modelEnsembleTypeRepository;
-    }
+//    public ModelEnsembleTypeResource(
+//        ModelEnsembleTypeService modelEnsembleTypeService,
+//        ModelEnsembleTypeRepository modelEnsembleTypeRepository
+//    ) {
+//        this.modelEnsembleTypeService = modelEnsembleTypeService;
+//        this.modelEnsembleTypeRepository = modelEnsembleTypeRepository;
+//    }
 
     /**
      * {@code POST  /model-ensemble-types} : Create a new modelEnsembleType.
@@ -65,19 +66,11 @@ public class ModelEnsembleTypeResource {
         if (modelEnsembleTypeDTO.getId() != null) {
             throw new BadRequestAlertException("A new modelEnsembleType cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        modelEnsembleTypeDTO.setId(UUID.randomUUID());
-        return modelEnsembleTypeService
-            .save(modelEnsembleTypeDTO)
-            .map(result -> {
-                try {
-                    return ResponseEntity
-                        .created(new URI("/api/model-ensemble-types/" + result.getId()))
-                        .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
-                        .body(result);
-                } catch (URISyntaxException e) {
-                    throw new RuntimeException(e);
-                }
-            });
+        ModelEnsembleTypeDTO result = modelEnsembleTypeService.save(modelEnsembleTypeDTO);
+        return Mono.just(ResponseEntity
+                .created(new URI("/api/model-ensemble-types/" + result.getId()))
+                .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
+                .body(result));
     }
 
     /**
@@ -103,23 +96,15 @@ public class ModelEnsembleTypeResource {
             throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
         }
 
-        return modelEnsembleTypeRepository
-            .existsById(id)
-            .flatMap(exists -> {
-                if (!exists) {
-                    return Mono.error(new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound"));
-                }
+        if (!modelEnsembleTypeRepository.existsById(id)) {
+            throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
+        }
 
-                return modelEnsembleTypeService
-                    .update(modelEnsembleTypeDTO)
-                    .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND)))
-                    .map(result ->
-                        ResponseEntity
-                            .ok()
-                            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
-                            .body(result)
-                    );
-            });
+        ModelEnsembleTypeDTO result = modelEnsembleTypeService.update(modelEnsembleTypeDTO);
+        return Mono.just(ResponseEntity
+                .ok()
+                .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, modelEnsembleTypeDTO.getId().toString()))
+                .body(result));
     }
 
     /**
@@ -146,24 +131,16 @@ public class ModelEnsembleTypeResource {
             throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
         }
 
-        return modelEnsembleTypeRepository
-            .existsById(id)
-            .flatMap(exists -> {
-                if (!exists) {
-                    return Mono.error(new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound"));
-                }
+        if (!modelEnsembleTypeRepository.existsById(id)) {
+            throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
+        }
 
-                Mono<ModelEnsembleTypeDTO> result = modelEnsembleTypeService.partialUpdate(modelEnsembleTypeDTO);
+        Optional<ModelEnsembleTypeDTO> result = modelEnsembleTypeService.partialUpdate(modelEnsembleTypeDTO);
 
-                return result
-                    .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND)))
-                    .map(res ->
-                        ResponseEntity
-                            .ok()
-                            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, res.getId().toString()))
-                            .body(res)
-                    );
-            });
+        return Mono.justOrEmpty(tech.jhipster.web.util.ResponseUtil.wrapOrNotFound(
+                result,
+                HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, modelEnsembleTypeDTO.getId().toString()))
+        );
     }
 
     /**
@@ -174,7 +151,7 @@ public class ModelEnsembleTypeResource {
     @GetMapping(value = "/model-ensemble-types", produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<List<ModelEnsembleTypeDTO>> getAllModelEnsembleTypes() {
         log.debug("REST request to get all ModelEnsembleTypes");
-        return modelEnsembleTypeService.findAll().collectList();
+        return Mono.justOrEmpty(modelEnsembleTypeService.findAll());
     }
 
     /**
@@ -184,7 +161,7 @@ public class ModelEnsembleTypeResource {
     @GetMapping(value = "/model-ensemble-types", produces = MediaType.APPLICATION_NDJSON_VALUE)
     public Flux<ModelEnsembleTypeDTO> getAllModelEnsembleTypesAsStream() {
         log.debug("REST request to get all ModelEnsembleTypes as a stream");
-        return modelEnsembleTypeService.findAll();
+        return Flux.fromIterable(modelEnsembleTypeService.findAll());
     }
 
     /**
@@ -196,8 +173,8 @@ public class ModelEnsembleTypeResource {
     @GetMapping("/model-ensemble-types/{id}")
     public Mono<ResponseEntity<ModelEnsembleTypeDTO>> getModelEnsembleType(@PathVariable UUID id) {
         log.debug("REST request to get ModelEnsembleType : {}", id);
-        Mono<ModelEnsembleTypeDTO> modelEnsembleTypeDTO = modelEnsembleTypeService.findOne(id);
-        return ResponseUtil.wrapOrNotFound(modelEnsembleTypeDTO);
+        Optional<ModelEnsembleTypeDTO> modelEnsembleTypeDTO = modelEnsembleTypeService.findOne(id);
+        return Mono.justOrEmpty(ResponseUtil.wrapOrNotFound(modelEnsembleTypeDTO));
     }
 
     /**
@@ -209,15 +186,10 @@ public class ModelEnsembleTypeResource {
     @DeleteMapping("/model-ensemble-types/{id}")
     public Mono<ResponseEntity<Void>> deleteModelEnsembleType(@PathVariable UUID id) {
         log.debug("REST request to delete ModelEnsembleType : {}", id);
-        return modelEnsembleTypeService
-            .delete(id)
-            .then(
-                Mono.just(
-                    ResponseEntity
-                        .noContent()
-                        .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
-                        .build()
-                )
-            );
+        modelEnsembleTypeService.delete(id);
+        return Mono.justOrEmpty(ResponseEntity
+                .noContent()
+                .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
+                .build());
     }
 }

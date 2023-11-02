@@ -11,4 +11,6 @@ import java.util.UUID;
  */
 @SuppressWarnings("unused")
 @Repository
-public interface BooleanParameterRepository extends JpaRepository<BooleanParameter, UUID> {}
+public interface BooleanParameterRepository extends JpaRepository<BooleanParameter, UUID> {
+
+}

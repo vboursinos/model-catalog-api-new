@@ -4,23 +4,20 @@ import ai.turintech.catalog.domain.ParameterTypeDefinition;
 import ai.turintech.catalog.repository.ParameterTypeDefinitionRepository;
 import ai.turintech.catalog.service.dto.ParameterTypeDefinitionDTO;
 import ai.turintech.catalog.service.mapper.ParameterTypeDefinitionMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-
 /**
- * Service Implementation for managing {@link ai.turintech.catalog.domain.ParameterTypeDefinition}.
+ * Service Implementation for managing {@link ParameterTypeDefinition}.
  */
 @Service
 @Transactional
@@ -28,18 +25,17 @@ public class ParameterTypeDefinitionService {
 
     private final Logger log = LoggerFactory.getLogger(ParameterTypeDefinitionService.class);
 
-    @Autowired
-    private final ParameterTypeDefinitionRepository parameterTypeDefinitionRepository;
+    private ParameterTypeDefinitionRepository parameterTypeDefinitionRepository;
 
-    private final ParameterTypeDefinitionMapper parameterTypeDefinitionMapper;
+    private ParameterTypeDefinitionMapper parameterTypeDefinitionMapper;
 
-    public ParameterTypeDefinitionService(
-        ParameterTypeDefinitionRepository parameterTypeDefinitionRepository,
-        ParameterTypeDefinitionMapper parameterTypeDefinitionMapper
-    ) {
-        this.parameterTypeDefinitionRepository = parameterTypeDefinitionRepository;
-        this.parameterTypeDefinitionMapper = parameterTypeDefinitionMapper;
-    }
+//    public ParameterTypeDefinitionService(
+//        ParameterTypeDefinitionRepository parameterTypeDefinitionRepository,
+//        ParameterTypeDefinitionMapper parameterTypeDefinitionMapper
+//    ) {
+//        this.parameterTypeDefinitionRepository = parameterTypeDefinitionRepository;
+//        this.parameterTypeDefinitionMapper = parameterTypeDefinitionMapper;
+//    }
 
     /**
      * Save a parameterTypeDefinition.
@@ -47,11 +43,11 @@ public class ParameterTypeDefinitionService {
      * @param parameterTypeDefinitionDTO the entity to save.
      * @return the persisted entity.
      */
-    public Mono<ParameterTypeDefinitionDTO> save(ParameterTypeDefinitionDTO parameterTypeDefinitionDTO) {
+    public ParameterTypeDefinitionDTO save(ParameterTypeDefinitionDTO parameterTypeDefinitionDTO) {
         log.debug("Request to save ParameterTypeDefinition : {}", parameterTypeDefinitionDTO);
         ParameterTypeDefinition parameterTypeDefinition = parameterTypeDefinitionMapper.toEntity(parameterTypeDefinitionDTO);
         parameterTypeDefinition = parameterTypeDefinitionRepository.save(parameterTypeDefinition);
-        return Mono.just(parameterTypeDefinitionMapper.toDto(parameterTypeDefinition));
+        return parameterTypeDefinitionMapper.toDto(parameterTypeDefinition);
     }
 
     /**
@@ -60,11 +56,11 @@ public class ParameterTypeDefinitionService {
      * @param parameterTypeDefinitionDTO the entity to save.
      * @return the persisted entity.
      */
-    public Mono<ParameterTypeDefinitionDTO> update(ParameterTypeDefinitionDTO parameterTypeDefinitionDTO) {
+    public ParameterTypeDefinitionDTO update(ParameterTypeDefinitionDTO parameterTypeDefinitionDTO) {
         log.debug("Request to update ParameterTypeDefinition : {}", parameterTypeDefinitionDTO);
         ParameterTypeDefinition parameterTypeDefinition = parameterTypeDefinitionMapper.toEntity(parameterTypeDefinitionDTO);
         parameterTypeDefinition = parameterTypeDefinitionRepository.save(parameterTypeDefinition);
-        return Mono.just(parameterTypeDefinitionMapper.toDto(parameterTypeDefinition));
+        return parameterTypeDefinitionMapper.toDto(parameterTypeDefinition);
     }
 
     /**
@@ -73,18 +69,18 @@ public class ParameterTypeDefinitionService {
      * @param parameterTypeDefinitionDTO the entity to update partially.
      * @return the persisted entity.
      */
-    public Mono<ParameterTypeDefinitionDTO> partialUpdate(ParameterTypeDefinitionDTO parameterTypeDefinitionDTO) {
+    public Optional<ParameterTypeDefinitionDTO> partialUpdate(ParameterTypeDefinitionDTO parameterTypeDefinitionDTO) {
         log.debug("Request to partially update ParameterTypeDefinition : {}", parameterTypeDefinitionDTO);
 
-        return Mono.justOrEmpty(parameterTypeDefinitionRepository
-                .findById(parameterTypeDefinitionDTO.getId())
-                .map(existingParameterTypeDefinition -> {
-                    parameterTypeDefinitionMapper.partialUpdate(existingParameterTypeDefinition, parameterTypeDefinitionDTO);
+        return parameterTypeDefinitionRepository
+            .findById(parameterTypeDefinitionDTO.getId())
+            .map(existingParameterTypeDefinition -> {
+                parameterTypeDefinitionMapper.partialUpdate(existingParameterTypeDefinition, parameterTypeDefinitionDTO);
 
-                    return existingParameterTypeDefinition;
-                })
-                .map(parameterTypeDefinitionRepository::save)
-                .map(parameterTypeDefinitionMapper::toDto));
+                return existingParameterTypeDefinition;
+            })
+            .map(parameterTypeDefinitionRepository::save)
+            .map(parameterTypeDefinitionMapper::toDto);
     }
 
     /**
@@ -93,14 +89,13 @@ public class ParameterTypeDefinitionService {
      * @return the list of entities.
      */
     @Transactional(readOnly = true)
-    public Flux<ParameterTypeDefinitionDTO> findAll() {
+    public List<ParameterTypeDefinitionDTO> findAll() {
         log.debug("Request to get all ParameterTypeDefinitions");
-        List<ParameterTypeDefinitionDTO> parameterTypeDefinitionDTOS = parameterTypeDefinitionRepository
-                .findAll()
-                .stream()
-                .map(parameterTypeDefinitionMapper::toDto)
-                .collect(Collectors.toCollection(LinkedList::new));
-        return Flux.fromIterable(parameterTypeDefinitionDTOS);
+        return parameterTypeDefinitionRepository
+            .findAll()
+            .stream()
+            .map(parameterTypeDefinitionMapper::toDto)
+            .collect(Collectors.toCollection(LinkedList::new));
     }
 
     /**
@@ -108,14 +103,13 @@ public class ParameterTypeDefinitionService {
      *  @return the list of entities.
      */
     @Transactional(readOnly = true)
-    public Flux<ParameterTypeDefinitionDTO> findAllWhereIntegerParameterIsNull() {
+    public List<ParameterTypeDefinitionDTO> findAllWhereIntegerParameterIsNull() {
         log.debug("Request to get all parameterTypeDefinitions where IntegerParameter is null");
-        List<ParameterTypeDefinitionDTO> parameterTypeDefinitionDTOS = StreamSupport
-                .stream(parameterTypeDefinitionRepository.findAll().spliterator(), false)
-                .filter(parameterTypeDefinition -> parameterTypeDefinition.getIntegerParameter() == null)
-                .map(parameterTypeDefinitionMapper::toDto)
-                .collect(Collectors.toCollection(LinkedList::new));
-        return Flux.fromIterable(parameterTypeDefinitionDTOS);
+        return StreamSupport
+            .stream(parameterTypeDefinitionRepository.findAll().spliterator(), false)
+            .filter(parameterTypeDefinition -> parameterTypeDefinition.getIntegerParameter() == null)
+            .map(parameterTypeDefinitionMapper::toDto)
+            .collect(Collectors.toCollection(LinkedList::new));
     }
 
     /**
@@ -123,14 +117,13 @@ public class ParameterTypeDefinitionService {
      *  @return the list of entities.
      */
     @Transactional(readOnly = true)
-    public Flux<ParameterTypeDefinitionDTO> findAllWhereFloatParameterIsNull() {
+    public List<ParameterTypeDefinitionDTO> findAllWhereFloatParameterIsNull() {
         log.debug("Request to get all parameterTypeDefinitions where FloatParameter is null");
-        List<ParameterTypeDefinitionDTO> parameterTypeDefinitionDTOS = StreamSupport
-                .stream(parameterTypeDefinitionRepository.findAll().spliterator(), false)
-                .filter(parameterTypeDefinition -> parameterTypeDefinition.getFloatParameter() == null)
-                .map(parameterTypeDefinitionMapper::toDto)
-                .collect(Collectors.toCollection(LinkedList::new));
-        return Flux.fromIterable(parameterTypeDefinitionDTOS);
+        return StreamSupport
+            .stream(parameterTypeDefinitionRepository.findAll().spliterator(), false)
+            .filter(parameterTypeDefinition -> parameterTypeDefinition.getFloatParameter() == null)
+            .map(parameterTypeDefinitionMapper::toDto)
+            .collect(Collectors.toCollection(LinkedList::new));
     }
 
     /**
@@ -138,14 +131,13 @@ public class ParameterTypeDefinitionService {
      *  @return the list of entities.
      */
     @Transactional(readOnly = true)
-    public Flux<ParameterTypeDefinitionDTO> findAllWhereCategoricalParameterIsNull() {
+    public List<ParameterTypeDefinitionDTO> findAllWhereCategoricalParameterIsNull() {
         log.debug("Request to get all parameterTypeDefinitions where CategoricalParameter is null");
-        List<ParameterTypeDefinitionDTO> parameterTypeDefinitionDTOS = StreamSupport
-                .stream(parameterTypeDefinitionRepository.findAll().spliterator(), false)
-                .filter(parameterTypeDefinition -> parameterTypeDefinition.getCategoricalParameter() == null)
-                .map(parameterTypeDefinitionMapper::toDto)
-                .collect(Collectors.toCollection(LinkedList::new));
-        return Flux.fromIterable(parameterTypeDefinitionDTOS);
+        return StreamSupport
+            .stream(parameterTypeDefinitionRepository.findAll().spliterator(), false)
+            .filter(parameterTypeDefinition -> parameterTypeDefinition.getCategoricalParameter() == null)
+            .map(parameterTypeDefinitionMapper::toDto)
+            .collect(Collectors.toCollection(LinkedList::new));
     }
 
     /**
@@ -153,14 +145,13 @@ public class ParameterTypeDefinitionService {
      *  @return the list of entities.
      */
     @Transactional(readOnly = true)
-    public Flux<ParameterTypeDefinitionDTO> findAllWhereBooleanParameterIsNull() {
+    public List<ParameterTypeDefinitionDTO> findAllWhereBooleanParameterIsNull() {
         log.debug("Request to get all parameterTypeDefinitions where BooleanParameter is null");
-        List<ParameterTypeDefinitionDTO> parameterTypeDefinitionDTOS = StreamSupport
-                .stream(parameterTypeDefinitionRepository.findAll().spliterator(), false)
-                .filter(parameterTypeDefinition -> parameterTypeDefinition.getBooleanParameter() == null)
-                .map(parameterTypeDefinitionMapper::toDto)
-                .collect(Collectors.toCollection(LinkedList::new));
-        return Flux.fromIterable(parameterTypeDefinitionDTOS);
+        return StreamSupport
+            .stream(parameterTypeDefinitionRepository.findAll().spliterator(), false)
+            .filter(parameterTypeDefinition -> parameterTypeDefinition.getBooleanParameter() == null)
+            .map(parameterTypeDefinitionMapper::toDto)
+            .collect(Collectors.toCollection(LinkedList::new));
     }
 
     /**
@@ -170,16 +161,15 @@ public class ParameterTypeDefinitionService {
      * @return the entity.
      */
     @Transactional(readOnly = true)
-    public Mono<ParameterTypeDefinitionDTO> findOne(UUID id) {
+    public Optional<ParameterTypeDefinitionDTO> findOne(UUID id) {
         log.debug("Request to get ParameterTypeDefinition : {}", id);
-        return Mono.justOrEmpty(parameterTypeDefinitionRepository.findById(id).map(parameterTypeDefinitionMapper::toDto));
+        return parameterTypeDefinitionRepository.findById(id).map(parameterTypeDefinitionMapper::toDto);
     }
 
     /**
      * Delete the parameterTypeDefinition by id.
      *
      * @param id the id of the entity.
-     * @return a Mono to signal the deletion
      */
     public void delete(UUID id) {
         log.debug("Request to delete ParameterTypeDefinition : {}", id);

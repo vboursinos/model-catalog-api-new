@@ -6,8 +6,8 @@ import static org.hamcrest.Matchers.is;
 
 import ai.turintech.catalog.IntegrationTest;
 import ai.turintech.catalog.domain.MlTaskType;
-import ai.turintech.catalog.repository.EntityManager;
-import ai.turintech.catalog.repository.MlTaskTypeRepository;
+import ai.turintech.catalog.repository2.EntityManager;
+import ai.turintech.catalog.repository2.MlTaskTypeRepository;
 import ai.turintech.catalog.service.dto.MlTaskTypeDTO;
 import ai.turintech.catalog.service.mapper.MlTaskTypeMapper;
 import java.time.Duration;

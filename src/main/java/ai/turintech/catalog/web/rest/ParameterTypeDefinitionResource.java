@@ -1,6 +1,6 @@
 package ai.turintech.catalog.web.rest;
 
-import ai.turintech.catalog.repository2.ParameterTypeDefinitionRepository;
+import ai.turintech.catalog.repository.ParameterTypeDefinitionRepository;
 import ai.turintech.catalog.service.ParameterTypeDefinitionService;
 import ai.turintech.catalog.service.dto.ParameterTypeDefinitionDTO;
 import ai.turintech.catalog.web.rest.errors.BadRequestAlertException;
@@ -10,6 +10,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +23,7 @@ import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import tech.jhipster.web.util.HeaderUtil;
-import tech.jhipster.web.util.reactive.ResponseUtil;
+import tech.jhipster.web.util.ResponseUtil;
 
 /**
  * REST controller for managing {@link ai.turintech.catalog.domain.ParameterTypeDefinition}.
@@ -38,17 +39,17 @@ public class ParameterTypeDefinitionResource {
     @Value("${jhipster.clientApp.name}")
     private String applicationName;
 
-    private final ParameterTypeDefinitionService parameterTypeDefinitionService;
+    private ParameterTypeDefinitionService parameterTypeDefinitionService;
 
-    private final ParameterTypeDefinitionRepository parameterTypeDefinitionRepository;
+    private ParameterTypeDefinitionRepository parameterTypeDefinitionRepository;
 
-    public ParameterTypeDefinitionResource(
-        ParameterTypeDefinitionService parameterTypeDefinitionService,
-        ParameterTypeDefinitionRepository parameterTypeDefinitionRepository
-    ) {
-        this.parameterTypeDefinitionService = parameterTypeDefinitionService;
-        this.parameterTypeDefinitionRepository = parameterTypeDefinitionRepository;
-    }
+//    public ParameterTypeDefinitionResource(
+//        ParameterTypeDefinitionService parameterTypeDefinitionService,
+//        ParameterTypeDefinitionRepository parameterTypeDefinitionRepository
+//    ) {
+//        this.parameterTypeDefinitionService = parameterTypeDefinitionService;
+//        this.parameterTypeDefinitionRepository = parameterTypeDefinitionRepository;
+//    }
 
     /**
      * {@code POST  /parameter-type-definitions} : Create a new parameterTypeDefinition.
@@ -65,19 +66,11 @@ public class ParameterTypeDefinitionResource {
         if (parameterTypeDefinitionDTO.getId() != null) {
             throw new BadRequestAlertException("A new parameterTypeDefinition cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        parameterTypeDefinitionDTO.setId(UUID.randomUUID());
-        return parameterTypeDefinitionService
-            .save(parameterTypeDefinitionDTO)
-            .map(result -> {
-                try {
-                    return ResponseEntity
-                        .created(new URI("/api/parameter-type-definitions/" + result.getId()))
-                        .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
-                        .body(result);
-                } catch (URISyntaxException e) {
-                    throw new RuntimeException(e);
-                }
-            });
+        ParameterTypeDefinitionDTO result = parameterTypeDefinitionService.save(parameterTypeDefinitionDTO);
+        return Mono.just(ResponseEntity
+                .created(new URI("/api/parameter-type-definitions/" + result.getId()))
+                .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
+                .body(result));
     }
 
     /**
@@ -103,23 +96,15 @@ public class ParameterTypeDefinitionResource {
             throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
         }
 
-        return parameterTypeDefinitionRepository
-            .existsById(id)
-            .flatMap(exists -> {
-                if (!exists) {
-                    return Mono.error(new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound"));
-                }
+        if (!parameterTypeDefinitionRepository.existsById(id)) {
+            throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
+        }
 
-                return parameterTypeDefinitionService
-                    .update(parameterTypeDefinitionDTO)
-                    .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND)))
-                    .map(result ->
-                        ResponseEntity
-                            .ok()
-                            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
-                            .body(result)
-                    );
-            });
+        ParameterTypeDefinitionDTO result = parameterTypeDefinitionService.update(parameterTypeDefinitionDTO);
+        return Mono.just(ResponseEntity
+                .ok()
+                .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, parameterTypeDefinitionDTO.getId().toString()))
+                .body(result));
     }
 
     /**
@@ -146,24 +131,16 @@ public class ParameterTypeDefinitionResource {
             throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
         }
 
-        return parameterTypeDefinitionRepository
-            .existsById(id)
-            .flatMap(exists -> {
-                if (!exists) {
-                    return Mono.error(new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound"));
-                }
+        if (!parameterTypeDefinitionRepository.existsById(id)) {
+            throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
+        }
 
-                Mono<ParameterTypeDefinitionDTO> result = parameterTypeDefinitionService.partialUpdate(parameterTypeDefinitionDTO);
+        Optional<ParameterTypeDefinitionDTO> result = parameterTypeDefinitionService.partialUpdate(parameterTypeDefinitionDTO);
 
-                return result
-                    .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND)))
-                    .map(res ->
-                        ResponseEntity
-                            .ok()
-                            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, res.getId().toString()))
-                            .body(res)
-                    );
-            });
+        return Mono.justOrEmpty(tech.jhipster.web.util.ResponseUtil.wrapOrNotFound(
+                result,
+                HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, parameterTypeDefinitionDTO.getId().toString()))
+        );
     }
 
     /**
@@ -176,25 +153,25 @@ public class ParameterTypeDefinitionResource {
     public Mono<List<ParameterTypeDefinitionDTO>> getAllParameterTypeDefinitions(@RequestParam(required = false) String filter) {
         if ("integerparameter-is-null".equals(filter)) {
             log.debug("REST request to get all ParameterTypeDefinitions where integerParameter is null");
-            return parameterTypeDefinitionService.findAllWhereIntegerParameterIsNull().collectList();
+            return Mono.justOrEmpty(parameterTypeDefinitionService.findAllWhereIntegerParameterIsNull());
         }
 
         if ("floatparameter-is-null".equals(filter)) {
             log.debug("REST request to get all ParameterTypeDefinitions where floatParameter is null");
-            return parameterTypeDefinitionService.findAllWhereFloatParameterIsNull().collectList();
+            return Mono.justOrEmpty(parameterTypeDefinitionService.findAllWhereFloatParameterIsNull());
         }
 
         if ("categoricalparameter-is-null".equals(filter)) {
             log.debug("REST request to get all ParameterTypeDefinitions where categoricalParameter is null");
-            return parameterTypeDefinitionService.findAllWhereCategoricalParameterIsNull().collectList();
+            return Mono.justOrEmpty(parameterTypeDefinitionService.findAllWhereCategoricalParameterIsNull());
         }
 
         if ("booleanparameter-is-null".equals(filter)) {
             log.debug("REST request to get all ParameterTypeDefinitions where booleanParameter is null");
-            return parameterTypeDefinitionService.findAllWhereBooleanParameterIsNull().collectList();
+            return Mono.justOrEmpty(parameterTypeDefinitionService.findAllWhereBooleanParameterIsNull());
         }
         log.debug("REST request to get all ParameterTypeDefinitions");
-        return parameterTypeDefinitionService.findAll().collectList();
+        return Mono.justOrEmpty(parameterTypeDefinitionService.findAll());
     }
 
     /**
@@ -204,7 +181,7 @@ public class ParameterTypeDefinitionResource {
     @GetMapping(value = "/parameter-type-definitions", produces = MediaType.APPLICATION_NDJSON_VALUE)
     public Flux<ParameterTypeDefinitionDTO> getAllParameterTypeDefinitionsAsStream() {
         log.debug("REST request to get all ParameterTypeDefinitions as a stream");
-        return parameterTypeDefinitionService.findAll();
+        return Flux.fromIterable(parameterTypeDefinitionService.findAll());
     }
 
     /**
@@ -216,8 +193,8 @@ public class ParameterTypeDefinitionResource {
     @GetMapping("/parameter-type-definitions/{id}")
     public Mono<ResponseEntity<ParameterTypeDefinitionDTO>> getParameterTypeDefinition(@PathVariable UUID id) {
         log.debug("REST request to get ParameterTypeDefinition : {}", id);
-        Mono<ParameterTypeDefinitionDTO> parameterTypeDefinitionDTO = parameterTypeDefinitionService.findOne(id);
-        return ResponseUtil.wrapOrNotFound(parameterTypeDefinitionDTO);
+        Optional<ParameterTypeDefinitionDTO> parameterTypeDefinitionDTO = parameterTypeDefinitionService.findOne(id);
+        return Mono.justOrEmpty(ResponseUtil.wrapOrNotFound(parameterTypeDefinitionDTO));
     }
 
     /**
@@ -229,15 +206,10 @@ public class ParameterTypeDefinitionResource {
     @DeleteMapping("/parameter-type-definitions/{id}")
     public Mono<ResponseEntity<Void>> deleteParameterTypeDefinition(@PathVariable UUID id) {
         log.debug("REST request to delete ParameterTypeDefinition : {}", id);
-        return parameterTypeDefinitionService
-            .delete(id)
-            .then(
-                Mono.just(
-                    ResponseEntity
-                        .noContent()
-                        .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
-                        .build()
-                )
-            );
+        parameterTypeDefinitionService.delete(id);
+        return Mono.just(ResponseEntity
+                .noContent()
+                .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
+                .build());
     }
 }

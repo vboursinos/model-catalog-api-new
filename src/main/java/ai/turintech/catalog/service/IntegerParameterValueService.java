@@ -6,19 +6,17 @@ import ai.turintech.catalog.service.dto.IntegerParameterValueDTO;
 import ai.turintech.catalog.service.mapper.IntegerParameterValueMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
- * Service Implementation for managing {@link ai.turintech.catalog.domain.IntegerParameterValue}.
+ * Service Implementation for managing {@link IntegerParameterValue}.
  */
 @Service
 @Transactional
@@ -26,18 +24,17 @@ public class IntegerParameterValueService {
 
     private final Logger log = LoggerFactory.getLogger(IntegerParameterValueService.class);
 
-    @Autowired
-    private final IntegerParameterValueRepository integerParameterValueRepository;
+    private IntegerParameterValueRepository integerParameterValueRepository;
 
-    private final IntegerParameterValueMapper integerParameterValueMapper;
+    private IntegerParameterValueMapper integerParameterValueMapper;
 
-    public IntegerParameterValueService(
-            IntegerParameterValueRepository integerParameterValueRepository,
-            IntegerParameterValueMapper integerParameterValueMapper
-    ) {
-        this.integerParameterValueRepository = integerParameterValueRepository;
-        this.integerParameterValueMapper = integerParameterValueMapper;
-    }
+//    public IntegerParameterValueService(
+//        IntegerParameterValueRepository integerParameterValueRepository,
+//        IntegerParameterValueMapper integerParameterValueMapper
+//    ) {
+//        this.integerParameterValueRepository = integerParameterValueRepository;
+//        this.integerParameterValueMapper = integerParameterValueMapper;
+//    }
 
     /**
      * Save a integerParameterValue.
@@ -45,11 +42,11 @@ public class IntegerParameterValueService {
      * @param integerParameterValueDTO the entity to save.
      * @return the persisted entity.
      */
-    public Mono<IntegerParameterValueDTO> save(IntegerParameterValueDTO integerParameterValueDTO) {
+    public IntegerParameterValueDTO save(IntegerParameterValueDTO integerParameterValueDTO) {
         log.debug("Request to save IntegerParameterValue : {}", integerParameterValueDTO);
         IntegerParameterValue integerParameterValue = integerParameterValueMapper.toEntity(integerParameterValueDTO);
         integerParameterValue = integerParameterValueRepository.save(integerParameterValue);
-        return Mono.just(integerParameterValueMapper.toDto(integerParameterValue));
+        return integerParameterValueMapper.toDto(integerParameterValue);
     }
 
     /**
@@ -58,11 +55,11 @@ public class IntegerParameterValueService {
      * @param integerParameterValueDTO the entity to save.
      * @return the persisted entity.
      */
-    public Mono<IntegerParameterValueDTO> update(IntegerParameterValueDTO integerParameterValueDTO) {
+    public IntegerParameterValueDTO update(IntegerParameterValueDTO integerParameterValueDTO) {
         log.debug("Request to update IntegerParameterValue : {}", integerParameterValueDTO);
         IntegerParameterValue integerParameterValue = integerParameterValueMapper.toEntity(integerParameterValueDTO);
         integerParameterValue = integerParameterValueRepository.save(integerParameterValue);
-        return Mono.just(integerParameterValueMapper.toDto(integerParameterValue));
+        return integerParameterValueMapper.toDto(integerParameterValue);
     }
 
     /**
@@ -71,18 +68,18 @@ public class IntegerParameterValueService {
      * @param integerParameterValueDTO the entity to update partially.
      * @return the persisted entity.
      */
-    public Mono<IntegerParameterValueDTO> partialUpdate(IntegerParameterValueDTO integerParameterValueDTO) {
+    public Optional<IntegerParameterValueDTO> partialUpdate(IntegerParameterValueDTO integerParameterValueDTO) {
         log.debug("Request to partially update IntegerParameterValue : {}", integerParameterValueDTO);
 
-        return Mono.justOrEmpty(integerParameterValueRepository
-                .findById(integerParameterValueDTO.getId())
-                .map(existingIntegerParameterValue -> {
-                    integerParameterValueMapper.partialUpdate(existingIntegerParameterValue, integerParameterValueDTO);
+        return integerParameterValueRepository
+            .findById(integerParameterValueDTO.getId())
+            .map(existingIntegerParameterValue -> {
+                integerParameterValueMapper.partialUpdate(existingIntegerParameterValue, integerParameterValueDTO);
 
-                    return existingIntegerParameterValue;
-                })
-                .map(integerParameterValueRepository::save)
-                .map(integerParameterValueMapper::toDto));
+                return existingIntegerParameterValue;
+            })
+            .map(integerParameterValueRepository::save)
+            .map(integerParameterValueMapper::toDto);
     }
 
     /**
@@ -91,14 +88,13 @@ public class IntegerParameterValueService {
      * @return the list of entities.
      */
     @Transactional(readOnly = true)
-    public Flux<IntegerParameterValueDTO> findAll() {
+    public List<IntegerParameterValueDTO> findAll() {
         log.debug("Request to get all IntegerParameterValues");
-        List<IntegerParameterValueDTO> integerParameterValueDTOS = integerParameterValueRepository
-                .findAll()
-                .stream()
-                .map(integerParameterValueMapper::toDto)
-                .collect(Collectors.toCollection(LinkedList::new));
-        return Flux.fromIterable(integerParameterValueDTOS);
+        return integerParameterValueRepository
+            .findAll()
+            .stream()
+            .map(integerParameterValueMapper::toDto)
+            .collect(Collectors.toCollection(LinkedList::new));
     }
 
     /**
@@ -108,16 +104,15 @@ public class IntegerParameterValueService {
      * @return the entity.
      */
     @Transactional(readOnly = true)
-    public Mono<IntegerParameterValueDTO> findOne(UUID id) {
+    public Optional<IntegerParameterValueDTO> findOne(UUID id) {
         log.debug("Request to get IntegerParameterValue : {}", id);
-        return Mono.justOrEmpty(integerParameterValueRepository.findById(id).map(integerParameterValueMapper::toDto));
+        return integerParameterValueRepository.findById(id).map(integerParameterValueMapper::toDto);
     }
 
     /**
      * Delete the integerParameterValue by id.
      *
      * @param id the id of the entity.
-     * @return a Mono to signal the deletion
      */
     public void delete(UUID id) {
         log.debug("Request to delete IntegerParameterValue : {}", id);

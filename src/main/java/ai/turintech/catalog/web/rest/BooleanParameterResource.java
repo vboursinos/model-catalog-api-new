@@ -38,17 +38,17 @@ public class BooleanParameterResource {
     @Value("${jhipster.clientApp.name}")
     private String applicationName;
 
-    private final BooleanParameterService booleanParameterService;
+    private BooleanParameterService booleanParameterService;
 
-    private final BooleanParameterRepository booleanParameterRepository;
+    private BooleanParameterRepository booleanParameterRepository;
 
-    public BooleanParameterResource(
-        BooleanParameterService booleanParameterService,
-        BooleanParameterRepository booleanParameterRepository
-    ) {
-        this.booleanParameterService = booleanParameterService;
-        this.booleanParameterRepository = booleanParameterRepository;
-    }
+//    public BooleanParameterResource(
+//        BooleanParameterService booleanParameterService,
+//        BooleanParameterRepository booleanParameterRepository
+//    ) {
+//        this.booleanParameterService = booleanParameterService;
+//        this.booleanParameterRepository = booleanParameterRepository;
+//    }
 
     /**
      * {@code POST  /boolean-parameters} : Create a new booleanParameter.

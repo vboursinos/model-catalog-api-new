@@ -1,6 +1,6 @@
 package ai.turintech.catalog.web.rest;
 
-import ai.turintech.catalog.repository2.ModelStructureTypeRepository;
+import ai.turintech.catalog.repository.ModelStructureTypeRepository;
 import ai.turintech.catalog.service.ModelStructureTypeService;
 import ai.turintech.catalog.service.dto.ModelStructureTypeDTO;
 import ai.turintech.catalog.web.rest.errors.BadRequestAlertException;
@@ -10,6 +10,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +23,7 @@ import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import tech.jhipster.web.util.HeaderUtil;
-import tech.jhipster.web.util.reactive.ResponseUtil;
+import tech.jhipster.web.util.ResponseUtil;
 
 /**
  * REST controller for managing {@link ai.turintech.catalog.domain.ModelStructureType}.
@@ -38,17 +39,17 @@ public class ModelStructureTypeResource {
     @Value("${jhipster.clientApp.name}")
     private String applicationName;
 
-    private final ModelStructureTypeService modelStructureTypeService;
+    private ModelStructureTypeService modelStructureTypeService;
 
-    private final ModelStructureTypeRepository modelStructureTypeRepository;
+    private ModelStructureTypeRepository modelStructureTypeRepository;
 
-    public ModelStructureTypeResource(
-        ModelStructureTypeService modelStructureTypeService,
-        ModelStructureTypeRepository modelStructureTypeRepository
-    ) {
-        this.modelStructureTypeService = modelStructureTypeService;
-        this.modelStructureTypeRepository = modelStructureTypeRepository;
-    }
+//    public ModelStructureTypeResource(
+//        ModelStructureTypeService modelStructureTypeService,
+//        ModelStructureTypeRepository modelStructureTypeRepository
+//    ) {
+//        this.modelStructureTypeService = modelStructureTypeService;
+//        this.modelStructureTypeRepository = modelStructureTypeRepository;
+//    }
 
     /**
      * {@code POST  /model-structure-types} : Create a new modelStructureType.
@@ -65,19 +66,11 @@ public class ModelStructureTypeResource {
         if (modelStructureTypeDTO.getId() != null) {
             throw new BadRequestAlertException("A new modelStructureType cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        modelStructureTypeDTO.setId(UUID.randomUUID());
-        return modelStructureTypeService
-            .save(modelStructureTypeDTO)
-            .map(result -> {
-                try {
-                    return ResponseEntity
-                        .created(new URI("/api/model-structure-types/" + result.getId()))
-                        .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
-                        .body(result);
-                } catch (URISyntaxException e) {
-                    throw new RuntimeException(e);
-                }
-            });
+        ModelStructureTypeDTO result = modelStructureTypeService.save(modelStructureTypeDTO);
+        return Mono.just(ResponseEntity
+                .created(new URI("/api/model-structure-types/" + result.getId()))
+                .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
+                .body(result));
     }
 
     /**
@@ -103,23 +96,15 @@ public class ModelStructureTypeResource {
             throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
         }
 
-        return modelStructureTypeRepository
-            .existsById(id)
-            .flatMap(exists -> {
-                if (!exists) {
-                    return Mono.error(new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound"));
-                }
+        if (!modelStructureTypeRepository.existsById(id)) {
+            throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
+        }
 
-                return modelStructureTypeService
-                    .update(modelStructureTypeDTO)
-                    .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND)))
-                    .map(result ->
-                        ResponseEntity
-                            .ok()
-                            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
-                            .body(result)
-                    );
-            });
+        ModelStructureTypeDTO result = modelStructureTypeService.update(modelStructureTypeDTO);
+        return Mono.just(ResponseEntity
+                .ok()
+                .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, modelStructureTypeDTO.getId().toString()))
+                .body(result));
     }
 
     /**
@@ -146,24 +131,16 @@ public class ModelStructureTypeResource {
             throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
         }
 
-        return modelStructureTypeRepository
-            .existsById(id)
-            .flatMap(exists -> {
-                if (!exists) {
-                    return Mono.error(new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound"));
-                }
+        if (!modelStructureTypeRepository.existsById(id)) {
+            throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
+        }
 
-                Mono<ModelStructureTypeDTO> result = modelStructureTypeService.partialUpdate(modelStructureTypeDTO);
+        Optional<ModelStructureTypeDTO> result = modelStructureTypeService.partialUpdate(modelStructureTypeDTO);
 
-                return result
-                    .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND)))
-                    .map(res ->
-                        ResponseEntity
-                            .ok()
-                            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, res.getId().toString()))
-                            .body(res)
-                    );
-            });
+        return Mono.justOrEmpty(tech.jhipster.web.util.ResponseUtil.wrapOrNotFound(
+                result,
+                HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, modelStructureTypeDTO.getId().toString()))
+        );
     }
 
     /**
@@ -174,7 +151,7 @@ public class ModelStructureTypeResource {
     @GetMapping(value = "/model-structure-types", produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<List<ModelStructureTypeDTO>> getAllModelStructureTypes() {
         log.debug("REST request to get all ModelStructureTypes");
-        return modelStructureTypeService.findAll().collectList();
+        return Mono.justOrEmpty(modelStructureTypeService.findAll());
     }
 
     /**
@@ -184,7 +161,7 @@ public class ModelStructureTypeResource {
     @GetMapping(value = "/model-structure-types", produces = MediaType.APPLICATION_NDJSON_VALUE)
     public Flux<ModelStructureTypeDTO> getAllModelStructureTypesAsStream() {
         log.debug("REST request to get all ModelStructureTypes as a stream");
-        return modelStructureTypeService.findAll();
+        return Flux.fromIterable(modelStructureTypeService.findAll());
     }
 
     /**
@@ -196,8 +173,8 @@ public class ModelStructureTypeResource {
     @GetMapping("/model-structure-types/{id}")
     public Mono<ResponseEntity<ModelStructureTypeDTO>> getModelStructureType(@PathVariable UUID id) {
         log.debug("REST request to get ModelStructureType : {}", id);
-        Mono<ModelStructureTypeDTO> modelStructureTypeDTO = modelStructureTypeService.findOne(id);
-        return ResponseUtil.wrapOrNotFound(modelStructureTypeDTO);
+        Optional<ModelStructureTypeDTO> modelStructureTypeDTO = modelStructureTypeService.findOne(id);
+        return Mono.justOrEmpty(ResponseUtil.wrapOrNotFound(modelStructureTypeDTO));
     }
 
     /**
@@ -209,15 +186,10 @@ public class ModelStructureTypeResource {
     @DeleteMapping("/model-structure-types/{id}")
     public Mono<ResponseEntity<Void>> deleteModelStructureType(@PathVariable UUID id) {
         log.debug("REST request to delete ModelStructureType : {}", id);
-        return modelStructureTypeService
-            .delete(id)
-            .then(
-                Mono.just(
-                    ResponseEntity
-                        .noContent()
-                        .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
-                        .build()
-                )
-            );
+        modelStructureTypeService.delete(id);
+        return Mono.justOrEmpty(ResponseEntity
+                .noContent()
+                .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
+                .build());
     }
 }

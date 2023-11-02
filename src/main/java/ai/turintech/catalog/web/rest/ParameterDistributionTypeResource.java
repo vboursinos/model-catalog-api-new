@@ -1,6 +1,6 @@
 package ai.turintech.catalog.web.rest;
 
-import ai.turintech.catalog.repository2.ParameterDistributionTypeRepository;
+import ai.turintech.catalog.repository.ParameterDistributionTypeRepository;
 import ai.turintech.catalog.service.ParameterDistributionTypeService;
 import ai.turintech.catalog.service.dto.ParameterDistributionTypeDTO;
 import ai.turintech.catalog.web.rest.errors.BadRequestAlertException;
@@ -10,6 +10,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +23,7 @@ import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import tech.jhipster.web.util.HeaderUtil;
-import tech.jhipster.web.util.reactive.ResponseUtil;
+import tech.jhipster.web.util.ResponseUtil;
 
 /**
  * REST controller for managing {@link ai.turintech.catalog.domain.ParameterDistributionType}.
@@ -38,17 +39,17 @@ public class ParameterDistributionTypeResource {
     @Value("${jhipster.clientApp.name}")
     private String applicationName;
 
-    private final ParameterDistributionTypeService parameterDistributionTypeService;
+    private ParameterDistributionTypeService parameterDistributionTypeService;
 
-    private final ParameterDistributionTypeRepository parameterDistributionTypeRepository;
+    private ParameterDistributionTypeRepository parameterDistributionTypeRepository;
 
-    public ParameterDistributionTypeResource(
-        ParameterDistributionTypeService parameterDistributionTypeService,
-        ParameterDistributionTypeRepository parameterDistributionTypeRepository
-    ) {
-        this.parameterDistributionTypeService = parameterDistributionTypeService;
-        this.parameterDistributionTypeRepository = parameterDistributionTypeRepository;
-    }
+//    public ParameterDistributionTypeResource(
+//        ParameterDistributionTypeService parameterDistributionTypeService,
+//        ParameterDistributionTypeRepository parameterDistributionTypeRepository
+//    ) {
+//        this.parameterDistributionTypeService = parameterDistributionTypeService;
+//        this.parameterDistributionTypeRepository = parameterDistributionTypeRepository;
+//    }
 
     /**
      * {@code POST  /parameter-distribution-types} : Create a new parameterDistributionType.
@@ -65,19 +66,11 @@ public class ParameterDistributionTypeResource {
         if (parameterDistributionTypeDTO.getId() != null) {
             throw new BadRequestAlertException("A new parameterDistributionType cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        parameterDistributionTypeDTO.setId(UUID.randomUUID());
-        return parameterDistributionTypeService
-            .save(parameterDistributionTypeDTO)
-            .map(result -> {
-                try {
-                    return ResponseEntity
-                        .created(new URI("/api/parameter-distribution-types/" + result.getId()))
-                        .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
-                        .body(result);
-                } catch (URISyntaxException e) {
-                    throw new RuntimeException(e);
-                }
-            });
+        ParameterDistributionTypeDTO result = parameterDistributionTypeService.save(parameterDistributionTypeDTO);
+        return Mono.just(ResponseEntity
+                .created(new URI("/api/parameter-distribution-types/" + result.getId()))
+                .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
+                .body(result));
     }
 
     /**
@@ -103,23 +96,17 @@ public class ParameterDistributionTypeResource {
             throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
         }
 
-        return parameterDistributionTypeRepository
-            .existsById(id)
-            .flatMap(exists -> {
-                if (!exists) {
-                    return Mono.error(new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound"));
-                }
+        if (!parameterDistributionTypeRepository.existsById(id)) {
+            throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
+        }
 
-                return parameterDistributionTypeService
-                    .update(parameterDistributionTypeDTO)
-                    .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND)))
-                    .map(result ->
-                        ResponseEntity
-                            .ok()
-                            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
-                            .body(result)
-                    );
-            });
+        ParameterDistributionTypeDTO result = parameterDistributionTypeService.update(parameterDistributionTypeDTO);
+        return Mono.just(ResponseEntity
+                .ok()
+                .headers(
+                        HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, parameterDistributionTypeDTO.getId().toString())
+                )
+                .body(result));
     }
 
     /**
@@ -146,24 +133,16 @@ public class ParameterDistributionTypeResource {
             throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
         }
 
-        return parameterDistributionTypeRepository
-            .existsById(id)
-            .flatMap(exists -> {
-                if (!exists) {
-                    return Mono.error(new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound"));
-                }
+        if (!parameterDistributionTypeRepository.existsById(id)) {
+            throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
+        }
 
-                Mono<ParameterDistributionTypeDTO> result = parameterDistributionTypeService.partialUpdate(parameterDistributionTypeDTO);
+        Optional<ParameterDistributionTypeDTO> result = parameterDistributionTypeService.partialUpdate(parameterDistributionTypeDTO);
 
-                return result
-                    .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND)))
-                    .map(res ->
-                        ResponseEntity
-                            .ok()
-                            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, res.getId().toString()))
-                            .body(res)
-                    );
-            });
+        return Mono.justOrEmpty(tech.jhipster.web.util.ResponseUtil.wrapOrNotFound(
+                result,
+                HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, parameterDistributionTypeDTO.getId().toString()))
+        );
     }
 
     /**
@@ -174,7 +153,7 @@ public class ParameterDistributionTypeResource {
     @GetMapping(value = "/parameter-distribution-types", produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<List<ParameterDistributionTypeDTO>> getAllParameterDistributionTypes() {
         log.debug("REST request to get all ParameterDistributionTypes");
-        return parameterDistributionTypeService.findAll().collectList();
+        return Mono.justOrEmpty(parameterDistributionTypeService.findAll());
     }
 
     /**
@@ -184,7 +163,7 @@ public class ParameterDistributionTypeResource {
     @GetMapping(value = "/parameter-distribution-types", produces = MediaType.APPLICATION_NDJSON_VALUE)
     public Flux<ParameterDistributionTypeDTO> getAllParameterDistributionTypesAsStream() {
         log.debug("REST request to get all ParameterDistributionTypes as a stream");
-        return parameterDistributionTypeService.findAll();
+        return Flux.fromIterable(parameterDistributionTypeService.findAll());
     }
 
     /**
@@ -196,8 +175,8 @@ public class ParameterDistributionTypeResource {
     @GetMapping("/parameter-distribution-types/{id}")
     public Mono<ResponseEntity<ParameterDistributionTypeDTO>> getParameterDistributionType(@PathVariable UUID id) {
         log.debug("REST request to get ParameterDistributionType : {}", id);
-        Mono<ParameterDistributionTypeDTO> parameterDistributionTypeDTO = parameterDistributionTypeService.findOne(id);
-        return ResponseUtil.wrapOrNotFound(parameterDistributionTypeDTO);
+        Optional<ParameterDistributionTypeDTO> parameterDistributionTypeDTO = parameterDistributionTypeService.findOne(id);
+        return Mono.justOrEmpty(ResponseUtil.wrapOrNotFound(parameterDistributionTypeDTO));
     }
 
     /**
@@ -209,15 +188,10 @@ public class ParameterDistributionTypeResource {
     @DeleteMapping("/parameter-distribution-types/{id}")
     public Mono<ResponseEntity<Void>> deleteParameterDistributionType(@PathVariable UUID id) {
         log.debug("REST request to delete ParameterDistributionType : {}", id);
-        return parameterDistributionTypeService
-            .delete(id)
-            .then(
-                Mono.just(
-                    ResponseEntity
-                        .noContent()
-                        .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
-                        .build()
-                )
-            );
+        parameterDistributionTypeService.delete(id);
+        return Mono.just(ResponseEntity
+                .noContent()
+                .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
+                .build());
     }
 }

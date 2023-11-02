@@ -4,22 +4,19 @@ import ai.turintech.catalog.domain.ModelType;
 import ai.turintech.catalog.repository.ModelTypeRepository;
 import ai.turintech.catalog.service.dto.ModelTypeDTO;
 import ai.turintech.catalog.service.mapper.ModelTypeMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-
 /**
- * Service Implementation for managing {@link ai.turintech.catalog.domain.ModelType}.
+ * Service Implementation for managing {@link ModelType}.
  */
 @Service
 @Transactional
@@ -27,15 +24,14 @@ public class ModelTypeService {
 
     private final Logger log = LoggerFactory.getLogger(ModelTypeService.class);
 
-    @Autowired
-    private final ModelTypeRepository modelTypeRepository;
+    private ModelTypeRepository modelTypeRepository;
 
-    private final ModelTypeMapper modelTypeMapper;
+    private ModelTypeMapper modelTypeMapper;
 
-    public ModelTypeService(ModelTypeRepository modelTypeRepository, ModelTypeMapper modelTypeMapper) {
-        this.modelTypeRepository = modelTypeRepository;
-        this.modelTypeMapper = modelTypeMapper;
-    }
+//    public ModelTypeService(ModelTypeRepository modelTypeRepository, ModelTypeMapper modelTypeMapper) {
+//        this.modelTypeRepository = modelTypeRepository;
+//        this.modelTypeMapper = modelTypeMapper;
+//    }
 
     /**
      * Save a modelType.
@@ -43,11 +39,11 @@ public class ModelTypeService {
      * @param modelTypeDTO the entity to save.
      * @return the persisted entity.
      */
-    public Mono<ModelTypeDTO> save(ModelTypeDTO modelTypeDTO) {
+    public ModelTypeDTO save(ModelTypeDTO modelTypeDTO) {
         log.debug("Request to save ModelType : {}", modelTypeDTO);
         ModelType modelType = modelTypeMapper.toEntity(modelTypeDTO);
         modelType = modelTypeRepository.save(modelType);
-        return Mono.just(modelTypeMapper.toDto(modelType));
+        return modelTypeMapper.toDto(modelType);
     }
 
     /**
@@ -56,11 +52,11 @@ public class ModelTypeService {
      * @param modelTypeDTO the entity to save.
      * @return the persisted entity.
      */
-    public Mono<ModelTypeDTO> update(ModelTypeDTO modelTypeDTO) {
+    public ModelTypeDTO update(ModelTypeDTO modelTypeDTO) {
         log.debug("Request to update ModelType : {}", modelTypeDTO);
         ModelType modelType = modelTypeMapper.toEntity(modelTypeDTO);
         modelType = modelTypeRepository.save(modelType);
-        return Mono.just(modelTypeMapper.toDto(modelType));
+        return modelTypeMapper.toDto(modelType);
     }
 
     /**
@@ -69,18 +65,18 @@ public class ModelTypeService {
      * @param modelTypeDTO the entity to update partially.
      * @return the persisted entity.
      */
-    public Mono<ModelTypeDTO> partialUpdate(ModelTypeDTO modelTypeDTO) {
+    public Optional<ModelTypeDTO> partialUpdate(ModelTypeDTO modelTypeDTO) {
         log.debug("Request to partially update ModelType : {}", modelTypeDTO);
 
-        return Mono.justOrEmpty(modelTypeRepository
-                .findById(modelTypeDTO.getId())
-                .map(existingModelType -> {
-                    modelTypeMapper.partialUpdate(existingModelType, modelTypeDTO);
+        return modelTypeRepository
+            .findById(modelTypeDTO.getId())
+            .map(existingModelType -> {
+                modelTypeMapper.partialUpdate(existingModelType, modelTypeDTO);
 
-                    return existingModelType;
-                })
-                .map(modelTypeRepository::save)
-                .map(modelTypeMapper::toDto));
+                return existingModelType;
+            })
+            .map(modelTypeRepository::save)
+            .map(modelTypeMapper::toDto);
     }
 
     /**
@@ -89,10 +85,9 @@ public class ModelTypeService {
      * @return the list of entities.
      */
     @Transactional(readOnly = true)
-    public Flux<ModelTypeDTO> findAll() {
+    public List<ModelTypeDTO> findAll() {
         log.debug("Request to get all ModelTypes");
-        List<ModelTypeDTO> modelTypeDTOS = modelTypeRepository.findAll().stream().map(modelTypeMapper::toDto).collect(Collectors.toCollection(LinkedList::new));
-        return Flux.fromIterable(modelTypeDTOS);
+        return modelTypeRepository.findAll().stream().map(modelTypeMapper::toDto).collect(Collectors.toCollection(LinkedList::new));
     }
 
     /**
@@ -102,16 +97,15 @@ public class ModelTypeService {
      * @return the entity.
      */
     @Transactional(readOnly = true)
-    public Mono<ModelTypeDTO> findOne(UUID id) {
+    public Optional<ModelTypeDTO> findOne(UUID id) {
         log.debug("Request to get ModelType : {}", id);
-        return Mono.justOrEmpty(modelTypeRepository.findById(id).map(modelTypeMapper::toDto));
+        return modelTypeRepository.findById(id).map(modelTypeMapper::toDto);
     }
 
     /**
      * Delete the modelType by id.
      *
      * @param id the id of the entity.
-     * @return a Mono to signal the deletion
      */
     public void delete(UUID id) {
         log.debug("Request to delete ModelType : {}", id);

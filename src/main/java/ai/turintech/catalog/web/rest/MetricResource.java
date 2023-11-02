@@ -1,6 +1,6 @@
 package ai.turintech.catalog.web.rest;
 
-import ai.turintech.catalog.repository2.MetricRepository;
+import ai.turintech.catalog.repository.MetricRepository;
 import ai.turintech.catalog.service.MetricService;
 import ai.turintech.catalog.service.dto.MetricDTO;
 import ai.turintech.catalog.web.rest.errors.BadRequestAlertException;
@@ -8,6 +8,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +21,7 @@ import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import tech.jhipster.web.util.HeaderUtil;
-import tech.jhipster.web.util.reactive.ResponseUtil;
+import tech.jhipster.web.util.ResponseUtil;
 
 /**
  * REST controller for managing {@link ai.turintech.catalog.domain.Metric}.
@@ -36,14 +37,14 @@ public class MetricResource {
     @Value("${jhipster.clientApp.name}")
     private String applicationName;
 
-    private final MetricService metricService;
+    private MetricService metricService;
 
-    private final MetricRepository metricRepository;
+    private MetricRepository metricRepository;
 
-    public MetricResource(MetricService metricService, MetricRepository metricRepository) {
-        this.metricService = metricService;
-        this.metricRepository = metricRepository;
-    }
+//    public MetricResource(MetricService metricService, MetricRepository metricRepository) {
+//        this.metricService = metricService;
+//        this.metricRepository = metricRepository;
+//    }
 
     /**
      * {@code POST  /metrics} : Create a new metric.
@@ -58,19 +59,11 @@ public class MetricResource {
         if (metricDTO.getId() != null) {
             throw new BadRequestAlertException("A new metric cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        metricDTO.setId(UUID.randomUUID());
-        return metricService
-            .save(metricDTO)
-            .map(result -> {
-                try {
-                    return ResponseEntity
-                        .created(new URI("/api/metrics/" + result.getId()))
-                        .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
-                        .body(result);
-                } catch (URISyntaxException e) {
-                    throw new RuntimeException(e);
-                }
-            });
+        MetricDTO result = metricService.save(metricDTO);
+        return Mono.just(ResponseEntity
+                .created(new URI("/api/metrics/" + result.getId()))
+                .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
+                .body(result));
     }
 
     /**
@@ -96,23 +89,15 @@ public class MetricResource {
             throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
         }
 
-        return metricRepository
-            .existsById(id)
-            .flatMap(exists -> {
-                if (!exists) {
-                    return Mono.error(new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound"));
-                }
+        if (!metricRepository.existsById(id)) {
+            throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
+        }
 
-                return metricService
-                    .update(metricDTO)
-                    .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND)))
-                    .map(result ->
-                        ResponseEntity
-                            .ok()
-                            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
-                            .body(result)
-                    );
-            });
+        MetricDTO result = metricService.update(metricDTO);
+        return Mono.just(ResponseEntity
+                .ok()
+                .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, metricDTO.getId().toString()))
+                .body(result));
     }
 
     /**
@@ -139,24 +124,16 @@ public class MetricResource {
             throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
         }
 
-        return metricRepository
-            .existsById(id)
-            .flatMap(exists -> {
-                if (!exists) {
-                    return Mono.error(new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound"));
-                }
+        if (!metricRepository.existsById(id)) {
+            throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
+        }
 
-                Mono<MetricDTO> result = metricService.partialUpdate(metricDTO);
+        Optional<MetricDTO> result = metricService.partialUpdate(metricDTO);
 
-                return result
-                    .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND)))
-                    .map(res ->
-                        ResponseEntity
-                            .ok()
-                            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, res.getId().toString()))
-                            .body(res)
-                    );
-            });
+        return Mono.justOrEmpty(tech.jhipster.web.util.ResponseUtil.wrapOrNotFound(
+                result,
+                HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, metricDTO.getId().toString()))
+        );
     }
 
     /**
@@ -167,7 +144,7 @@ public class MetricResource {
     @GetMapping(value = "/metrics", produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<List<MetricDTO>> getAllMetrics() {
         log.debug("REST request to get all Metrics");
-        return metricService.findAll().collectList();
+        return Mono.justOrEmpty(metricService.findAll());
     }
 
     /**
@@ -177,7 +154,7 @@ public class MetricResource {
     @GetMapping(value = "/metrics", produces = MediaType.APPLICATION_NDJSON_VALUE)
     public Flux<MetricDTO> getAllMetricsAsStream() {
         log.debug("REST request to get all Metrics as a stream");
-        return metricService.findAll();
+        return Flux.fromIterable(metricService.findAll());
     }
 
     /**
@@ -189,8 +166,8 @@ public class MetricResource {
     @GetMapping("/metrics/{id}")
     public Mono<ResponseEntity<MetricDTO>> getMetric(@PathVariable UUID id) {
         log.debug("REST request to get Metric : {}", id);
-        Mono<MetricDTO> metricDTO = metricService.findOne(id);
-        return ResponseUtil.wrapOrNotFound(metricDTO);
+        Optional<MetricDTO> metricDTO = metricService.findOne(id);
+        return Mono.justOrEmpty(ResponseUtil.wrapOrNotFound(metricDTO));
     }
 
     /**
@@ -202,15 +179,10 @@ public class MetricResource {
     @DeleteMapping("/metrics/{id}")
     public Mono<ResponseEntity<Void>> deleteMetric(@PathVariable UUID id) {
         log.debug("REST request to delete Metric : {}", id);
-        return metricService
-            .delete(id)
-            .then(
-                Mono.just(
-                    ResponseEntity
-                        .noContent()
-                        .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
-                        .build()
-                )
-            );
+        metricService.delete(id);
+        return Mono.justOrEmpty(ResponseEntity
+                .noContent()
+                .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
+                .build());
     }
 }
