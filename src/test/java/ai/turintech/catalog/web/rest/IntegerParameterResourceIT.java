@@ -6,8 +6,8 @@ import static org.hamcrest.Matchers.is;
 
 import ai.turintech.catalog.IntegrationTest;
 import ai.turintech.catalog.domain.IntegerParameter;
-import ai.turintech.catalog.repository.EntityManager;
-import ai.turintech.catalog.repository.IntegerParameterRepository;
+import ai.turintech.catalog.repository2.EntityManager;
+import ai.turintech.catalog.repository2.IntegerParameterRepository;
 import ai.turintech.catalog.service.dto.IntegerParameterDTO;
 import ai.turintech.catalog.service.mapper.IntegerParameterMapper;
 import java.time.Duration;

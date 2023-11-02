@@ -1,46 +1,49 @@
 package ai.turintech.catalog.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import jakarta.validation.constraints.*;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+
 import java.io.Serializable;
 import java.util.UUID;
-
-import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.Transient;
-import org.springframework.data.relational.core.mapping.Column;
-import org.springframework.data.relational.core.mapping.Table;
 
 /**
  * A FloatParameterRange.
  */
-@Table("float_parameter_range")
+@Entity
+@Table(name = "float_parameter_range")
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @SuppressWarnings("common-java:DuplicatedBlocks")
 public class FloatParameterRange implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     @Id
-    @Column("id")
+    @GeneratedValue
+    @Column(name = "id")
     private UUID id;
 
-    @NotNull(message = "must not be null")
-    @Column("is_left_open")
+    @NotNull
+    @Column(name = "is_left_open", nullable = false)
     private Boolean isLeftOpen;
 
-    @NotNull(message = "must not be null")
-    @Column("is_right_open")
+    @NotNull
+    @Column(name = "is_right_open", nullable = false)
     private Boolean isRightOpen;
 
-    @NotNull(message = "must not be null")
-    @Column("lower")
+    @NotNull
+    @Column(name = "lower", nullable = false)
     private Double lower;
 
-    @NotNull(message = "must not be null")
-    @Column("upper")
+    @NotNull
+    @Column(name = "upper", nullable = false)
     private Double upper;
 
-    @Column("parameter_type_definition_id")
-    private UUID parameterTypeDefinitionId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JsonIgnoreProperties(value = { "parameterTypeDefinition", "floatParameterRanges" }, allowSetters = true)
+    private FloatParameter floatParameter;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here
 
@@ -109,15 +112,20 @@ public class FloatParameterRange implements Serializable {
         this.upper = upper;
     }
 
-    public UUID getParameterTypeDefinitionId() {
-        return parameterTypeDefinitionId;
+    public FloatParameter getFloatParameter() {
+        return this.floatParameter;
     }
 
-    public void setParameterTypeDefinitionId(UUID parameterTypeDefinitionId) {
-        this.parameterTypeDefinitionId = parameterTypeDefinitionId;
+    public void setFloatParameter(FloatParameter floatParameter) {
+        this.floatParameter = floatParameter;
     }
 
-// jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
+    public FloatParameterRange floatParameter(FloatParameter floatParameter) {
+        this.setFloatParameter(floatParameter);
+        return this;
+    }
+
+    // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
 
     @Override
     public boolean equals(Object o) {
@@ -140,12 +148,11 @@ public class FloatParameterRange implements Serializable {
     @Override
     public String toString() {
         return "FloatParameterRange{" +
-                "id=" + id +
-                ", isLeftOpen=" + isLeftOpen +
-                ", isRightOpen=" + isRightOpen +
-                ", lower=" + lower +
-                ", upper=" + upper +
-                ", parameterTypeDefinitionId=" + parameterTypeDefinitionId +
-                '}';
+            "id=" + getId() +
+            ", isLeftOpen='" + getIsLeftOpen() + "'" +
+            ", isRightOpen='" + getIsRightOpen() + "'" +
+            ", lower=" + getLower() +
+            ", upper=" + getUpper() +
+            "}";
     }
 }

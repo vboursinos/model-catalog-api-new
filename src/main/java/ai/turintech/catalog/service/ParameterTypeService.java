@@ -1,11 +1,18 @@
 package ai.turintech.catalog.service;
 
+import ai.turintech.catalog.domain.ParameterType;
 import ai.turintech.catalog.repository.ParameterTypeRepository;
 import ai.turintech.catalog.service.dto.ParameterTypeDTO;
 import ai.turintech.catalog.service.mapper.ParameterTypeMapper;
+
+import java.util.LinkedList;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
@@ -20,6 +27,7 @@ public class ParameterTypeService {
 
     private final Logger log = LoggerFactory.getLogger(ParameterTypeService.class);
 
+    @Autowired
     private final ParameterTypeRepository parameterTypeRepository;
 
     private final ParameterTypeMapper parameterTypeMapper;
@@ -37,7 +45,9 @@ public class ParameterTypeService {
      */
     public Mono<ParameterTypeDTO> save(ParameterTypeDTO parameterTypeDTO) {
         log.debug("Request to save ParameterType : {}", parameterTypeDTO);
-        return parameterTypeRepository.save(parameterTypeMapper.toEntity(parameterTypeDTO)).map(parameterTypeMapper::toDto);
+        ParameterType parameterType = parameterTypeMapper.toEntity(parameterTypeDTO);
+        parameterType = parameterTypeRepository.save(parameterType);
+        return Mono.just(parameterTypeMapper.toDto(parameterType));
     }
 
     /**
@@ -48,9 +58,9 @@ public class ParameterTypeService {
      */
     public Mono<ParameterTypeDTO> update(ParameterTypeDTO parameterTypeDTO) {
         log.debug("Request to update ParameterType : {}", parameterTypeDTO);
-        return parameterTypeRepository
-            .save(parameterTypeMapper.toEntity(parameterTypeDTO).setIsPersisted())
-            .map(parameterTypeMapper::toDto);
+        ParameterType parameterType = parameterTypeMapper.toEntity(parameterTypeDTO);
+        parameterType = parameterTypeRepository.save(parameterType);
+        return Mono.just(parameterTypeMapper.toDto(parameterType));
     }
 
     /**
@@ -62,15 +72,15 @@ public class ParameterTypeService {
     public Mono<ParameterTypeDTO> partialUpdate(ParameterTypeDTO parameterTypeDTO) {
         log.debug("Request to partially update ParameterType : {}", parameterTypeDTO);
 
-        return parameterTypeRepository
-            .findById(parameterTypeDTO.getId())
-            .map(existingParameterType -> {
-                parameterTypeMapper.partialUpdate(existingParameterType, parameterTypeDTO);
+        return Mono.justOrEmpty(parameterTypeRepository
+                .findById(parameterTypeDTO.getId())
+                .map(existingParameterType -> {
+                    parameterTypeMapper.partialUpdate(existingParameterType, parameterTypeDTO);
 
-                return existingParameterType;
-            })
-            .flatMap(parameterTypeRepository::save)
-            .map(parameterTypeMapper::toDto);
+                    return existingParameterType;
+                })
+                .map(parameterTypeRepository::save)
+                .map(parameterTypeMapper::toDto));
     }
 
     /**
@@ -81,16 +91,8 @@ public class ParameterTypeService {
     @Transactional(readOnly = true)
     public Flux<ParameterTypeDTO> findAll() {
         log.debug("Request to get all ParameterTypes");
-        return parameterTypeRepository.findAll().map(parameterTypeMapper::toDto);
-    }
-
-    /**
-     * Returns the number of parameterTypes available.
-     * @return the number of entities in the database.
-     *
-     */
-    public Mono<Long> countAll() {
-        return parameterTypeRepository.count();
+        List<ParameterTypeDTO> parameterTypeDTOS = parameterTypeRepository.findAll().stream().map(parameterTypeMapper::toDto).collect(Collectors.toCollection(LinkedList::new));
+        return Flux.fromIterable(parameterTypeDTOS);
     }
 
     /**
@@ -102,7 +104,7 @@ public class ParameterTypeService {
     @Transactional(readOnly = true)
     public Mono<ParameterTypeDTO> findOne(UUID id) {
         log.debug("Request to get ParameterType : {}", id);
-        return parameterTypeRepository.findById(id).map(parameterTypeMapper::toDto);
+        return Mono.justOrEmpty(parameterTypeRepository.findById(id).map(parameterTypeMapper::toDto));
     }
 
     /**
@@ -111,8 +113,8 @@ public class ParameterTypeService {
      * @param id the id of the entity.
      * @return a Mono to signal the deletion
      */
-    public Mono<Void> delete(UUID id) {
+    public void delete(UUID id) {
         log.debug("Request to delete ParameterType : {}", id);
-        return parameterTypeRepository.deleteById(id);
+        parameterTypeRepository.deleteById(id);
     }
 }

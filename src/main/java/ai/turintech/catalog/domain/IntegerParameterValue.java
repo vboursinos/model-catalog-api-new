@@ -1,38 +1,41 @@
 package ai.turintech.catalog.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import jakarta.validation.constraints.*;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+
 import java.io.Serializable;
 import java.util.UUID;
-
-import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.Transient;
-import org.springframework.data.relational.core.mapping.Column;
-import org.springframework.data.relational.core.mapping.Table;
 
 /**
  * A IntegerParameterValue.
  */
-@Table("integer_parameter_value")
+@Entity
+@Table(name = "integer_parameter_value")
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @SuppressWarnings("common-java:DuplicatedBlocks")
 public class IntegerParameterValue implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     @Id
-    @Column("id")
+    @GeneratedValue
+    @Column(name = "id")
     private UUID id;
 
-    @NotNull(message = "must not be null")
-    @Column("lower")
+    @NotNull
+    @Column(name = "lower", nullable = false)
     private Integer lower;
 
-    @NotNull(message = "must not be null")
-    @Column("upper")
+    @NotNull
+    @Column(name = "upper", nullable = false)
     private Integer upper;
 
-    @Column("parameter_type_definition_id")
-    private UUID parameterTypeDefinitionId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JsonIgnoreProperties(value = { "parameterTypeDefinition", "integerParameterValues" }, allowSetters = true)
+    private IntegerParameter integerParameter;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here
 
@@ -75,12 +78,17 @@ public class IntegerParameterValue implements Serializable {
         this.upper = upper;
     }
 
-    public UUID getParameterTypeDefinitionId() {
-        return parameterTypeDefinitionId;
+    public IntegerParameter getIntegerParameter() {
+        return this.integerParameter;
     }
 
-    public void setParameterTypeDefinitionId(UUID parameterTypeDefinitionId) {
-        this.parameterTypeDefinitionId = parameterTypeDefinitionId;
+    public void setIntegerParameter(IntegerParameter integerParameter) {
+        this.integerParameter = integerParameter;
+    }
+
+    public IntegerParameterValue integerParameter(IntegerParameter integerParameter) {
+        this.setIntegerParameter(integerParameter);
+        return this;
     }
 
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
@@ -103,14 +111,12 @@ public class IntegerParameterValue implements Serializable {
     }
 
     // prettier-ignore
-
     @Override
     public String toString() {
         return "IntegerParameterValue{" +
-                "id=" + id +
-                ", lower=" + lower +
-                ", upper=" + upper +
-                ", parameterTypeDefinitionId=" + parameterTypeDefinitionId +
-                '}';
+            "id=" + getId() +
+            ", lower=" + getLower() +
+            ", upper=" + getUpper() +
+            "}";
     }
 }

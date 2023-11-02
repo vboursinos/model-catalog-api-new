@@ -1,11 +1,18 @@
 package ai.turintech.catalog.service;
 
+import ai.turintech.catalog.domain.ModelStructureType;
 import ai.turintech.catalog.repository.ModelStructureTypeRepository;
 import ai.turintech.catalog.service.dto.ModelStructureTypeDTO;
 import ai.turintech.catalog.service.mapper.ModelStructureTypeMapper;
+
+import java.util.LinkedList;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
@@ -20,6 +27,7 @@ public class ModelStructureTypeService {
 
     private final Logger log = LoggerFactory.getLogger(ModelStructureTypeService.class);
 
+    @Autowired
     private final ModelStructureTypeRepository modelStructureTypeRepository;
 
     private final ModelStructureTypeMapper modelStructureTypeMapper;
@@ -40,9 +48,9 @@ public class ModelStructureTypeService {
      */
     public Mono<ModelStructureTypeDTO> save(ModelStructureTypeDTO modelStructureTypeDTO) {
         log.debug("Request to save ModelStructureType : {}", modelStructureTypeDTO);
-        return modelStructureTypeRepository
-            .save(modelStructureTypeMapper.toEntity(modelStructureTypeDTO))
-            .map(modelStructureTypeMapper::toDto);
+        ModelStructureType modelStructureType = modelStructureTypeMapper.toEntity(modelStructureTypeDTO);
+        modelStructureType = modelStructureTypeRepository.save(modelStructureType);
+        return Mono.just(modelStructureTypeMapper.toDto(modelStructureType));
     }
 
     /**
@@ -53,9 +61,9 @@ public class ModelStructureTypeService {
      */
     public Mono<ModelStructureTypeDTO> update(ModelStructureTypeDTO modelStructureTypeDTO) {
         log.debug("Request to update ModelStructureType : {}", modelStructureTypeDTO);
-        return modelStructureTypeRepository
-            .save(modelStructureTypeMapper.toEntity(modelStructureTypeDTO).setIsPersisted())
-            .map(modelStructureTypeMapper::toDto);
+        ModelStructureType modelStructureType = modelStructureTypeMapper.toEntity(modelStructureTypeDTO);
+        modelStructureType = modelStructureTypeRepository.save(modelStructureType);
+        return Mono.just(modelStructureTypeMapper.toDto(modelStructureType));
     }
 
     /**
@@ -67,15 +75,15 @@ public class ModelStructureTypeService {
     public Mono<ModelStructureTypeDTO> partialUpdate(ModelStructureTypeDTO modelStructureTypeDTO) {
         log.debug("Request to partially update ModelStructureType : {}", modelStructureTypeDTO);
 
-        return modelStructureTypeRepository
-            .findById(modelStructureTypeDTO.getId())
-            .map(existingModelStructureType -> {
-                modelStructureTypeMapper.partialUpdate(existingModelStructureType, modelStructureTypeDTO);
+        return Mono.justOrEmpty(modelStructureTypeRepository
+                .findById(modelStructureTypeDTO.getId())
+                .map(existingModelStructureType -> {
+                    modelStructureTypeMapper.partialUpdate(existingModelStructureType, modelStructureTypeDTO);
 
-                return existingModelStructureType;
-            })
-            .flatMap(modelStructureTypeRepository::save)
-            .map(modelStructureTypeMapper::toDto);
+                    return existingModelStructureType;
+                })
+                .map(modelStructureTypeRepository::save)
+                .map(modelStructureTypeMapper::toDto));
     }
 
     /**
@@ -86,16 +94,12 @@ public class ModelStructureTypeService {
     @Transactional(readOnly = true)
     public Flux<ModelStructureTypeDTO> findAll() {
         log.debug("Request to get all ModelStructureTypes");
-        return modelStructureTypeRepository.findAll().map(modelStructureTypeMapper::toDto);
-    }
-
-    /**
-     * Returns the number of modelStructureTypes available.
-     * @return the number of entities in the database.
-     *
-     */
-    public Mono<Long> countAll() {
-        return modelStructureTypeRepository.count();
+        List<ModelStructureTypeDTO> modelStructureTypeDTOS = modelStructureTypeRepository
+                .findAll()
+                .stream()
+                .map(modelStructureTypeMapper::toDto)
+                .collect(Collectors.toCollection(LinkedList::new));
+        return Flux.fromIterable(modelStructureTypeDTOS);
     }
 
     /**
@@ -107,7 +111,7 @@ public class ModelStructureTypeService {
     @Transactional(readOnly = true)
     public Mono<ModelStructureTypeDTO> findOne(UUID id) {
         log.debug("Request to get ModelStructureType : {}", id);
-        return modelStructureTypeRepository.findById(id).map(modelStructureTypeMapper::toDto);
+        return Mono.justOrEmpty(modelStructureTypeRepository.findById(id).map(modelStructureTypeMapper::toDto));
     }
 
     /**
@@ -116,8 +120,8 @@ public class ModelStructureTypeService {
      * @param id the id of the entity.
      * @return a Mono to signal the deletion
      */
-    public Mono<Void> delete(UUID id) {
+    public void delete(UUID id) {
         log.debug("Request to delete ModelStructureType : {}", id);
-        return modelStructureTypeRepository.deleteById(id);
+        modelStructureTypeRepository.deleteById(id);
     }
 }

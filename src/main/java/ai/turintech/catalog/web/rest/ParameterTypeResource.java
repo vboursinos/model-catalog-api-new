@@ -1,6 +1,6 @@
 package ai.turintech.catalog.web.rest;
 
-import ai.turintech.catalog.repository.ParameterTypeRepository;
+import ai.turintech.catalog.repository2.ParameterTypeRepository;
 import ai.turintech.catalog.service.ParameterTypeService;
 import ai.turintech.catalog.service.dto.ParameterTypeDTO;
 import ai.turintech.catalog.web.rest.errors.BadRequestAlertException;

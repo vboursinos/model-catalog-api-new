@@ -1,6 +1,6 @@
 package ai.turintech.catalog.web.rest;
 
-import ai.turintech.catalog.repository.IntegerParameterValueRepository;
+import ai.turintech.catalog.repository2.IntegerParameterValueRepository;
 import ai.turintech.catalog.service.IntegerParameterValueService;
 import ai.turintech.catalog.service.dto.IntegerParameterValueDTO;
 import ai.turintech.catalog.web.rest.errors.BadRequestAlertException;

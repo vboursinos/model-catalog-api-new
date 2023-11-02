@@ -1,6 +1,6 @@
 package ai.turintech.catalog.web.rest;
 
-import ai.turintech.catalog.repository.MlTaskTypeRepository;
+import ai.turintech.catalog.repository2.MlTaskTypeRepository;
 import ai.turintech.catalog.service.MlTaskTypeService;
 import ai.turintech.catalog.service.dto.MlTaskTypeDTO;
 import ai.turintech.catalog.web.rest.errors.BadRequestAlertException;

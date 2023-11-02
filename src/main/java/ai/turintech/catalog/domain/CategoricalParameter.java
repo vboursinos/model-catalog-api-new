@@ -1,41 +1,42 @@
 package ai.turintech.catalog.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import java.io.Serializable;
-import java.util.*;
+import jakarta.persistence.*;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.Transient;
-import org.springframework.data.relational.core.mapping.Column;
-import org.springframework.data.relational.core.mapping.Table;
+import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * A CategoricalParameter.
  */
-@Table("categorical_parameter")
+@Entity
+@Table(name = "categorical_parameter")
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @SuppressWarnings("common-java:DuplicatedBlocks")
 public class CategoricalParameter implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    @Id
-    @Column("parameter_type_definition_id")
-    private UUID parameterTypeDefinitionId;
-
-    @Column("default_value")
+    @Column(name = "default_value")
     private String defaultValue;
 
-    @Transient
+    @Id
+    @JsonIgnoreProperties(
+        value = { "integerParameter", "floatParameter", "categoricalParameter", "booleanParameter", "distribution", "parameter", "type" },
+        allowSetters = true
+    )
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(unique = true)
+    private ParameterTypeDefinition parameterTypeDefinition;
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "categoricalParameter")
+    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     @JsonIgnoreProperties(value = { "categoricalParameter" }, allowSetters = true)
-    private List<CategoricalParameterValue> categoricalParameterValues = new ArrayList<>();
-    // jhipster-needle-entity-add-field - JHipster will add fields here
-
-
-    public CategoricalParameter id(UUID id) {
-        this.setParameterTypeDefinitionId(id);
-        return this;
-    }
-
+    private Set<CategoricalParameterValue> categoricalParameterValues = new HashSet<>();
 
     public String getDefaultValue() {
         return this.defaultValue;
@@ -50,54 +51,56 @@ public class CategoricalParameter implements Serializable {
         this.defaultValue = defaultValue;
     }
 
-    public List<CategoricalParameterValue> getCategoricalParameterValues() {
+    public ParameterTypeDefinition getParameterTypeDefinition() {
+        return this.parameterTypeDefinition;
+    }
+
+    public void setParameterTypeDefinition(ParameterTypeDefinition parameterTypeDefinition) {
+        this.parameterTypeDefinition = parameterTypeDefinition;
+    }
+
+    public CategoricalParameter parameterTypeDefinition(ParameterTypeDefinition parameterTypeDefinition) {
+        this.setParameterTypeDefinition(parameterTypeDefinition);
+        return this;
+    }
+
+    public Set<CategoricalParameterValue> getCategoricalParameterValues() {
         return this.categoricalParameterValues;
     }
 
-    public void setCategoricalParameterValues(List<CategoricalParameterValue> categoricalParameterValues) {
+    public void setCategoricalParameterValues(Set<CategoricalParameterValue> categoricalParameterValues) {
+        if (this.categoricalParameterValues != null) {
+            this.categoricalParameterValues.forEach(i -> i.setCategoricalParameter(null));
+        }
+        if (categoricalParameterValues != null) {
+            categoricalParameterValues.forEach(i -> i.setCategoricalParameter(this));
+        }
         this.categoricalParameterValues = categoricalParameterValues;
     }
 
-    public CategoricalParameter categoricalParameterValues(List<CategoricalParameterValue> categoricalParameterValues) {
+    public CategoricalParameter categoricalParameterValues(Set<CategoricalParameterValue> categoricalParameterValues) {
         this.setCategoricalParameterValues(categoricalParameterValues);
         return this;
     }
 
-    public UUID getParameterTypeDefinitionId() {
-        return this.parameterTypeDefinitionId;
+    public CategoricalParameter addCategoricalParameterValue(CategoricalParameterValue categoricalParameterValue) {
+        this.categoricalParameterValues.add(categoricalParameterValue);
+        categoricalParameterValue.setCategoricalParameter(this);
+        return this;
     }
 
-    public void setParameterTypeDefinitionId(UUID parameterTypeDefinition) {
-        this.parameterTypeDefinitionId = parameterTypeDefinition;
+    public CategoricalParameter removeCategoricalParameterValue(CategoricalParameterValue categoricalParameterValue) {
+        this.categoricalParameterValues.remove(categoricalParameterValue);
+        categoricalParameterValue.setCategoricalParameter(null);
+        return this;
     }
 
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof CategoricalParameter)) {
-            return false;
-        }
-        return getParameterTypeDefinitionId() != null && getParameterTypeDefinitionId().equals(((CategoricalParameter) o).getParameterTypeDefinitionId());
-    }
-
-    @Override
-    public int hashCode() {
-        // see https://vladmihalcea.com/how-to-implement-equals-and-hashcode-using-the-jpa-entity-identifier/
-        return getClass().hashCode();
-    }
-
-    // prettier-ignore
-
-    @Override
     public String toString() {
         return "CategoricalParameter{" +
-                "parameterTypeDefinitionId=" + parameterTypeDefinitionId +
-                ", defaultValue='" + defaultValue + '\'' +
-                ", categoricalParameterValues=" + categoricalParameterValues +
-                '}';
+            "defaultValue='" + getDefaultValue() + "'" +
+            "}";
     }
 }

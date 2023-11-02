@@ -1,40 +1,44 @@
 package ai.turintech.catalog.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import java.io.Serializable;
-import java.util.*;
+import jakarta.persistence.*;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.Transient;
-import org.springframework.data.relational.core.mapping.Column;
-import org.springframework.data.relational.core.mapping.Table;
+import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * A IntegerParameter.
  */
-@Table("integer_parameter")
+@Entity
+@Table(name = "integer_parameter")
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @SuppressWarnings("common-java:DuplicatedBlocks")
 public class IntegerParameter implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    @Id
-    @Column("parameter_type_definition_id")
-    private UUID parameterTypeDefinitionId;
-
-    @Column("default_value")
+    @Column(name = "default_value")
     private Integer defaultValue;
 
-    @Transient
+    @Id
+    @JsonIgnoreProperties(
+        value = { "integerParameter", "floatParameter", "categoricalParameter", "booleanParameter", "distribution", "parameter", "type" },
+        allowSetters = true
+    )
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(unique = true)
+    private ParameterTypeDefinition parameterTypeDefinition;
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "integerParameter")
+    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     @JsonIgnoreProperties(value = { "integerParameter" }, allowSetters = true)
-    private List<IntegerParameterValue> integerParameterValues = new ArrayList<>();
+    private Set<IntegerParameterValue> integerParameterValues = new HashSet<>();
 
     // jhipster-needle-entity-add-field - JHipster will add fields here
-
-    public IntegerParameter id(UUID id) {
-        this.setParameterTypeDefinitionId(id);
-        return this;
-    }
 
     public Integer getDefaultValue() {
         return this.defaultValue;
@@ -49,53 +53,57 @@ public class IntegerParameter implements Serializable {
         this.defaultValue = defaultValue;
     }
 
-    public List<IntegerParameterValue> getIntegerParameterValues() {
+    public ParameterTypeDefinition getParameterTypeDefinition() {
+        return this.parameterTypeDefinition;
+    }
+
+    public void setParameterTypeDefinition(ParameterTypeDefinition parameterTypeDefinition) {
+        this.parameterTypeDefinition = parameterTypeDefinition;
+    }
+
+    public IntegerParameter parameterTypeDefinition(ParameterTypeDefinition parameterTypeDefinition) {
+        this.setParameterTypeDefinition(parameterTypeDefinition);
+        return this;
+    }
+
+    public Set<IntegerParameterValue> getIntegerParameterValues() {
         return this.integerParameterValues;
     }
 
-    public void setIntegerParameterValues(List<IntegerParameterValue> integerParameterValues) {
+    public void setIntegerParameterValues(Set<IntegerParameterValue> integerParameterValues) {
+        if (this.integerParameterValues != null) {
+            this.integerParameterValues.forEach(i -> i.setIntegerParameter(null));
+        }
+        if (integerParameterValues != null) {
+            integerParameterValues.forEach(i -> i.setIntegerParameter(this));
+        }
         this.integerParameterValues = integerParameterValues;
     }
 
-    public IntegerParameter integerParameterValues(List<IntegerParameterValue> integerParameterValues) {
+    public IntegerParameter integerParameterValues(Set<IntegerParameterValue> integerParameterValues) {
         this.setIntegerParameterValues(integerParameterValues);
         return this;
     }
 
-    public UUID getParameterTypeDefinitionId() {
-        return this.parameterTypeDefinitionId;
+    public IntegerParameter addIntegerParameterValue(IntegerParameterValue integerParameterValue) {
+        this.integerParameterValues.add(integerParameterValue);
+        integerParameterValue.setIntegerParameter(this);
+        return this;
     }
 
-    public void setParameterTypeDefinitionId(UUID parameterTypeDefinition) {
-        this.parameterTypeDefinitionId = parameterTypeDefinition;
-    }
-
-    // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof IntegerParameter)) {
-            return false;
-        }
-        return getParameterTypeDefinitionId() != null && getParameterTypeDefinitionId().equals(((IntegerParameter) o).getParameterTypeDefinitionId());
-    }
-
-    @Override
-    public int hashCode() {
-        // see https://vladmihalcea.com/how-to-implement-equals-and-hashcode-using-the-jpa-entity-identifier/
-        return getClass().hashCode();
+    public IntegerParameter removeIntegerParameterValue(IntegerParameterValue integerParameterValue) {
+        this.integerParameterValues.remove(integerParameterValue);
+        integerParameterValue.setIntegerParameter(null);
+        return this;
     }
 
     // prettier-ignore
+
     @Override
     public String toString() {
         return "IntegerParameter{" +
-                "parameterTypeDefinitionId=" + parameterTypeDefinitionId +
-                ", defaultValue=" + defaultValue +
-                ", integerParameterValues=" + integerParameterValues +
+                "defaultValue=" + defaultValue +
+                ", parameterTypeDefinition=" + parameterTypeDefinition +
                 '}';
     }
 }

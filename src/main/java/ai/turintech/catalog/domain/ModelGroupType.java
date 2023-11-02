@@ -1,39 +1,38 @@
 package ai.turintech.catalog.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import jakarta.validation.constraints.*;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.Transient;
-import org.springframework.data.domain.Persistable;
-import org.springframework.data.relational.core.mapping.Column;
-import org.springframework.data.relational.core.mapping.Table;
 
 /**
  * A ModelGroupType.
  */
-@Table("model_group_type")
-@JsonIgnoreProperties(value = { "new" })
+@Entity
+@Table(name = "model_group_type")
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @SuppressWarnings("common-java:DuplicatedBlocks")
-public class ModelGroupType implements Serializable, Persistable<UUID> {
+public class ModelGroupType implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     @Id
-    @Column("id")
+    @GeneratedValue
+    @Column(name = "id")
     private UUID id;
 
-    @NotNull(message = "must not be null")
-    @Column("name")
+    @NotNull
+    @Column(name = "name", nullable = false)
     private String name;
 
-    @Transient
-    private boolean isPersisted;
-
-    @Transient
+    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "groups")
+    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     @JsonIgnoreProperties(
         value = { "parameters", "groups", "incompatibleMetrics", "mlTask", "structure", "type", "familyType", "ensembleType" },
         allowSetters = true
@@ -66,17 +65,6 @@ public class ModelGroupType implements Serializable, Persistable<UUID> {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    @Transient
-    @Override
-    public boolean isNew() {
-        return !this.isPersisted;
-    }
-
-    public ModelGroupType setIsPersisted() {
-        this.isPersisted = true;
-        return this;
     }
 
     public Set<Model> getModels() {

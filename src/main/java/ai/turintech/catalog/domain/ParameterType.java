@@ -1,37 +1,43 @@
 package ai.turintech.catalog.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import jakarta.validation.constraints.*;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.Transient;
-import org.springframework.data.domain.Persistable;
-import org.springframework.data.relational.core.mapping.Column;
-import org.springframework.data.relational.core.mapping.Table;
 
 /**
  * A ParameterType.
  */
-@Table("parameter_type")
-@JsonIgnoreProperties(value = { "new" })
+@Entity
+@Table(name = "parameter_type")
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @SuppressWarnings("common-java:DuplicatedBlocks")
-public class ParameterType implements Serializable, Persistable<UUID> {
+public class ParameterType implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     @Id
-    @Column("id")
+    @GeneratedValue
+    @Column(name = "id")
     private UUID id;
 
-    @NotNull(message = "must not be null")
-    @Column("name")
+    @NotNull
+    @Column(name = "name", nullable = false)
     private String name;
 
-    @Transient
-    private boolean isPersisted;
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "type")
+    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+    @JsonIgnoreProperties(
+        value = { "integerParameter", "floatParameter", "categoricalParameter", "booleanParameter", "distribution", "parameter", "type" },
+        allowSetters = true
+    )
+    private Set<ParameterTypeDefinition> definitions = new HashSet<>();
 
     // jhipster-needle-entity-add-field - JHipster will add fields here
 
@@ -61,14 +67,34 @@ public class ParameterType implements Serializable, Persistable<UUID> {
         this.name = name;
     }
 
-    @Transient
-    @Override
-    public boolean isNew() {
-        return !this.isPersisted;
+    public Set<ParameterTypeDefinition> getDefinitions() {
+        return this.definitions;
     }
 
-    public ParameterType setIsPersisted() {
-        this.isPersisted = true;
+    public void setDefinitions(Set<ParameterTypeDefinition> parameterTypeDefinitions) {
+        if (this.definitions != null) {
+            this.definitions.forEach(i -> i.setType(null));
+        }
+        if (parameterTypeDefinitions != null) {
+            parameterTypeDefinitions.forEach(i -> i.setType(this));
+        }
+        this.definitions = parameterTypeDefinitions;
+    }
+
+    public ParameterType definitions(Set<ParameterTypeDefinition> parameterTypeDefinitions) {
+        this.setDefinitions(parameterTypeDefinitions);
+        return this;
+    }
+
+    public ParameterType addDefinitions(ParameterTypeDefinition parameterTypeDefinition) {
+        this.definitions.add(parameterTypeDefinition);
+        parameterTypeDefinition.setType(this);
+        return this;
+    }
+
+    public ParameterType removeDefinitions(ParameterTypeDefinition parameterTypeDefinition) {
+        this.definitions.remove(parameterTypeDefinition);
+        parameterTypeDefinition.setType(null);
         return this;
     }
 

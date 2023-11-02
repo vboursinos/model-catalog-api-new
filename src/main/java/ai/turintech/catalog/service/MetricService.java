@@ -1,11 +1,19 @@
 package ai.turintech.catalog.service;
 
+import ai.turintech.catalog.domain.Metric;
 import ai.turintech.catalog.repository.MetricRepository;
 import ai.turintech.catalog.service.dto.MetricDTO;
 import ai.turintech.catalog.service.mapper.MetricMapper;
+
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
@@ -20,6 +28,7 @@ public class MetricService {
 
     private final Logger log = LoggerFactory.getLogger(MetricService.class);
 
+    @Autowired
     private final MetricRepository metricRepository;
 
     private final MetricMapper metricMapper;
@@ -37,7 +46,9 @@ public class MetricService {
      */
     public Mono<MetricDTO> save(MetricDTO metricDTO) {
         log.debug("Request to save Metric : {}", metricDTO);
-        return metricRepository.save(metricMapper.toEntity(metricDTO)).map(metricMapper::toDto);
+        Metric metric = metricMapper.toEntity(metricDTO);
+        metric = metricRepository.save(metric);
+        return Mono.just(metricMapper.toDto(metric));
     }
 
     /**
@@ -47,8 +58,10 @@ public class MetricService {
      * @return the persisted entity.
      */
     public Mono<MetricDTO> update(MetricDTO metricDTO) {
-        log.debug("Request to update Metric : {}", metricDTO);
-        return metricRepository.save(metricMapper.toEntity(metricDTO).setIsPersisted()).map(metricMapper::toDto);
+        log.debug("Request to save Metric : {}", metricDTO);
+        Metric metric = metricMapper.toEntity(metricDTO);
+        metric = metricRepository.save(metric);
+        return Mono.just(metricMapper.toDto(metric));
     }
 
     /**
@@ -60,15 +73,15 @@ public class MetricService {
     public Mono<MetricDTO> partialUpdate(MetricDTO metricDTO) {
         log.debug("Request to partially update Metric : {}", metricDTO);
 
-        return metricRepository
-            .findById(metricDTO.getId())
-            .map(existingMetric -> {
-                metricMapper.partialUpdate(existingMetric, metricDTO);
+        return Mono.justOrEmpty(metricRepository
+                .findById(metricDTO.getId())
+                .map(existingMetric -> {
+                    metricMapper.partialUpdate(existingMetric, metricDTO);
 
-                return existingMetric;
-            })
-            .flatMap(metricRepository::save)
-            .map(metricMapper::toDto);
+                    return existingMetric;
+                })
+                .map(metricRepository::save)
+                .map(metricMapper::toDto));
     }
 
     /**
@@ -79,16 +92,8 @@ public class MetricService {
     @Transactional(readOnly = true)
     public Flux<MetricDTO> findAll() {
         log.debug("Request to get all Metrics");
-        return metricRepository.findAll().map(metricMapper::toDto);
-    }
-
-    /**
-     * Returns the number of metrics available.
-     * @return the number of entities in the database.
-     *
-     */
-    public Mono<Long> countAll() {
-        return metricRepository.count();
+        List<MetricDTO> metricDTOS = metricRepository.findAll().stream().map(metricMapper::toDto).collect(Collectors.toCollection(LinkedList::new));
+        return Flux.fromIterable(metricDTOS);
     }
 
     /**
@@ -100,7 +105,7 @@ public class MetricService {
     @Transactional(readOnly = true)
     public Mono<MetricDTO> findOne(UUID id) {
         log.debug("Request to get Metric : {}", id);
-        return metricRepository.findById(id).map(metricMapper::toDto);
+        return Mono.justOrEmpty(metricRepository.findById(id).map(metricMapper::toDto));
     }
 
     /**
@@ -109,8 +114,8 @@ public class MetricService {
      * @param id the id of the entity.
      * @return a Mono to signal the deletion
      */
-    public Mono<Void> delete(UUID id) {
+    public void delete(UUID id) {
         log.debug("Request to delete Metric : {}", id);
-        return metricRepository.deleteById(id);
+        metricRepository.deleteById(id);
     }
 }

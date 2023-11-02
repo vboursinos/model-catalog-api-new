@@ -1,6 +1,6 @@
 package ai.turintech.catalog.web.rest;
 
-import ai.turintech.catalog.repository.MetricRepository;
+import ai.turintech.catalog.repository2.MetricRepository;
 import ai.turintech.catalog.service.MetricService;
 import ai.turintech.catalog.service.dto.MetricDTO;
 import ai.turintech.catalog.web.rest.errors.BadRequestAlertException;

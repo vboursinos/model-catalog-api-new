@@ -1,6 +1,6 @@
 package ai.turintech.catalog.web.rest;
 
-import ai.turintech.catalog.repository.ModelRepository;
+import ai.turintech.catalog.repository2.ModelRepository;
 import ai.turintech.catalog.service.ModelService;
 import ai.turintech.catalog.service.dto.ModelDTO;
 import ai.turintech.catalog.service.dto.ModelPaginatedListDTO;

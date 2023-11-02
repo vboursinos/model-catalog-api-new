@@ -1,111 +1,101 @@
 package ai.turintech.catalog.domain;
 
-import ai.turintech.catalog.anotatation.Relationship;
-import ai.turintech.catalog.service.dto.RelationshipTypeDTO;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import jakarta.validation.constraints.*;
-import java.io.Serializable;
-import java.util.*;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.Transient;
-import org.springframework.data.domain.Persistable;
-import org.springframework.data.relational.core.mapping.Column;
-import org.springframework.data.relational.core.mapping.Table;
+import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * A Model.
  */
-@Table("model")
-@JsonIgnoreProperties(value = { "new" })
+@Entity
+@Table(name = "model")
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @SuppressWarnings("common-java:DuplicatedBlocks")
-public class Model implements Serializable, Persistable<UUID> {
+public class Model implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     @Id
-    @Column("id")
+    @GeneratedValue
+    @Column(name = "id")
     private UUID id;
 
-    @NotNull(message = "must not be null")
-    @Column("name")
+    @NotNull
+    @Column(name = "name", nullable = false)
     private String name;
 
-    @NotNull(message = "must not be null")
-    @Column("display_name")
+    @NotNull
+    @Column(name = "display_name", nullable = false)
     private String displayName;
 
-    @Column("description")
+    @Column(name = "description")
     private String description;
 
-    @Column("advantages")
+    @Column(name = "advantages")
     private String advantages;
 
-    @Column("disadvantages")
+    @Column(name = "disadvantages")
     private String disadvantages;
 
-    @NotNull(message = "must not be null")
-    @Column("enabled")
+    @NotNull
+    @Column(name = "enabled", nullable = false)
     private Boolean enabled;
 
-    @NotNull(message = "must not be null")
-    @Column("decision_tree")
+    @NotNull
+    @Column(name = "decision_tree", nullable = false)
     private Boolean decisionTree;
 
-    @Transient
-    private boolean isPersisted;
-
-    @Transient
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "model")
+    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     @JsonIgnoreProperties(value = { "definitions", "model" }, allowSetters = true)
-    private List<Parameter> parameters = new ArrayList<>();
+    private Set<Parameter> parameters = new HashSet<>();
 
-    @Transient
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "rel_model__groups",
+        joinColumns = @JoinColumn(name = "model_id"),
+        inverseJoinColumns = @JoinColumn(name = "groups_id")
+    )
+    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     @JsonIgnoreProperties(value = { "models" }, allowSetters = true)
-    private List<ModelGroupType> groups = new ArrayList<>();
+    private Set<ModelGroupType> groups = new HashSet<>();
 
-    @Transient
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "rel_model__incompatible_metrics",
+        joinColumns = @JoinColumn(name = "model_id"),
+        inverseJoinColumns = @JoinColumn(name = "incompatible_metrics_id")
+    )
+    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     @JsonIgnoreProperties(value = { "models" }, allowSetters = true)
-    private List<Metric> incompatibleMetrics = new ArrayList<>();
+    private Set<Metric> incompatibleMetrics = new HashSet<>();
 
-    @Relationship(type = RelationshipTypeDTO.MANY_TO_ONE, toTable = "ml_task_type", fromColumn = "ml_task_id", toColumn = "id", toColumnPrefix = "mlTask")
-    @Transient
+    @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnoreProperties(value = { "models" }, allowSetters = true)
     private MlTaskType mlTask;
 
-    @Relationship(type = RelationshipTypeDTO.MANY_TO_ONE, toTable = "model_structure_type", fromColumn = "structure_id", toColumn = "id", toColumnPrefix = "structure")
-    @Transient
+    @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnoreProperties(value = { "models" }, allowSetters = true)
     private ModelStructureType structure;
 
-    @Relationship(type = RelationshipTypeDTO.MANY_TO_ONE, toTable = "model_type", fromColumn = "model_type_id", toColumn = "id", toColumnPrefix = "modelType")
-    @Transient
+    @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnoreProperties(value = { "models" }, allowSetters = true)
     private ModelType type;
 
-    @Relationship(type = RelationshipTypeDTO.MANY_TO_ONE, toTable = "model_family_type", fromColumn = "family_type_id", toColumn = "id", toColumnPrefix = "familyType")
-    @Transient
+    @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnoreProperties(value = { "models" }, allowSetters = true)
     private ModelFamilyType familyType;
 
-    @Relationship(type = RelationshipTypeDTO.MANY_TO_ONE, toTable = "model_ensemble_type", fromColumn = "ensemble_type_id", toColumn = "id", toColumnPrefix = "ensembleType")
-    @Transient
+    @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnoreProperties(value = { "models" }, allowSetters = true)
     private ModelEnsembleType ensembleType;
-
-    @Column("ml_task_id")
-    private UUID mlTaskId;
-
-    @Column("structure_id")
-    private UUID structureId;
-
-    @Column("model_type_id")
-    private UUID modelTypeId;
-
-    @Column("family_type_id")
-    private UUID familyTypeId;
-
-    @Column("ensemble_type_id")
-    private UUID ensembleTypeId;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here
 
@@ -213,77 +203,80 @@ public class Model implements Serializable, Persistable<UUID> {
         this.decisionTree = decisionTree;
     }
 
-    @Transient
-    @Override
-    public boolean isNew() {
-        return !this.isPersisted;
-    }
-
-    public Model setIsPersisted() {
-        this.isPersisted = true;
-        return this;
-    }
-
-    public List<Parameter> getParameters() {
+    public Set<Parameter> getParameters() {
         return this.parameters;
     }
 
-    public void setParameters(List<Parameter> parameters) {
+    public void setParameters(Set<Parameter> parameters) {
+        if (this.parameters != null) {
+            this.parameters.forEach(i -> i.setModel(null));
+        }
+        if (parameters != null) {
+            parameters.forEach(i -> i.setModel(this));
+        }
         this.parameters = parameters;
     }
 
-    public Model parameters(List<Parameter> parameters) {
+    public Model parameters(Set<Parameter> parameters) {
         this.setParameters(parameters);
         return this;
     }
 
-    public List<ModelGroupType> getGroups() {
-        return groups;
+    public Model addParameters(Parameter parameter) {
+        this.parameters.add(parameter);
+        parameter.setModel(this);
+        return this;
     }
 
-    public void setGroups(List<ModelGroupType> groups) {
-        this.groups = groups;
+    public Model removeParameters(Parameter parameter) {
+        this.parameters.remove(parameter);
+        parameter.setModel(null);
+        return this;
     }
 
-    public void setIncompatibleMetrics(List<Metric> incompatibleMetrics) {
-        this.incompatibleMetrics = incompatibleMetrics;
+    public Set<ModelGroupType> getGroups() {
+        return this.groups;
     }
 
-    public List<Metric> getIncompatibleMetrics() {
-        return incompatibleMetrics;
+    public void setGroups(Set<ModelGroupType> modelGroupTypes) {
+        this.groups = modelGroupTypes;
     }
 
-    public Model groups(List<ModelGroupType> modelGroupTypes) {
+    public Model groups(Set<ModelGroupType> modelGroupTypes) {
         this.setGroups(modelGroupTypes);
         return this;
     }
 
     public Model addGroups(ModelGroupType modelGroupType) {
         this.groups.add(modelGroupType);
-        modelGroupType.getModels().add(this);
         return this;
     }
 
     public Model removeGroups(ModelGroupType modelGroupType) {
         this.groups.remove(modelGroupType);
-        modelGroupType.getModels().remove(this);
         return this;
     }
 
-    public Model incompatibleMetrics(List<Metric> metrics) {
+    public Set<Metric> getIncompatibleMetrics() {
+        return this.incompatibleMetrics;
+    }
+
+    public void setIncompatibleMetrics(Set<Metric> metrics) {
+        this.incompatibleMetrics = metrics;
+    }
+
+    public Model incompatibleMetrics(Set<Metric> metrics) {
         this.setIncompatibleMetrics(metrics);
         return this;
     }
 
     public Model addIncompatibleMetrics(Metric metric) {
         this.incompatibleMetrics.add(metric);
-        metric.getModels().add(this);
         return this;
     }
 
     public Model removeIncompatibleMetrics(Metric metric) {
         this.incompatibleMetrics.remove(metric);
-        metric.getModels().remove(this);
         return this;
     }
 
@@ -293,7 +286,6 @@ public class Model implements Serializable, Persistable<UUID> {
 
     public void setMlTask(MlTaskType mlTaskType) {
         this.mlTask = mlTaskType;
-        this.mlTaskId = mlTaskType != null ? mlTaskType.getId() : null;
     }
 
     public Model mlTask(MlTaskType mlTaskType) {
@@ -307,7 +299,6 @@ public class Model implements Serializable, Persistable<UUID> {
 
     public void setStructure(ModelStructureType modelStructureType) {
         this.structure = modelStructureType;
-        this.structureId = modelStructureType != null ? modelStructureType.getId() : null;
     }
 
     public Model structure(ModelStructureType modelStructureType) {
@@ -321,7 +312,6 @@ public class Model implements Serializable, Persistable<UUID> {
 
     public void setType(ModelType modelType) {
         this.type = modelType;
-        this.modelTypeId = modelType != null ? modelType.getId() : null;
     }
 
     public Model type(ModelType modelType) {
@@ -335,7 +325,6 @@ public class Model implements Serializable, Persistable<UUID> {
 
     public void setFamilyType(ModelFamilyType modelFamilyType) {
         this.familyType = modelFamilyType;
-        this.familyTypeId = modelFamilyType != null ? modelFamilyType.getId() : null;
     }
 
     public Model familyType(ModelFamilyType modelFamilyType) {
@@ -349,52 +338,11 @@ public class Model implements Serializable, Persistable<UUID> {
 
     public void setEnsembleType(ModelEnsembleType modelEnsembleType) {
         this.ensembleType = modelEnsembleType;
-        this.ensembleTypeId = modelEnsembleType != null ? modelEnsembleType.getId() : null;
     }
 
     public Model ensembleType(ModelEnsembleType modelEnsembleType) {
         this.setEnsembleType(modelEnsembleType);
         return this;
-    }
-
-    public UUID getMlTaskId() {
-        return this.mlTaskId;
-    }
-
-    public void setMlTaskId(UUID mlTaskType) {
-        this.mlTaskId = mlTaskType;
-    }
-
-    public UUID getStructureId() {
-        return this.structureId;
-    }
-
-    public void setStructureId(UUID modelStructureType) {
-        this.structureId = modelStructureType;
-    }
-
-    public UUID getModelTypeId() {
-        return modelTypeId;
-    }
-
-    public void setModelTypeId(UUID modelTypeId) {
-        this.modelTypeId = modelTypeId;
-    }
-
-    public UUID getFamilyTypeId() {
-        return this.familyTypeId;
-    }
-
-    public void setFamilyTypeId(UUID modelFamilyType) {
-        this.familyTypeId = modelFamilyType;
-    }
-
-    public UUID getEnsembleTypeId() {
-        return this.ensembleTypeId;
-    }
-
-    public void setEnsembleTypeId(UUID modelEnsembleType) {
-        this.ensembleTypeId = modelEnsembleType;
     }
 
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
@@ -417,32 +365,17 @@ public class Model implements Serializable, Persistable<UUID> {
     }
 
     // prettier-ignore
-
-
     @Override
     public String toString() {
         return "Model{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", displayName='" + displayName + '\'' +
-                ", description='" + description + '\'' +
-                ", advantages='" + advantages + '\'' +
-                ", disadvantages='" + disadvantages + '\'' +
-                ", enabled=" + enabled +
-                ", decisionTree=" + decisionTree +
-                ", parameters=" + parameters +
-                ", groups=" + groups +
-                ", incompatibleMetrics=" + incompatibleMetrics +
-                ", mlTask=" + mlTask +
-                ", structure=" + structure +
-                ", type=" + type +
-                ", familyType=" + familyType +
-                ", ensembleType=" + ensembleType +
-                ", mlTaskId=" + mlTaskId +
-                ", structureId=" + structureId +
-                ", modelTypeId=" + modelTypeId +
-                ", familyTypeId=" + familyTypeId +
-                ", ensembleTypeId=" + ensembleTypeId +
-                '}';
+            "id=" + getId() +
+            ", name='" + getName() + "'" +
+            ", displayName='" + getDisplayName() + "'" +
+            ", description='" + getDescription() + "'" +
+            ", advantages='" + getAdvantages() + "'" +
+            ", disadvantages='" + getDisadvantages() + "'" +
+            ", enabled='" + getEnabled() + "'" +
+            ", decisionTree='" + getDecisionTree() + "'" +
+            "}";
     }
 }

@@ -6,8 +6,8 @@ import static org.hamcrest.Matchers.is;
 
 import ai.turintech.catalog.IntegrationTest;
 import ai.turintech.catalog.domain.FloatParameter;
-import ai.turintech.catalog.repository.EntityManager;
-import ai.turintech.catalog.repository.FloatParameterRepository;
+import ai.turintech.catalog.repository2.EntityManager;
+import ai.turintech.catalog.repository2.FloatParameterRepository;
 import ai.turintech.catalog.service.dto.FloatParameterDTO;
 import ai.turintech.catalog.service.mapper.FloatParameterMapper;
 import java.time.Duration;

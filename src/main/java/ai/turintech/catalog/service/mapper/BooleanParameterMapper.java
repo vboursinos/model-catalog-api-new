@@ -11,7 +11,7 @@ import org.mapstruct.*;
  */
 @Mapper(componentModel = "spring")
 public interface BooleanParameterMapper extends EntityMapper<BooleanParameterDTO, BooleanParameter> {
-    @Mapping(target = "parameterTypeDefinitionId", source = "parameterTypeDefinitionId")
+
     @Mapping(target = "defaultValue", source = "defaultValue")
     BooleanParameterDTO toDto(BooleanParameter s);
 

@@ -14,7 +14,7 @@ import org.mapstruct.Named;
  */
 @Mapper(componentModel = "spring")
 public interface FloatParameterMapper extends EntityMapper<FloatParameterDTO, FloatParameter> {
-    @Mapping(target = "parameterTypeDefinitionId", source = "parameterTypeDefinitionId")
+
     @Mapping(target = "defaultValue", source = "defaultValue")
     FloatParameterDTO toDto(FloatParameter s);
 

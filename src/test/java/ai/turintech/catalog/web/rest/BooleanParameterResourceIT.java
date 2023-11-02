@@ -6,8 +6,8 @@ import static org.hamcrest.Matchers.is;
 
 import ai.turintech.catalog.IntegrationTest;
 import ai.turintech.catalog.domain.BooleanParameter;
-import ai.turintech.catalog.repository.BooleanParameterRepository;
-import ai.turintech.catalog.repository.EntityManager;
+import ai.turintech.catalog.repository2.BooleanParameterRepository;
+import ai.turintech.catalog.repository2.EntityManager;
 import ai.turintech.catalog.service.dto.BooleanParameterDTO;
 import ai.turintech.catalog.service.mapper.BooleanParameterMapper;
 import java.time.Duration;

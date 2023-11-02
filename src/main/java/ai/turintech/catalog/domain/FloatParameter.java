@@ -1,40 +1,44 @@
 package ai.turintech.catalog.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import java.io.Serializable;
-import java.util.*;
+import jakarta.persistence.*;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.Transient;
-import org.springframework.data.relational.core.mapping.Column;
-import org.springframework.data.relational.core.mapping.Table;
+import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * A FloatParameter.
  */
-@Table("float_parameter")
+@Entity
+@Table(name = "float_parameter")
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @SuppressWarnings("common-java:DuplicatedBlocks")
 public class FloatParameter implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    @Id
-    @Column("parameter_type_definition_id")
-    private UUID parameterTypeDefinitionId;
-
-    @Column("default_value")
+    @Column(name = "default_value")
     private Double defaultValue;
 
-    @Transient
+    @Id
+    @JsonIgnoreProperties(
+        value = { "integerParameter", "floatParameter", "categoricalParameter", "booleanParameter", "distribution", "parameter", "type" },
+        allowSetters = true
+    )
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(unique = true)
+    private ParameterTypeDefinition parameterTypeDefinition;
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "floatParameter")
+    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     @JsonIgnoreProperties(value = { "floatParameter" }, allowSetters = true)
-    private List<FloatParameterRange> floatParameterRanges = new ArrayList<>();
+    private Set<FloatParameterRange> floatParameterRanges = new HashSet<>();
 
     // jhipster-needle-entity-add-field - JHipster will add fields here
-
-    public FloatParameter id(UUID id) {
-        this.setParameterTypeDefinitionId(id);
-        return this;
-    }
 
     public Double getDefaultValue() {
         return this.defaultValue;
@@ -49,55 +53,58 @@ public class FloatParameter implements Serializable {
         this.defaultValue = defaultValue;
     }
 
-    public List<FloatParameterRange> getFloatParameterRanges() {
+    public ParameterTypeDefinition getParameterTypeDefinition() {
+        return this.parameterTypeDefinition;
+    }
+
+    public void setParameterTypeDefinition(ParameterTypeDefinition parameterTypeDefinition) {
+        this.parameterTypeDefinition = parameterTypeDefinition;
+    }
+
+    public FloatParameter parameterTypeDefinition(ParameterTypeDefinition parameterTypeDefinition) {
+        this.setParameterTypeDefinition(parameterTypeDefinition);
+        return this;
+    }
+
+    public Set<FloatParameterRange> getFloatParameterRanges() {
         return this.floatParameterRanges;
     }
 
-    public void setFloatParameterRanges(List<FloatParameterRange> floatParameterRanges) {
+    public void setFloatParameterRanges(Set<FloatParameterRange> floatParameterRanges) {
+        if (this.floatParameterRanges != null) {
+            this.floatParameterRanges.forEach(i -> i.setFloatParameter(null));
+        }
+        if (floatParameterRanges != null) {
+            floatParameterRanges.forEach(i -> i.setFloatParameter(this));
+        }
         this.floatParameterRanges = floatParameterRanges;
     }
 
-    public FloatParameter floatParameterRanges(List<FloatParameterRange> floatParameterRanges) {
+    public FloatParameter floatParameterRanges(Set<FloatParameterRange> floatParameterRanges) {
         this.setFloatParameterRanges(floatParameterRanges);
         return this;
     }
 
-
-    public UUID getParameterTypeDefinitionId() {
-        return this.parameterTypeDefinitionId;
+    public FloatParameter addFloatParameterRange(FloatParameterRange floatParameterRange) {
+        this.floatParameterRanges.add(floatParameterRange);
+        floatParameterRange.setFloatParameter(this);
+        return this;
     }
 
-    public void setParameterTypeDefinitionId(UUID parameterTypeDefinition) {
-        this.parameterTypeDefinitionId = parameterTypeDefinition;
+    public FloatParameter removeFloatParameterRange(FloatParameterRange floatParameterRange) {
+        this.floatParameterRanges.remove(floatParameterRange);
+        floatParameterRange.setFloatParameter(null);
+        return this;
     }
 
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof FloatParameter)) {
-            return false;
-        }
-        return getParameterTypeDefinitionId() != null && getParameterTypeDefinitionId().equals(((FloatParameter) o).getParameterTypeDefinitionId());
-    }
-
-    @Override
-    public int hashCode() {
-        // see https://vladmihalcea.com/how-to-implement-equals-and-hashcode-using-the-jpa-entity-identifier/
-        return getClass().hashCode();
-    }
-
-    // prettier-ignore
 
     @Override
     public String toString() {
         return "FloatParameter{" +
-                "parameterTypeDefinitionId=" + parameterTypeDefinitionId +
-                ", defaultValue=" + defaultValue +
-                ", floatParameterRanges=" + floatParameterRanges +
+                "defaultValue=" + defaultValue +
+                ", parameterTypeDefinition=" + parameterTypeDefinition +
                 '}';
     }
 }

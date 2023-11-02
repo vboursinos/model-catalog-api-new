@@ -1,34 +1,37 @@
 package ai.turintech.catalog.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.persistence.*;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+
 import java.io.Serializable;
 import java.util.UUID;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.Transient;
-import org.springframework.data.relational.core.mapping.Column;
-import org.springframework.data.relational.core.mapping.Table;
 
 /**
  * A BooleanParameter.
  */
-@Table("boolean_parameter")
+@Entity
+@Table(name = "boolean_parameter")
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @SuppressWarnings("common-java:DuplicatedBlocks")
 public class BooleanParameter implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    @Id
-    @Column("parameter_type_definition_id")
-    private UUID parameterTypeDefinitionId;
-
-    @Column("default_value")
+    @Column(name = "default_value")
     private Boolean defaultValue;
 
-    // jhipster-needle-entity-add-field - JHipster will add fields here
+    @Id
+    @JsonIgnoreProperties(
+        value = { "integerParameter", "floatParameter", "categoricalParameter", "booleanParameter", "distribution", "parameter", "type" },
+        allowSetters = true
+    )
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(unique = true)
+    private ParameterTypeDefinition parameterTypeDefinition;
 
-    public BooleanParameter id(UUID id) {
-        this.setParameterTypeDefinitionId(id);
-        return this;
-    }
+    // jhipster-needle-entity-add-field - JHipster will add fields here
 
     public Boolean getDefaultValue() {
         return this.defaultValue;
@@ -43,39 +46,26 @@ public class BooleanParameter implements Serializable {
         this.defaultValue = defaultValue;
     }
 
-    public UUID getParameterTypeDefinitionId() {
-        return this.parameterTypeDefinitionId;
+    public ParameterTypeDefinition getParameterTypeDefinition() {
+        return this.parameterTypeDefinition;
     }
 
-    public void setParameterTypeDefinitionId(UUID parameterTypeDefinition) {
-        this.parameterTypeDefinitionId = parameterTypeDefinition;
+    public void setParameterTypeDefinition(ParameterTypeDefinition parameterTypeDefinition) {
+        this.parameterTypeDefinition = parameterTypeDefinition;
+    }
+
+    public BooleanParameter parameterTypeDefinition(ParameterTypeDefinition parameterTypeDefinition) {
+        this.setParameterTypeDefinition(parameterTypeDefinition);
+        return this;
     }
 
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof BooleanParameter)) {
-            return false;
-        }
-        return getParameterTypeDefinitionId() != null && getParameterTypeDefinitionId().equals(((BooleanParameter) o).getParameterTypeDefinitionId());
-    }
-
-    @Override
-    public int hashCode() {
-        // see https://vladmihalcea.com/how-to-implement-equals-and-hashcode-using-the-jpa-entity-identifier/
-        return getClass().hashCode();
-    }
-
-    // prettier-ignore
-    @Override
     public String toString() {
         return "BooleanParameter{" +
-            "parameterTypeDefinitionId=" + getParameterTypeDefinitionId() +
-            ", defaultValue='" + getDefaultValue() + "'" +
-            "}";
+                "defaultValue=" + defaultValue +
+                ", parameterTypeDefinition=" + parameterTypeDefinition +
+                '}';
     }
 }

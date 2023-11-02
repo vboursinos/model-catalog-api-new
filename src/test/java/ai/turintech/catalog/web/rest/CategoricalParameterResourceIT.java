@@ -6,8 +6,8 @@ import static org.hamcrest.Matchers.is;
 
 import ai.turintech.catalog.IntegrationTest;
 import ai.turintech.catalog.domain.CategoricalParameter;
-import ai.turintech.catalog.repository.CategoricalParameterRepository;
-import ai.turintech.catalog.repository.EntityManager;
+import ai.turintech.catalog.repository2.CategoricalParameterRepository;
+import ai.turintech.catalog.repository2.EntityManager;
 import ai.turintech.catalog.service.dto.CategoricalParameterDTO;
 import ai.turintech.catalog.service.mapper.CategoricalParameterMapper;
 import java.time.Duration;

@@ -1,6 +1,6 @@
 package ai.turintech.catalog.web.rest;
 
-import ai.turintech.catalog.repository.FloatParameterRangeRepository;
+import ai.turintech.catalog.repository2.FloatParameterRangeRepository;
 import ai.turintech.catalog.service.FloatParameterRangeService;
 import ai.turintech.catalog.service.dto.FloatParameterRangeDTO;
 import ai.turintech.catalog.web.rest.errors.BadRequestAlertException;

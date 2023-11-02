@@ -1,5 +1,6 @@
 package ai.turintech.catalog.service;
 
+import ai.turintech.catalog.domain.CategoricalParameterValue;
 import ai.turintech.catalog.repository.CategoricalParameterValueRepository;
 import ai.turintech.catalog.service.dto.CategoricalParameterValueDTO;
 import ai.turintech.catalog.service.mapper.CategoricalParameterValueMapper;
@@ -10,7 +11,10 @@ import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Service Implementation for managing {@link ai.turintech.catalog.domain.CategoricalParameterValue}.
@@ -41,9 +45,9 @@ public class CategoricalParameterValueService {
      */
     public Mono<CategoricalParameterValueDTO> save(CategoricalParameterValueDTO categoricalParameterValueDTO) {
         log.debug("Request to save CategoricalParameterValue : {}", categoricalParameterValueDTO);
-        return categoricalParameterValueRepository
-            .save(categoricalParameterValueMapper.toEntity(categoricalParameterValueDTO))
-            .map(categoricalParameterValueMapper::toDto);
+        CategoricalParameterValue categoricalParameterValue = categoricalParameterValueMapper.toEntity(categoricalParameterValueDTO);
+        categoricalParameterValue = categoricalParameterValueRepository.save(categoricalParameterValue);
+        return Mono.just(categoricalParameterValueMapper.toDto(categoricalParameterValue));
     }
 
     /**
@@ -54,9 +58,9 @@ public class CategoricalParameterValueService {
      */
     public Mono<CategoricalParameterValueDTO> update(CategoricalParameterValueDTO categoricalParameterValueDTO) {
         log.debug("Request to update CategoricalParameterValue : {}", categoricalParameterValueDTO);
-        return categoricalParameterValueRepository
-            .save(categoricalParameterValueMapper.toEntity(categoricalParameterValueDTO))
-            .map(categoricalParameterValueMapper::toDto);
+        CategoricalParameterValue categoricalParameterValue = categoricalParameterValueMapper.toEntity(categoricalParameterValueDTO);
+        categoricalParameterValue = categoricalParameterValueRepository.save(categoricalParameterValue);
+        return Mono.just(categoricalParameterValueMapper.toDto(categoricalParameterValue));
     }
 
     /**
@@ -68,15 +72,15 @@ public class CategoricalParameterValueService {
     public Mono<CategoricalParameterValueDTO> partialUpdate(CategoricalParameterValueDTO categoricalParameterValueDTO) {
         log.debug("Request to partially update CategoricalParameterValue : {}", categoricalParameterValueDTO);
 
-        return categoricalParameterValueRepository
-            .findById(categoricalParameterValueDTO.getId())
-            .map(existingCategoricalParameterValue -> {
-                categoricalParameterValueMapper.partialUpdate(existingCategoricalParameterValue, categoricalParameterValueDTO);
+        return  Mono.justOrEmpty(categoricalParameterValueRepository
+                .findById(categoricalParameterValueDTO.getId())
+                .map(existingCategoricalParameterValue -> {
+                    categoricalParameterValueMapper.partialUpdate(existingCategoricalParameterValue, categoricalParameterValueDTO);
 
-                return existingCategoricalParameterValue;
-            })
-            .flatMap(categoricalParameterValueRepository::save)
-            .map(categoricalParameterValueMapper::toDto);
+                    return existingCategoricalParameterValue;
+                })
+                .map(categoricalParameterValueRepository::save)
+                .map(categoricalParameterValueMapper::toDto));
     }
 
     /**
@@ -87,16 +91,12 @@ public class CategoricalParameterValueService {
     @Transactional(readOnly = true)
     public Flux<CategoricalParameterValueDTO> findAll() {
         log.debug("Request to get all CategoricalParameterValues");
-        return categoricalParameterValueRepository.findAll().map(categoricalParameterValueMapper::toDto);
-    }
-
-    /**
-     * Returns the number of categoricalParameterValues available.
-     * @return the number of entities in the database.
-     *
-     */
-    public Mono<Long> countAll() {
-        return categoricalParameterValueRepository.count();
+        List<CategoricalParameterValueDTO> categoricalParameterValueDTOList =  categoricalParameterValueRepository
+                .findAll()
+                .stream()
+                .map(categoricalParameterValueMapper::toDto)
+                .collect(Collectors.toCollection(LinkedList::new));
+        return Flux.fromIterable(categoricalParameterValueDTOList);
     }
 
     /**
@@ -108,7 +108,7 @@ public class CategoricalParameterValueService {
     @Transactional(readOnly = true)
     public Mono<CategoricalParameterValueDTO> findOne(UUID id) {
         log.debug("Request to get CategoricalParameterValue : {}", id);
-        return categoricalParameterValueRepository.findById(id).map(categoricalParameterValueMapper::toDto);
+        return Mono.justOrEmpty(categoricalParameterValueRepository.findById(id).map(categoricalParameterValueMapper::toDto));
     }
 
     /**
@@ -117,8 +117,8 @@ public class CategoricalParameterValueService {
      * @param id the id of the entity.
      * @return a Mono to signal the deletion
      */
-    public Mono<Void> delete(UUID id) {
+    public void delete(UUID id) {
         log.debug("Request to delete CategoricalParameterValue : {}", id);
-        return categoricalParameterValueRepository.deleteById(id);
+        categoricalParameterValueRepository.deleteById(id);
     }
 }

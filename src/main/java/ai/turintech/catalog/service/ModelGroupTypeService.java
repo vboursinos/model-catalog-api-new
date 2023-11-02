@@ -1,11 +1,18 @@
 package ai.turintech.catalog.service;
 
+import ai.turintech.catalog.domain.ModelGroupType;
 import ai.turintech.catalog.repository.ModelGroupTypeRepository;
 import ai.turintech.catalog.service.dto.ModelGroupTypeDTO;
 import ai.turintech.catalog.service.mapper.ModelGroupTypeMapper;
+
+import java.util.LinkedList;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
@@ -20,6 +27,7 @@ public class ModelGroupTypeService {
 
     private final Logger log = LoggerFactory.getLogger(ModelGroupTypeService.class);
 
+    @Autowired
     private final ModelGroupTypeRepository modelGroupTypeRepository;
 
     private final ModelGroupTypeMapper modelGroupTypeMapper;
@@ -37,7 +45,9 @@ public class ModelGroupTypeService {
      */
     public Mono<ModelGroupTypeDTO> save(ModelGroupTypeDTO modelGroupTypeDTO) {
         log.debug("Request to save ModelGroupType : {}", modelGroupTypeDTO);
-        return modelGroupTypeRepository.save(modelGroupTypeMapper.toEntity(modelGroupTypeDTO)).map(modelGroupTypeMapper::toDto);
+        ModelGroupType modelGroupType = modelGroupTypeMapper.toEntity(modelGroupTypeDTO);
+        modelGroupType = modelGroupTypeRepository.save(modelGroupType);
+        return Mono.just(modelGroupTypeMapper.toDto(modelGroupType));
     }
 
     /**
@@ -48,9 +58,9 @@ public class ModelGroupTypeService {
      */
     public Mono<ModelGroupTypeDTO> update(ModelGroupTypeDTO modelGroupTypeDTO) {
         log.debug("Request to update ModelGroupType : {}", modelGroupTypeDTO);
-        return modelGroupTypeRepository
-            .save(modelGroupTypeMapper.toEntity(modelGroupTypeDTO).setIsPersisted())
-            .map(modelGroupTypeMapper::toDto);
+        ModelGroupType modelGroupType = modelGroupTypeMapper.toEntity(modelGroupTypeDTO);
+        modelGroupType = modelGroupTypeRepository.save(modelGroupType);
+        return Mono.just(modelGroupTypeMapper.toDto(modelGroupType));
     }
 
     /**
@@ -62,15 +72,15 @@ public class ModelGroupTypeService {
     public Mono<ModelGroupTypeDTO> partialUpdate(ModelGroupTypeDTO modelGroupTypeDTO) {
         log.debug("Request to partially update ModelGroupType : {}", modelGroupTypeDTO);
 
-        return modelGroupTypeRepository
-            .findById(modelGroupTypeDTO.getId())
-            .map(existingModelGroupType -> {
-                modelGroupTypeMapper.partialUpdate(existingModelGroupType, modelGroupTypeDTO);
+        return Mono.justOrEmpty(modelGroupTypeRepository
+                .findById(modelGroupTypeDTO.getId())
+                .map(existingModelGroupType -> {
+                    modelGroupTypeMapper.partialUpdate(existingModelGroupType, modelGroupTypeDTO);
 
-                return existingModelGroupType;
-            })
-            .flatMap(modelGroupTypeRepository::save)
-            .map(modelGroupTypeMapper::toDto);
+                    return existingModelGroupType;
+                })
+                .map(modelGroupTypeRepository::save)
+                .map(modelGroupTypeMapper::toDto));
     }
 
     /**
@@ -81,16 +91,12 @@ public class ModelGroupTypeService {
     @Transactional(readOnly = true)
     public Flux<ModelGroupTypeDTO> findAll() {
         log.debug("Request to get all ModelGroupTypes");
-        return modelGroupTypeRepository.findAll().map(modelGroupTypeMapper::toDto);
-    }
-
-    /**
-     * Returns the number of modelGroupTypes available.
-     * @return the number of entities in the database.
-     *
-     */
-    public Mono<Long> countAll() {
-        return modelGroupTypeRepository.count();
+        List<ModelGroupTypeDTO> modelGroupTypeDTOS = modelGroupTypeRepository
+                .findAll()
+                .stream()
+                .map(modelGroupTypeMapper::toDto)
+                .collect(Collectors.toCollection(LinkedList::new));
+        return Flux.fromIterable(modelGroupTypeDTOS);
     }
 
     /**
@@ -102,7 +108,7 @@ public class ModelGroupTypeService {
     @Transactional(readOnly = true)
     public Mono<ModelGroupTypeDTO> findOne(UUID id) {
         log.debug("Request to get ModelGroupType : {}", id);
-        return modelGroupTypeRepository.findById(id).map(modelGroupTypeMapper::toDto);
+        return Mono.justOrEmpty(modelGroupTypeRepository.findById(id).map(modelGroupTypeMapper::toDto));
     }
 
     /**
@@ -111,8 +117,8 @@ public class ModelGroupTypeService {
      * @param id the id of the entity.
      * @return a Mono to signal the deletion
      */
-    public Mono<Void> delete(UUID id) {
+    public void delete(UUID id) {
         log.debug("Request to delete ModelGroupType : {}", id);
-        return modelGroupTypeRepository.deleteById(id);
+        modelGroupTypeRepository.deleteById(id);
     }
 }

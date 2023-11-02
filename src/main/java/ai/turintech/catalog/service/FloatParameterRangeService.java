@@ -1,16 +1,21 @@
 package ai.turintech.catalog.service;
 
+import ai.turintech.catalog.domain.FloatParameterRange;
 import ai.turintech.catalog.repository.FloatParameterRangeRepository;
 import ai.turintech.catalog.service.dto.FloatParameterRangeDTO;
 import ai.turintech.catalog.service.mapper.FloatParameterRangeMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Service Implementation for managing {@link ai.turintech.catalog.domain.FloatParameterRange}.
@@ -21,6 +26,7 @@ public class FloatParameterRangeService {
 
     private final Logger log = LoggerFactory.getLogger(FloatParameterRangeService.class);
 
+    @Autowired
     private final FloatParameterRangeRepository floatParameterRangeRepository;
 
     private final FloatParameterRangeMapper floatParameterRangeMapper;
@@ -41,9 +47,9 @@ public class FloatParameterRangeService {
      */
     public Mono<FloatParameterRangeDTO> save(FloatParameterRangeDTO floatParameterRangeDTO) {
         log.debug("Request to save FloatParameterRange : {}", floatParameterRangeDTO);
-        return floatParameterRangeRepository
-            .save(floatParameterRangeMapper.toEntity(floatParameterRangeDTO))
-            .map(floatParameterRangeMapper::toDto);
+        FloatParameterRange floatParameterRange = floatParameterRangeMapper.toEntity(floatParameterRangeDTO);
+        floatParameterRange = floatParameterRangeRepository.save(floatParameterRange);
+        return Mono.just(floatParameterRangeMapper.toDto(floatParameterRange));
     }
 
     /**
@@ -54,9 +60,9 @@ public class FloatParameterRangeService {
      */
     public Mono<FloatParameterRangeDTO> update(FloatParameterRangeDTO floatParameterRangeDTO) {
         log.debug("Request to update FloatParameterRange : {}", floatParameterRangeDTO);
-        return floatParameterRangeRepository
-            .save(floatParameterRangeMapper.toEntity(floatParameterRangeDTO))
-            .map(floatParameterRangeMapper::toDto);
+        FloatParameterRange floatParameterRange = floatParameterRangeMapper.toEntity(floatParameterRangeDTO);
+        floatParameterRange = floatParameterRangeRepository.save(floatParameterRange);
+        return Mono.just(floatParameterRangeMapper.toDto(floatParameterRange));
     }
 
     /**
@@ -68,15 +74,15 @@ public class FloatParameterRangeService {
     public Mono<FloatParameterRangeDTO> partialUpdate(FloatParameterRangeDTO floatParameterRangeDTO) {
         log.debug("Request to partially update FloatParameterRange : {}", floatParameterRangeDTO);
 
-        return floatParameterRangeRepository
-            .findById(floatParameterRangeDTO.getId())
-            .map(existingFloatParameterRange -> {
-                floatParameterRangeMapper.partialUpdate(existingFloatParameterRange, floatParameterRangeDTO);
+        return Mono.justOrEmpty(floatParameterRangeRepository
+                .findById(floatParameterRangeDTO.getId())
+                .map(existingFloatParameterRange -> {
+                    floatParameterRangeMapper.partialUpdate(existingFloatParameterRange, floatParameterRangeDTO);
 
-                return existingFloatParameterRange;
-            })
-            .flatMap(floatParameterRangeRepository::save)
-            .map(floatParameterRangeMapper::toDto);
+                    return existingFloatParameterRange;
+                })
+                .map(floatParameterRangeRepository::save)
+                .map(floatParameterRangeMapper::toDto));
     }
 
     /**
@@ -87,16 +93,12 @@ public class FloatParameterRangeService {
     @Transactional(readOnly = true)
     public Flux<FloatParameterRangeDTO> findAll() {
         log.debug("Request to get all FloatParameterRanges");
-        return floatParameterRangeRepository.findAll().map(floatParameterRangeMapper::toDto);
-    }
-
-    /**
-     * Returns the number of floatParameterRanges available.
-     * @return the number of entities in the database.
-     *
-     */
-    public Mono<Long> countAll() {
-        return floatParameterRangeRepository.count();
+        List<FloatParameterRangeDTO> floatParameterRangeDTOList = floatParameterRangeRepository
+                .findAll()
+                .stream()
+                .map(floatParameterRangeMapper::toDto)
+                .collect(Collectors.toCollection(LinkedList::new));
+        return Flux.fromIterable(floatParameterRangeDTOList);
     }
 
     /**
@@ -108,7 +110,7 @@ public class FloatParameterRangeService {
     @Transactional(readOnly = true)
     public Mono<FloatParameterRangeDTO> findOne(UUID id) {
         log.debug("Request to get FloatParameterRange : {}", id);
-        return floatParameterRangeRepository.findById(id).map(floatParameterRangeMapper::toDto);
+        return Mono.justOrEmpty(floatParameterRangeRepository.findById(id).map(floatParameterRangeMapper::toDto));
     }
 
     /**
@@ -117,8 +119,8 @@ public class FloatParameterRangeService {
      * @param id the id of the entity.
      * @return a Mono to signal the deletion
      */
-    public Mono<Void> delete(UUID id) {
+    public void delete(UUID id) {
         log.debug("Request to delete FloatParameterRange : {}", id);
-        return floatParameterRangeRepository.deleteById(id);
+        floatParameterRangeRepository.deleteById(id);
     }
 }

@@ -14,7 +14,6 @@ import org.mapstruct.Named;
  */
 @Mapper(componentModel = "spring")
 public interface IntegerParameterMapper extends EntityMapper<IntegerParameterDTO, IntegerParameter> {
-    @Mapping(target = "parameterTypeDefinitionId", source = "parameterTypeDefinitionId")
     @Mapping(target = "defaultValue", source = "defaultValue")
     IntegerParameterDTO toDto(IntegerParameter s);
 

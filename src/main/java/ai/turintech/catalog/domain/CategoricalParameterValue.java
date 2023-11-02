@@ -1,52 +1,42 @@
 package ai.turintech.catalog.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import jakarta.validation.constraints.*;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+
 import java.io.Serializable;
 import java.util.UUID;
-
-import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.Transient;
-import org.springframework.data.relational.core.mapping.Column;
-import org.springframework.data.relational.core.mapping.Table;
 
 /**
  * A CategoricalParameterValue.
  */
-@Table("categorical_parameter_value")
+@Entity
+@Table(name = "categorical_parameter_value")
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @SuppressWarnings("common-java:DuplicatedBlocks")
 public class CategoricalParameterValue implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     @Id
-    @Column("id")
+    @GeneratedValue
+    @Column(name = "id")
     private UUID id;
 
-    @NotNull(message = "must not be null")
-    @Column("value")
+    @NotNull
+    @Column(name = "value", nullable = false)
     private String value;
 
-    @Column("parameter_type_definition_id")
-    private UUID parameterTypeDefinitionId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JsonIgnoreProperties(value = { "parameterTypeDefinition", "categoricalParameterValues" }, allowSetters = true)
+    private CategoricalParameter categoricalParameter;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here
 
-
     public UUID getId() {
-        return id;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
-    }
-
-    public UUID getParameterTypeDefinitionId() {
-        return parameterTypeDefinitionId;
-    }
-
-    public void setParameterTypeDefinitionId(UUID parameterTypeDefinitionId) {
-        this.parameterTypeDefinitionId = parameterTypeDefinitionId;
+        return this.id;
     }
 
     public CategoricalParameterValue id(UUID id) {
@@ -54,6 +44,9 @@ public class CategoricalParameterValue implements Serializable {
         return this;
     }
 
+    public void setId(UUID id) {
+        this.id = id;
+    }
 
     public String getValue() {
         return this.value;
@@ -68,9 +61,20 @@ public class CategoricalParameterValue implements Serializable {
         this.value = value;
     }
 
+    public CategoricalParameter getCategoricalParameter() {
+        return this.categoricalParameter;
+    }
 
+    public void setCategoricalParameter(CategoricalParameter categoricalParameter) {
+        this.categoricalParameter = categoricalParameter;
+    }
 
-// jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
+    public CategoricalParameterValue categoricalParameter(CategoricalParameter categoricalParameter) {
+        this.setCategoricalParameter(categoricalParameter);
+        return this;
+    }
+
+    // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
 
     @Override
     public boolean equals(Object o) {
@@ -90,13 +94,11 @@ public class CategoricalParameterValue implements Serializable {
     }
 
     // prettier-ignore
-
     @Override
     public String toString() {
         return "CategoricalParameterValue{" +
-                "id=" + id +
-                ", value='" + value + '\'' +
-                ", parameterTypeDefinitionId=" + parameterTypeDefinitionId +
-                '}';
+            "id=" + getId() +
+            ", value='" + getValue() + "'" +
+            "}";
     }
 }

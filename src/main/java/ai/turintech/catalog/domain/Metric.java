@@ -1,37 +1,36 @@
 package ai.turintech.catalog.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.persistence.*;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.Transient;
-import org.springframework.data.domain.Persistable;
-import org.springframework.data.relational.core.mapping.Column;
-import org.springframework.data.relational.core.mapping.Table;
 
 /**
  * A Metric.
  */
-@Table("metric")
-@JsonIgnoreProperties(value = { "new" })
+@Entity
+@Table(name = "metric")
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @SuppressWarnings("common-java:DuplicatedBlocks")
-public class Metric implements Serializable, Persistable<UUID> {
+public class Metric implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     @Id
-    @Column("id")
+    @GeneratedValue
+    @Column(name = "id")
     private UUID id;
 
-    @Column("name")
-    private String name;
+    @Column(name = "metric")
+    private String metric;
 
-    @Transient
-    private boolean isPersisted;
-
-    @Transient
+    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "incompatibleMetrics")
+    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     @JsonIgnoreProperties(
         value = { "parameters", "groups", "incompatibleMetrics", "mlTask", "structure", "type", "familyType", "ensembleType" },
         allowSetters = true
@@ -53,28 +52,17 @@ public class Metric implements Serializable, Persistable<UUID> {
         this.id = id;
     }
 
-    public String getName() {
-        return this.name;
+    public String getMetric() {
+        return this.metric;
     }
 
-    public Metric name(String name) {
-        this.setName(name);
+    public Metric metric(String metric) {
+        this.setMetric(metric);
         return this;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    @Transient
-    @Override
-    public boolean isNew() {
-        return !this.isPersisted;
-    }
-
-    public Metric setIsPersisted() {
-        this.isPersisted = true;
-        return this;
+    public void setMetric(String metric) {
+        this.metric = metric;
     }
 
     public Set<Model> getModels() {
@@ -132,7 +120,7 @@ public class Metric implements Serializable, Persistable<UUID> {
     public String toString() {
         return "Metric{" +
             "id=" + getId() +
-            ", name='" + getName() + "'" +
+            ", metric='" + getMetric() + "'" +
             "}";
     }
 }

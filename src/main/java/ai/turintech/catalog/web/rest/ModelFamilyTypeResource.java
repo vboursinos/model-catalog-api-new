@@ -1,6 +1,6 @@
 package ai.turintech.catalog.web.rest;
 
-import ai.turintech.catalog.repository.ModelFamilyTypeRepository;
+import ai.turintech.catalog.repository2.ModelFamilyTypeRepository;
 import ai.turintech.catalog.service.ModelFamilyTypeService;
 import ai.turintech.catalog.service.dto.ModelFamilyTypeDTO;
 import ai.turintech.catalog.web.rest.errors.BadRequestAlertException;
