@@ -1,0 +1,10 @@
+INSERT INTO model_type(name) VALUES ('Linear Model');
+INSERT INTO model_type(name) VALUES ('Kernel Model');
+INSERT INTO model_type(name) VALUES ('Tree-Based Model');
+INSERT INTO model_type(name) VALUES ('Baseline Model');
+INSERT INTO model_type(name) VALUES ('Nearest Neighbours Model');
+INSERT INTO model_type(name) VALUES ('Ensemble Model');
+INSERT INTO model_type(name) VALUES ('Forecasting Model');
+INSERT INTO model_type(name) VALUES ('Bayesian Model');
+INSERT INTO model_type(name) VALUES ('Deep Learning Model');
+INSERT INTO model_type(name) VALUES ('Gradient Model');
