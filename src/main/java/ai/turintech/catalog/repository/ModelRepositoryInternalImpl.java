@@ -25,6 +25,7 @@ import reactor.util.function.Tuple4;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.time.Duration;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
@@ -221,7 +222,7 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
                 String foreignKey = relationship.getFromColumn();
                 Table tableName = relationship.getToTableObject();
                 String pkJoinTable = relationship.getToColumn();
-                if (isRelationshipTypeAllowed(relationship.getType().getValue())) {
+                if (isRelationshipManyToOneTypeAllowed(relationship.getType().getValue())) {
                     if (firstJoin) {
                         selectFrom = Select.builder().select(columns).from(table.getTable()).join(tableName).on(Column.create(foreignKey, table.getTable())).equals(Column.create(pkJoinTable, tableName));
                         firstJoin = false;
@@ -249,7 +250,7 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
                 String foreignKey = relationship.getFromColumn();
                 Table tableName = relationship.getToTableObject();
                 String pkJoinTable = relationship.getToColumn();
-                if (isRelationshipTypeAllowed(relationship.getType().getValue())) {
+                if (isRelationshipManyToManyTypeAllowed(relationship.getType().getValue())) {
                     if (firstJoin) {
                         selectFrom = Select.builder().select(columns).from(table.getTable()).leftOuterJoin(tableName).on(Column.create(foreignKey, table.getTable())).equals(Column.create(pkJoinTable, tableName));
                         firstJoin = false;
@@ -279,7 +280,7 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
                 String foreignKey = relationship.getFromColumn();
                 Table tableName = relationship.getToTableObject();
                 String pkJoinTable = relationship.getToColumn();
-                if (isRelationshipTypeAllowed(relationship.getType().getValue())) {
+                if (isRelationshipManyToManyTypeAllowed(relationship.getType().getValue())) {
                     if (firstJoin) {
                         selectFrom = Select.builder().select(columns).from(table.getTable()).leftOuterJoin(tableName).on(Column.create(foreignKey, table.getTable())).equals(Column.create(pkJoinTable, tableName));
                         firstJoin = false;
@@ -420,6 +421,7 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
         return createParameterQuery(null, whereClause).all().collectList()
                 .flatMapMany(Flux::fromIterable)
                 .flatMap(this::populateParameterWithDefinitions)
+                .flatMap(this::populateParameterWithValues)
                 .collectList();
     }
 
@@ -470,11 +472,12 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
         mod.setGroups(modelGroupTypes);
         mod.setIncompatibleMetrics(modelMetrics);
         System.out.println(String.format("internal mod: %s", mod));
-        return Flux.fromIterable(parameters)
+        return Mono.just(mod);
+/*        return Flux.fromIterable(parameters)
                 .flatMap(this::populateParameterWithValues)
                 .collectList()
                 .doOnNext(mod::setParameters)
-                .thenReturn(mod);
+                .thenReturn(mod);*/
     }
 
     private Mono<Parameter> populateParameterWithValues(Parameter parameter) {
@@ -730,6 +733,20 @@ class ModelRepositoryInternalImpl extends SimpleR2dbcRepository<Model, UUID> imp
 
     private boolean isRelationshipTypeAllowed(String relationshipType) {
         if (relationshipType.equalsIgnoreCase("many-to-many") || relationshipType.equalsIgnoreCase("many-to-one")) {
+            return true;
+        }
+        return false;
+    }
+
+    private boolean isRelationshipManyToOneTypeAllowed(String relationshipType) {
+        if (relationshipType.equalsIgnoreCase("many-to-one")) {
+            return true;
+        }
+        return false;
+    }
+
+    private boolean isRelationshipManyToManyTypeAllowed(String relationshipType) {
+        if (relationshipType.equalsIgnoreCase("many-to-many")) {
             return true;
         }
         return false;
