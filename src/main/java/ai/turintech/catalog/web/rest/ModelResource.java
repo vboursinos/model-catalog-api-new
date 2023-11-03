@@ -180,7 +180,7 @@ public class ModelResource {
             }
         }
 
-        return modelService.findAllMono(pageable)
+        return modelService.findAll(pageable)
                 .map(modelPaginatedListDTO -> ResponseEntity.ok().body(modelPaginatedListDTO))
                 .defaultIfEmpty(ResponseEntity.notFound().build())
                 .onErrorResume(Exception.class, ex -> {

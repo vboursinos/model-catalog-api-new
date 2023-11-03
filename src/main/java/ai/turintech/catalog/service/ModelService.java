@@ -1,5 +1,6 @@
 package ai.turintech.catalog.service;
 
+import ai.turintech.catalog.callable.FindAllModelsCallable;
 import ai.turintech.catalog.domain.Model;
 import ai.turintech.catalog.callable.FindModelCallable;
 import ai.turintech.catalog.repository.ModelRepository;
@@ -98,25 +99,13 @@ public class ModelService {
      * @return the list of entities.
      */
     @Transactional(readOnly = true)
-    public Page<ModelDTO> findAll(Pageable pageable) {
+    public Mono<ModelPaginatedListDTO> findAll(Pageable pageable) {
         log.debug("Request to get all Models");
-        List<Model> models = modelRepository.findAll();
-        return modelRepository.findAll(pageable).map(modelMapper::toDto);
-    }
+        FindAllModelsCallable findAllModelsCallable = context.getBean(FindAllModelsCallable.class, pageable);
 
-    @Transactional(readOnly = true)
-    public Mono<ModelPaginatedListDTO> findAllMono(Pageable pageable) {
-        log.debug("Request to get all Models");
-        List<Model> models = modelRepository.findAll(pageable).getContent();
-        ModelPaginatedListDTO paginatedList = paginationConverter.getPaginatedList(
-                models.stream().map(modelMapper::toDto).toList(),
-                pageable.getPageNumber(),
-                pageable.getPageSize(),
-                modelRepository.count()
-        );
-        return Mono.just(paginatedList);
+        return Mono.fromCallable(findAllModelsCallable)
+                .subscribeOn(jdbcScheduler);
     }
-
 
     /**
      * Get all the models with eager load of many-to-many relationships.
