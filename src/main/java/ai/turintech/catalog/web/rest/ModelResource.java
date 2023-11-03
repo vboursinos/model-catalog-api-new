@@ -4,7 +4,6 @@ import ai.turintech.catalog.repository.ModelRepository;
 import ai.turintech.catalog.service.ModelService;
 import ai.turintech.catalog.service.dto.ModelDTO;
 import ai.turintech.catalog.service.dto.ModelPaginatedListDTO;
-import ai.turintech.catalog.service.dto.FilterDTO;
 import ai.turintech.catalog.service.dto.SearchDTO;
 import ai.turintech.catalog.utils.PaginationConverter;
 import ai.turintech.catalog.web.rest.errors.BadRequestAlertException;
@@ -12,24 +11,14 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
 import tech.jhipster.web.util.HeaderUtil;
-import tech.jhipster.web.util.PaginationUtil;
 import tech.jhipster.web.util.ResponseUtil;
 
 import java.net.URI;
@@ -195,19 +184,34 @@ public class ModelResource {
 //    }
 
     @GetMapping("/models")
-    public ResponseEntity<List<ModelDTO>> getAllModels(
+    public ResponseEntity<ModelPaginatedListDTO> getAllModels(
             @org.springdoc.core.annotations.ParameterObject Pageable pageable,
-            @RequestParam(required = false, defaultValue = "true") boolean eagerload
+            @RequestParam(required = false, defaultValue = "true") boolean eagerload,
+            @RequestParam(value = "search", required = false) String search
     ) {
         log.debug("REST request to get a page of Models");
+        List<SearchDTO> searchParams = new ArrayList<SearchDTO>();
+        if (search != null) {
+            Pattern pattern = Pattern.compile("(\\w+)(:)([^,]+),?");
+            Matcher matcher = pattern.matcher(search);
+
+            while (matcher.find()) {
+                searchParams.add(new SearchDTO(matcher.group(1), matcher.group(2), matcher.group(3)));
+            }
+        }
         Page<ModelDTO> page;
         if (eagerload) {
             page = modelService.findAllWithEagerRelationships(pageable);
         } else {
             page = modelService.findAll(pageable);
         }
-        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
-        return ResponseEntity.ok().headers(headers).body(page.getContent());
+        ModelPaginatedListDTO paginatedList = paginationConverter.getPaginatedList(
+                page.getContent(),
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                page.getTotalElements()
+        );
+        return ResponseEntity.ok().body(paginatedList);
     }
 
     /**

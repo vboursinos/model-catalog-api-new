@@ -4,8 +4,6 @@ import ai.turintech.catalog.domain.Model;
 import ai.turintech.catalog.repository.ModelRepository;
 import ai.turintech.catalog.service.dto.ModelDTO;
 import ai.turintech.catalog.service.mapper.ModelMapper;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -30,11 +29,6 @@ public class ModelService {
 
     @Autowired
     private ModelMapper modelMapper;
-
-//    public ModelService(ModelRepository modelRepository, ModelMapper modelMapper) {
-//        this.modelRepository = modelRepository;
-//        this.modelMapper = modelMapper;
-//    }
 
     /**
      * Save a model.
@@ -91,6 +85,7 @@ public class ModelService {
     @Transactional(readOnly = true)
     public Page<ModelDTO> findAll(Pageable pageable) {
         log.debug("Request to get all Models");
+        List<Model> models = modelRepository.findAll();
         return modelRepository.findAll(pageable).map(modelMapper::toDto);
     }
 
@@ -100,6 +95,7 @@ public class ModelService {
      * @return the list of entities.
      */
     public Page<ModelDTO> findAllWithEagerRelationships(Pageable pageable) {
+        List<Model> models = modelRepository.findAllWithEagerRelationships();
         return modelRepository.findAllWithEagerRelationships(pageable).map(modelMapper::toDto);
     }
 
