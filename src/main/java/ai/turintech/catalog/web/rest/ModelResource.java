@@ -2,6 +2,7 @@ package ai.turintech.catalog.web.rest;
 
 import ai.turintech.catalog.repository.ModelRepository;
 import ai.turintech.catalog.service.ModelService;
+import ai.turintech.catalog.service.dto.FilterDTO;
 import ai.turintech.catalog.service.dto.ModelDTO;
 import ai.turintech.catalog.service.dto.ModelPaginatedListDTO;
 import ai.turintech.catalog.service.dto.SearchDTO;
@@ -11,12 +12,16 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import tech.jhipster.web.util.HeaderUtil;
 import tech.jhipster.web.util.ResponseUtil;
@@ -146,47 +151,12 @@ public class ModelResource {
      * @param eagerload flag to eager load entities from relationships (This is applicable for many-to-many).
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of models in body.
      */
-//    @GetMapping(value = "/models", produces = MediaType.APPLICATION_JSON_VALUE)
-//    public Mono<ResponseEntity<ModelPaginatedListDTO>> getAllModels(
-//            @ParameterObject Pageable pageable,
-//            ServerHttpRequest request,
-//            @RequestParam(required = false, defaultValue = "false") boolean eagerload,
-//            FilterDTO filterDTO,
-//            @RequestParam(value = "search", required = false) String search
-//    ) {
-//        log.debug("REST request to get a page of Models");
-//        List<SearchDTO> searchParams = new ArrayList<SearchDTO>();
-//        if (search != null) {
-//            Pattern pattern = Pattern.compile("(\\w+)(:)([^,]+),?");
-//            Matcher matcher = pattern.matcher(search);
-//
-//            while (matcher.find()) {
-//                searchParams.add(new SearchDTO(matcher.group(1), matcher.group(2), matcher.group(3)));
-//            }
-//        }
-//        return modelService
-//                .countAll(filterDTO, searchParams)
-//                .zipWith(modelService.findAll(pageable, filterDTO, searchParams).collectList())
-//                .map(countWithEntities -> {
-//                    ModelPaginatedListDTO paginatedList = paginationConverter.getPaginatedList(
-//                            countWithEntities.getT2(),
-//                            pageable.getPageNumber(),
-//                            pageable.getPageSize(),
-//                            countWithEntities.getT1()
-//                    );
-//
-//                    HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(
-//                            UriComponentsBuilder.fromHttpRequest(request),
-//                            new PageImpl<>(countWithEntities.getT2(), pageable, countWithEntities.getT1()));
-//
-//                    return ResponseEntity.ok().headers(headers).body(paginatedList);
-//                });
-//    }
-
-    @GetMapping("/models")
-    public ResponseEntity<ModelPaginatedListDTO> getAllModels(
-            @org.springdoc.core.annotations.ParameterObject Pageable pageable,
-            @RequestParam(required = false, defaultValue = "true") boolean eagerload,
+    @GetMapping(value = "/models", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Mono<ResponseEntity<ModelPaginatedListDTO>> getAllModels(
+            @ParameterObject Pageable pageable,
+            ServerHttpRequest request,
+            @RequestParam(required = false, defaultValue = "false") boolean eagerload,
+            FilterDTO filterDTO,
             @RequestParam(value = "search", required = false) String search
     ) {
         log.debug("REST request to get a page of Models");
@@ -211,7 +181,7 @@ public class ModelResource {
                 pageable.getPageSize(),
                 page.getTotalElements()
         );
-        return ResponseEntity.ok().body(paginatedList);
+        return Mono.justOrEmpty(ResponseEntity.ok().body(paginatedList));
     }
 
     /**
