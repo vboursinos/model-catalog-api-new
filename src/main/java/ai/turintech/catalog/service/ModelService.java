@@ -4,6 +4,8 @@ import ai.turintech.catalog.domain.Model;
 import ai.turintech.catalog.repository.ModelRepository;
 import ai.turintech.catalog.service.dto.ModelDTO;
 import ai.turintech.catalog.service.mapper.ModelMapper;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +28,7 @@ public class ModelService {
     @Autowired
     private ModelRepository modelRepository;
 
+    @Autowired
     private ModelMapper modelMapper;
 
 //    public ModelService(ModelRepository modelRepository, ModelMapper modelMapper) {
@@ -109,6 +112,8 @@ public class ModelService {
     @Transactional(readOnly = true)
     public Optional<ModelDTO> findOne(UUID id) {
         log.debug("Request to get Model : {}", id);
+        Optional<Model> model = modelRepository.findById(id);
+        ModelDTO modelDTO = modelMapper.toDto(model.get());
         return modelRepository.findOneWithEagerRelationships(id).map(modelMapper::toDto);
     }
 

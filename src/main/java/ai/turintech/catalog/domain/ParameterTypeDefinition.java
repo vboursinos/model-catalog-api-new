@@ -31,30 +31,37 @@ public class ParameterTypeDefinition implements Serializable {
 
     @JsonIgnoreProperties(value = { "parameterTypeDefinition", "integerParameterValues" }, allowSetters = true)
     @OneToOne(fetch = FetchType.LAZY, mappedBy = "parameterTypeDefinition")
+    @JoinColumn(name = "parameter_type_definition_id", referencedColumnName = "id")
     private IntegerParameter integerParameter;
 
     @JsonIgnoreProperties(value = { "parameterTypeDefinition", "floatParameterRanges" }, allowSetters = true)
     @OneToOne(fetch = FetchType.LAZY, mappedBy = "parameterTypeDefinition")
+    @JoinColumn(name = "parameter_type_definition_id", referencedColumnName = "id")
     private FloatParameter floatParameter;
 
     @JsonIgnoreProperties(value = { "parameterTypeDefinition", "categoricalParameterValues" }, allowSetters = true)
     @OneToOne(fetch = FetchType.LAZY, mappedBy = "parameterTypeDefinition")
+    @JoinColumn(name = "parameter_type_definition_id", referencedColumnName = "id")
     private CategoricalParameter categoricalParameter;
 
     @JsonIgnoreProperties(value = { "parameterTypeDefinition" }, allowSetters = true)
     @OneToOne(fetch = FetchType.LAZY, mappedBy = "parameterTypeDefinition")
+    @JoinColumn(name = "parameter_type_definition_id", referencedColumnName = "id")
     private BooleanParameter booleanParameter;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnoreProperties(value = { "definitions" }, allowSetters = true)
+    @JoinColumn(name = "parameter_distribution_type_id", referencedColumnName = "id")
     private ParameterDistributionType distribution;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnoreProperties(value = { "definitions", "model" }, allowSetters = true)
+    @JoinColumn(name = "parameter_id", referencedColumnName = "id")
     private Parameter parameter;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnoreProperties(value = { "definitions" }, allowSetters = true)
+    @JoinColumn(name = "parameter_type_id", referencedColumnName = "id")
     private ParameterType type;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here

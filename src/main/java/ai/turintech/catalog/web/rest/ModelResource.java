@@ -56,13 +56,9 @@ public class ModelResource {
     private PaginationConverter paginationConverter;
     @Autowired
     private ModelService modelService;
-//    @Autowired
-//    private ModelRepository modelRepository;
 
-//    public ModelResource(ModelService modelService, ModelRepository modelRepository) {
-//        this.modelService = modelService;
-//        this.modelRepository = modelRepository;
-//    }
+    @Autowired
+    private ModelRepository modelRepository;
 
     /**
      * {@code POST  /models} : Create a new model.
@@ -198,7 +194,7 @@ public class ModelResource {
 //                });
 //    }
 
-    @GetMapping("")
+    @GetMapping("/models")
     public ResponseEntity<List<ModelDTO>> getAllModels(
             @org.springdoc.core.annotations.ParameterObject Pageable pageable,
             @RequestParam(required = false, defaultValue = "true") boolean eagerload

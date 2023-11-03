@@ -31,6 +31,7 @@ public class CategoricalParameterValue implements Serializable {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnoreProperties(value = { "parameterTypeDefinition", "categoricalParameterValues" }, allowSetters = true)
+    @JoinColumn(name = "parameter_type_definition_id", referencedColumnName = "parameter_type_definition_id")
     private CategoricalParameter categoricalParameter;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here

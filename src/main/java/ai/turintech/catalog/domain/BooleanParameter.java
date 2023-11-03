@@ -19,19 +19,29 @@ public class BooleanParameter implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    @Id
+    @Column(name = "parameter_type_definition_id", insertable = false, updatable = false)
+    private UUID parameterTypeDefinitionId;
     @Column(name = "default_value")
     private Boolean defaultValue;
 
-    @Id
     @JsonIgnoreProperties(
         value = { "integerParameter", "floatParameter", "categoricalParameter", "booleanParameter", "distribution", "parameter", "type" },
         allowSetters = true
     )
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(unique = true)
+    @JoinColumn(name = "parameter_type_definition_id", unique = true)
     private ParameterTypeDefinition parameterTypeDefinition;
 
-    // jhipster-needle-entity-add-field - JHipster will add fields here
+    public BooleanParameter() {
+    }
+
+    public BooleanParameter(ParameterTypeDefinition parameterTypeDefinition) {
+        this.parameterTypeDefinitionId = parameterTypeDefinition.getId();
+        this.parameterTypeDefinition = parameterTypeDefinition;
+    }
+
+// jhipster-needle-entity-add-field - JHipster will add fields here
 
     public Boolean getDefaultValue() {
         return this.defaultValue;

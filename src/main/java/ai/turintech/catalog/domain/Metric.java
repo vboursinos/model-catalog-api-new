@@ -26,7 +26,7 @@ public class Metric implements Serializable {
     @Column(name = "id")
     private UUID id;
 
-    @Column(name = "metric")
+    @Column(name = "name")
     private String metric;
 
     @ManyToMany(fetch = FetchType.LAZY, mappedBy = "incompatibleMetrics")

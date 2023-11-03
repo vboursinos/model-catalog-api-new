@@ -35,6 +35,7 @@ public class IntegerParameterValue implements Serializable {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnoreProperties(value = { "parameterTypeDefinition", "integerParameterValues" }, allowSetters = true)
+    @JoinColumn(name = "parameter_type_definition_id", referencedColumnName = "parameter_type_definition_id")
     private IntegerParameter integerParameter;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here

@@ -32,7 +32,6 @@ public interface ModelMapper extends EntityMapper<ModelDTO, Model> {
     @Mapping(target = "type", source = "type")
     @Mapping(target = "familyType", source = "familyType")
     @Mapping(target = "ensembleType", source = "ensembleType")
-    @Mapping(target = "parameters", source = "parameters")
     ModelDTO toDto(Model s);
 
     @Mapping(target = "removeGroups", ignore = true)

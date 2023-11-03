@@ -61,7 +61,7 @@ public class Model implements Serializable {
     @JoinTable(
         name = "rel_model__groups",
         joinColumns = @JoinColumn(name = "model_id"),
-        inverseJoinColumns = @JoinColumn(name = "groups_id")
+        inverseJoinColumns = @JoinColumn(name = "group_id")
     )
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     @JsonIgnoreProperties(value = { "models" }, allowSetters = true)
@@ -71,7 +71,7 @@ public class Model implements Serializable {
     @JoinTable(
         name = "rel_model__incompatible_metrics",
         joinColumns = @JoinColumn(name = "model_id"),
-        inverseJoinColumns = @JoinColumn(name = "incompatible_metrics_id")
+        inverseJoinColumns = @JoinColumn(name = "metric_id")
     )
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     @JsonIgnoreProperties(value = { "models" }, allowSetters = true)
@@ -79,22 +79,27 @@ public class Model implements Serializable {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnoreProperties(value = { "models" }, allowSetters = true)
+    @JoinColumn(name = "ml_task_id", referencedColumnName = "id")
     private MlTaskType mlTask;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnoreProperties(value = { "models" }, allowSetters = true)
+    @JoinColumn(name = "structure_id", referencedColumnName = "id")
     private ModelStructureType structure;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnoreProperties(value = { "models" }, allowSetters = true)
+    @JoinColumn(name = "model_type_id", referencedColumnName = "id")
     private ModelType type;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnoreProperties(value = { "models" }, allowSetters = true)
+    @JoinColumn(name = "family_type_id", referencedColumnName = "id")
     private ModelFamilyType familyType;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnoreProperties(value = { "models" }, allowSetters = true)
+    @JoinColumn(name = "ensemble_type_id", referencedColumnName = "id")
     private ModelEnsembleType ensembleType;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here

@@ -6,7 +6,10 @@ import javax.sql.DataSource;
 import liquibase.integration.spring.SpringLiquibase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
+import org.springframework.boot.autoconfigure.liquibase.LiquibaseDataSource;
 import org.springframework.boot.autoconfigure.liquibase.LiquibaseProperties;
 import org.springframework.boot.autoconfigure.r2dbc.R2dbcProperties;
 import org.springframework.boot.jdbc.DataSourceBuilder;
@@ -16,6 +19,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.core.env.Profiles;
 import tech.jhipster.config.JHipsterConstants;
 import tech.jhipster.config.liquibase.AsyncSpringLiquibase;
+import tech.jhipster.config.liquibase.SpringLiquibaseUtil;
 
 @Configuration
 public class LiquibaseConfiguration {
@@ -32,10 +36,18 @@ public class LiquibaseConfiguration {
     public SpringLiquibase liquibase(
         @Qualifier("taskExecutor") Executor executor,
         LiquibaseProperties liquibaseProperties,
-        R2dbcProperties dataSourceProperties
+        @LiquibaseDataSource ObjectProvider<DataSource> liquibaseDataSource,
+        ObjectProvider<DataSource> dataSource,
+        DataSourceProperties dataSourceProperties
     ) {
-        SpringLiquibase liquibase = new AsyncSpringLiquibase(executor, env);
-        liquibase.setDataSource(createLiquibaseDataSource(liquibaseProperties, dataSourceProperties));
+        SpringLiquibase liquibase = SpringLiquibaseUtil.createAsyncSpringLiquibase(
+                this.env,
+                executor,
+                liquibaseDataSource.getIfAvailable(),
+                liquibaseProperties,
+                dataSource.getIfUnique(),
+                dataSourceProperties
+        );
         liquibase.setChangeLog("classpath:config/liquibase/master.xml");
         liquibase.setContexts(liquibaseProperties.getContexts());
         liquibase.setDefaultSchema(liquibaseProperties.getDefaultSchema());

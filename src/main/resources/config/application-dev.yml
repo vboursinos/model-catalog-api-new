@@ -63,25 +63,16 @@ spring:
     url: jdbc:postgresql://localhost:5434/postgres
     username: file-api
     password: RUyWGY7XF5hGzK3sFUknQZ11CwNef5BR15
+    driver-class-name: org.postgresql.Driver
   liquibase:
     contexts: dev
     url: jdbc:postgresql://localhost:5434/postgres
     user: file-api
     password: RUyWGY7XF5hGzK3sFUknQZ11CwNef5BR15
-  r2dbc:
-    url: r2dbc:postgresql://localhost:5434/postgres
-    username: file-api
-    password: RUyWGY7XF5hGzK3sFUknQZ11CwNef5BR15
   messages:
     cache-duration: PT1S # 1 second, see the ISO 8601 standard
   thymeleaf:
     cache: false
-#  data:
-#    r2dbc:
-#      repositories:
-#        enabled: false
-#model-catalog-properties:
-#  model_properties: id,name,display_name
 server:
   port: 8081
 
@@ -92,6 +83,10 @@ server:
 # ===================================================================
 
 jhipster:
+  cache: # Cache configuration
+    hazelcast: # Hazelcast distributed cache
+      time-to-live-seconds: 3600
+      backup-count: 1
   # CORS is disabled by default on microservices, as you should access them through a gateway.
   # If you want to enable it, please uncomment the configuration below.
   # cors:

@@ -21,22 +21,33 @@ public class CategoricalParameter implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    @Id
+    @Column(name = "parameter_type_definition_id", insertable = false, updatable = false)
+    private UUID parameterTypeDefinitionId;
+
     @Column(name = "default_value")
     private String defaultValue;
 
-    @Id
     @JsonIgnoreProperties(
-        value = { "integerParameter", "floatParameter", "categoricalParameter", "booleanParameter", "distribution", "parameter", "type" },
-        allowSetters = true
+            value = {"integerParameter", "floatParameter", "categoricalParameter", "booleanParameter", "distribution", "parameter", "type"},
+            allowSetters = true
     )
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(unique = true)
+    @JoinColumn(name = "parameter_type_definition_id", unique = true)
     private ParameterTypeDefinition parameterTypeDefinition;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "categoricalParameter")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-    @JsonIgnoreProperties(value = { "categoricalParameter" }, allowSetters = true)
+    @JsonIgnoreProperties(value = {"categoricalParameter"}, allowSetters = true)
     private Set<CategoricalParameterValue> categoricalParameterValues = new HashSet<>();
+
+    public CategoricalParameter() {
+    }
+
+    public CategoricalParameter(ParameterTypeDefinition parameterTypeDefinition) {
+        this.parameterTypeDefinitionId = parameterTypeDefinition.getId();
+        this.parameterTypeDefinition = parameterTypeDefinition;
+    }
 
     public String getDefaultValue() {
         return this.defaultValue;
@@ -100,7 +111,7 @@ public class CategoricalParameter implements Serializable {
     @Override
     public String toString() {
         return "CategoricalParameter{" +
-            "defaultValue='" + getDefaultValue() + "'" +
-            "}";
+                "defaultValue='" + getDefaultValue() + "'" +
+                "}";
     }
 }

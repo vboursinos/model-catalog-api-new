@@ -43,6 +43,7 @@ public class FloatParameterRange implements Serializable {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnoreProperties(value = { "parameterTypeDefinition", "floatParameterRanges" }, allowSetters = true)
+    @JoinColumn(name = "parameter_type_definition_id", referencedColumnName = "parameter_type_definition_id")
     private FloatParameter floatParameter;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here
