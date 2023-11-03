@@ -17,13 +17,25 @@ import javax.sql.DataSource;
 @EnableJpaRepositories
 public class JpaConfiguration {
 
+    @Value("${spring.datasource.url}")
+    private String datasourceUrl;
+
+    @Value("${spring.datasource.username}")
+    private String datasourceUsername;
+
+    @Value("${spring.datasource.password}")
+    private String datasourcePassword;
+
+    @Value("${spring.datasource.driver-class-name}")
+    private String datasourceDriverClassName;
+
     @Bean
     public DataSource dataSource(){
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
-        dataSource.setDriverClassName("org.postgresql.Driver");
-        dataSource.setUrl("jdbc:postgresql://localhost:5434/postgres");
-        dataSource.setUsername("file-api");
-        dataSource.setPassword("RUyWGY7XF5hGzK3sFUknQZ11CwNef5BR15");
+        dataSource.setDriverClassName(datasourceDriverClassName);
+        dataSource.setUrl(datasourceUrl);
+        dataSource.setUsername(datasourceUsername);
+        dataSource.setPassword(datasourcePassword);
         return dataSource;
     }
 
