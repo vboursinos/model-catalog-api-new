@@ -1,19 +1,24 @@
 package ai.turintech.catalog.service;
 
 import ai.turintech.catalog.domain.Model;
+import ai.turintech.catalog.callable.FindModelCallable;
 import ai.turintech.catalog.repository.ModelRepository;
 import ai.turintech.catalog.service.dto.ModelDTO;
+import ai.turintech.catalog.service.dto.ModelPaginatedListDTO;
 import ai.turintech.catalog.service.mapper.ModelMapper;
+import ai.turintech.catalog.utils.PaginationConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Scheduler;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -23,6 +28,12 @@ import java.util.UUID;
 @Transactional
 public class ModelService {
 
+    @Autowired
+    private ApplicationContext context;
+
+    @Autowired
+    private Scheduler jdbcScheduler;
+
     private final Logger log = LoggerFactory.getLogger(ModelService.class);
     @Autowired
     private ModelRepository modelRepository;
@@ -30,17 +41,21 @@ public class ModelService {
     @Autowired
     private ModelMapper modelMapper;
 
+    @Autowired
+    private PaginationConverter paginationConverter;
     /**
      * Save a model.
      *
      * @param modelDTO the entity to save.
      * @return the persisted entity.
      */
-    public ModelDTO save(ModelDTO modelDTO) {
+    public Mono<ModelDTO> save(ModelDTO modelDTO) {
         log.debug("Request to save Model : {}", modelDTO);
-        Model model = modelMapper.toEntity(modelDTO);
-        model = modelRepository.save(model);
-        return modelMapper.toDto(model);
+        return Mono.fromCallable(() -> {
+            Model model = modelMapper.toEntity(modelDTO);
+            model = modelRepository.save(model);
+            return modelMapper.toDto(model);
+        });
     }
 
     /**
@@ -49,11 +64,11 @@ public class ModelService {
      * @param modelDTO the entity to save.
      * @return the persisted entity.
      */
-    public ModelDTO update(ModelDTO modelDTO) {
+    public Mono<ModelDTO> update(ModelDTO modelDTO) {
         log.debug("Request to update Model : {}", modelDTO);
         Model model = modelMapper.toEntity(modelDTO);
         model = modelRepository.save(model);
-        return modelMapper.toDto(model);
+        return Mono.just(modelMapper.toDto(model));
     }
 
     /**
@@ -62,10 +77,10 @@ public class ModelService {
      * @param modelDTO the entity to update partially.
      * @return the persisted entity.
      */
-    public Optional<ModelDTO> partialUpdate(ModelDTO modelDTO) {
+    public Mono<ModelDTO> partialUpdate(ModelDTO modelDTO) {
         log.debug("Request to partially update Model : {}", modelDTO);
 
-        return modelRepository
+        return Mono.justOrEmpty(modelRepository
             .findById(modelDTO.getId())
             .map(existingModel -> {
                 modelMapper.partialUpdate(existingModel, modelDTO);
@@ -73,7 +88,7 @@ public class ModelService {
                 return existingModel;
             })
             .map(modelRepository::save)
-            .map(modelMapper::toDto);
+            .map(modelMapper::toDto));
     }
 
     /**
@@ -88,6 +103,20 @@ public class ModelService {
         List<Model> models = modelRepository.findAll();
         return modelRepository.findAll(pageable).map(modelMapper::toDto);
     }
+
+    @Transactional(readOnly = true)
+    public Mono<ModelPaginatedListDTO> findAllMono(Pageable pageable) {
+        log.debug("Request to get all Models");
+        List<Model> models = modelRepository.findAll(pageable).getContent();
+        ModelPaginatedListDTO paginatedList = paginationConverter.getPaginatedList(
+                models.stream().map(modelMapper::toDto).toList(),
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                modelRepository.count()
+        );
+        return Mono.just(paginatedList);
+    }
+
 
     /**
      * Get all the models with eager load of many-to-many relationships.
@@ -106,11 +135,10 @@ public class ModelService {
      * @return the entity.
      */
     @Transactional(readOnly = true)
-    public Optional<ModelDTO> findOne(UUID id) {
+    public Mono<ModelDTO> findOne(UUID id) throws Exception {
         log.debug("Request to get Model : {}", id);
-        Optional<Model> model = modelRepository.findById(id);
-        ModelDTO modelDTO = modelMapper.toDto(model.get());
-        return modelRepository.findOneWithEagerRelationships(id).map(modelMapper::toDto);
+        FindModelCallable findModelCallable = context.getBean(FindModelCallable.class, id);
+        return Mono.justOrEmpty(findModelCallable.call());
     }
 
     /**
@@ -118,8 +146,9 @@ public class ModelService {
      *
      * @param id the id of the entity.
      */
-    public void delete(UUID id) {
+    public Mono<Void> delete(UUID id) {
         log.debug("Request to delete Model : {}", id);
         modelRepository.deleteById(id);
+        return Mono.empty();
     }
 }

@@ -15,16 +15,16 @@ import org.slf4j.LoggerFactory;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import tech.jhipster.web.util.HeaderUtil;
-import tech.jhipster.web.util.ResponseUtil;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -67,11 +67,19 @@ public class ModelResource {
         if (modelDTO.getId() != null) {
             throw new BadRequestAlertException("A new model cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        ModelDTO result = modelService.save(modelDTO);
-        return Mono.just(ResponseEntity
-                .created(new URI("/api/models/" + result.getId()))
-                .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
-                .body(result));
+
+        return modelService.save(modelDTO)
+                .flatMap(result -> {
+                    try {
+                        return Mono.just(ResponseEntity
+                                .created(new URI("/api/models/" + result.getId()))
+                                .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
+                                .body(result));
+                    } catch (URISyntaxException e) {
+                        // Handle URI creation exception here
+                        return Mono.error(e);
+                    }
+                });
     }
 
     /**
@@ -88,24 +96,29 @@ public class ModelResource {
     public Mono<ResponseEntity<ModelDTO>> updateModel(
         @PathVariable(value = "id", required = false) final UUID id,
         @Valid @RequestBody ModelDTO modelDTO
-    ) throws URISyntaxException {
+    ) throws Exception {
         log.debug("REST request to update Model : {}, {}", id, modelDTO);
         if (modelDTO.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
-        if (!Objects.equals(id, modelDTO.getId())) {
-            throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
-        }
+        return modelService.findOne(id)
+                .flatMap(existingModel -> {
+                    if (existingModel == null) {
+                        throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
+                    }
 
-//        if (!modelRepository.existsById(id)) {
-//            throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
-//        }
+                    if (!Objects.equals(id, modelDTO.getId())) {
+                        throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
+                    }
 
-        ModelDTO result = modelService.update(modelDTO);
-        return Mono.just(ResponseEntity
-                .ok()
-                .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, modelDTO.getId().toString()))
-                .body(result));
+                    return modelService.update(modelDTO)
+                            .flatMap(result -> {
+                                return Mono.just(ResponseEntity
+                                        .ok()
+                                        .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, modelDTO.getId().toString()))
+                                        .body(result));
+                            });
+                });
     }
 
     /**
@@ -124,24 +137,21 @@ public class ModelResource {
         @PathVariable(value = "id", required = false) final UUID id,
         @NotNull @RequestBody ModelDTO modelDTO
     ) throws URISyntaxException {
-        log.debug("REST request to partial update Model partially : {}, {}", id, modelDTO);
         if (modelDTO.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
-        if (!Objects.equals(id, modelDTO.getId())) {
-            throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
-        }
 
-//        if (!modelRepository.existsById(id)) {
-//            throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
-//        }
+        return modelService.partialUpdate(modelDTO)
+                .flatMap(result -> {
+                    if (!Objects.equals(id, result.getId())) {
+                        throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
+                    }
 
-        Optional<ModelDTO> result = modelService.partialUpdate(modelDTO);
-
-        return Mono.justOrEmpty(tech.jhipster.web.util.ResponseUtil.wrapOrNotFound(
-                result,
-                HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, modelDTO.getId().toString()))
-        );
+                    return Mono.justOrEmpty(tech.jhipster.web.util.ResponseUtil.wrapOrNotFound(
+                            Optional.ofNullable(result),
+                            HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
+                    );
+                });
     }
 
     /**
@@ -169,19 +179,15 @@ public class ModelResource {
                 searchParams.add(new SearchDTO(matcher.group(1), matcher.group(2), matcher.group(3)));
             }
         }
-        Page<ModelDTO> page;
-        if (eagerload) {
-            page = modelService.findAllWithEagerRelationships(pageable);
-        } else {
-            page = modelService.findAll(pageable);
-        }
-        ModelPaginatedListDTO paginatedList = paginationConverter.getPaginatedList(
-                page.getContent(),
-                pageable.getPageNumber(),
-                pageable.getPageSize(),
-                page.getTotalElements()
-        );
-        return Mono.justOrEmpty(ResponseEntity.ok().body(paginatedList));
+
+        return modelService.findAllMono(pageable)
+                .map(modelPaginatedListDTO -> ResponseEntity.ok().body(modelPaginatedListDTO))
+                .defaultIfEmpty(ResponseEntity.notFound().build())
+                .onErrorResume(Exception.class, ex -> {
+                    // Handle exceptions here and return an appropriate response
+                    log.error("Error while fetching models: " + ex.getMessage(), ex);
+                    return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
+                });
     }
 
     /**
@@ -191,10 +197,14 @@ public class ModelResource {
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the modelDTO, or with status {@code 404 (Not Found)}.
      */
     @GetMapping("/models/{id}")
-    public Mono<ResponseEntity<ModelDTO>> getModel(@PathVariable UUID id) {
+    @Transactional(readOnly = true, rollbackFor = Exception.class, propagation = Propagation.REQUIRES_NEW)
+    public Mono<ResponseEntity<ModelDTO>> getModel(@PathVariable UUID id) throws Exception {
         log.debug("REST request to get Model : {}", id);
-        Optional<ModelDTO> modelDTO = modelService.findOne(id);
-        return Mono.justOrEmpty(ResponseUtil.wrapOrNotFound(modelDTO));
+
+        Mono<ModelDTO> modelMono = modelService.findOne(id);
+
+        return modelMono.map(modelDTO -> ResponseEntity.ok().body(modelDTO))
+                .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
     /**
