@@ -1,10 +1,12 @@
 package ai.turintech.catalog.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.vladmihalcea.hibernate.type.array.StringArrayType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.Type;
 
 import java.io.Serializable;
 import java.util.HashSet;
@@ -38,11 +40,21 @@ public class Model implements Serializable {
     @Column(name = "description")
     private String description;
 
-    @Column(name = "advantages")
-    private String advantages;
+//    @Column(name = "advantages")
+    @Type(StringArrayType.class)
+    @Column(
+            name = "advantages",
+            columnDefinition = "text[]"
+    )
+    private String[] advantages;
 
-    @Column(name = "disadvantages")
-    private String disadvantages;
+//    @Column(name = "disadvantages")
+    @Type(StringArrayType.class)
+    @Column(
+            name = "disadvantages",
+            columnDefinition = "text[]"
+    )
+    private String[] disadvantages;
 
     @NotNull
     @Column(name = "enabled", nullable = false)
@@ -156,29 +168,29 @@ public class Model implements Serializable {
         this.description = description;
     }
 
-    public String getAdvantages() {
+    public String[] getAdvantages() {
         return this.advantages;
     }
 
-    public Model advantages(String advantages) {
-        this.setAdvantages(advantages);
-        return this;
-    }
+//    public Model advantages(String advantages) {
+//        this.setAdvantages(advantages);
+//        return this;
+//    }
 
-    public void setAdvantages(String advantages) {
+    public void setAdvantages(String[] advantages) {
         this.advantages = advantages;
     }
 
-    public String getDisadvantages() {
+    public String[] getDisadvantages() {
         return this.disadvantages;
     }
 
-    public Model disadvantages(String disadvantages) {
-        this.setDisadvantages(disadvantages);
-        return this;
-    }
+//    public Model disadvantages(String disadvantages) {
+//        this.setDisadvantages(disadvantages);
+//        return this;
+//    }
 
-    public void setDisadvantages(String disadvantages) {
+    public void setDisadvantages(String[] disadvantages) {
         this.disadvantages = disadvantages;
     }
 

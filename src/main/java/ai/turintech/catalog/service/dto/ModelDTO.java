@@ -20,9 +20,9 @@ public class ModelDTO implements Serializable {
 
     private String description;
 
-    private String advantages;
+    private String[] advantages;
 
-    private String disadvantages;
+    private String[] disadvantages;
 
     @NotNull(message = "must not be null")
     private Boolean enabled;
@@ -78,19 +78,19 @@ public class ModelDTO implements Serializable {
         this.description = description;
     }
 
-    public String getAdvantages() {
+    public String[] getAdvantages() {
         return advantages;
     }
 
-    public void setAdvantages(String advantages) {
+    public void setAdvantages(String[] advantages) {
         this.advantages = advantages;
     }
 
-    public String getDisadvantages() {
+    public String[] getDisadvantages() {
         return disadvantages;
     }
 
-    public void setDisadvantages(String disadvantages) {
+    public void setDisadvantages(String[] disadvantages) {
         this.disadvantages = disadvantages;
     }
 
