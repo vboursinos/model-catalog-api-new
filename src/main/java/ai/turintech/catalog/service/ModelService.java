@@ -1,8 +1,7 @@
 package ai.turintech.catalog.service;
 
-import ai.turintech.catalog.callable.FindAllModelsCallable;
+import ai.turintech.catalog.callable.*;
 import ai.turintech.catalog.domain.Model;
-import ai.turintech.catalog.callable.FindModelCallable;
 import ai.turintech.catalog.repository.ModelRepository;
 import ai.turintech.catalog.service.dto.ModelDTO;
 import ai.turintech.catalog.service.dto.ModelPaginatedListDTO;
@@ -67,9 +66,10 @@ public class ModelService {
      */
     public Mono<ModelDTO> update(ModelDTO modelDTO) {
         log.debug("Request to update Model : {}", modelDTO);
-        Model model = modelMapper.toEntity(modelDTO);
-        model = modelRepository.save(model);
-        return Mono.just(modelMapper.toDto(model));
+        UpdateModelCallable updateModelCallable = context.getBean(UpdateModelCallable.class, modelDTO);
+
+        return Mono.fromCallable(updateModelCallable)
+                .subscribeOn(jdbcScheduler);
     }
 
     /**
@@ -80,17 +80,12 @@ public class ModelService {
      */
     public Mono<ModelDTO> partialUpdate(ModelDTO modelDTO) {
         log.debug("Request to partially update Model : {}", modelDTO);
+        PartialUpdateModelCallable partialUpdateModelCallable = context.getBean(PartialUpdateModelCallable.class, modelDTO);
 
-        return Mono.justOrEmpty(modelRepository
-            .findById(modelDTO.getId())
-            .map(existingModel -> {
-                modelMapper.partialUpdate(existingModel, modelDTO);
-
-                return existingModel;
-            })
-            .map(modelRepository::save)
-            .map(modelMapper::toDto));
+        return Mono.fromCallable(partialUpdateModelCallable)
+                .subscribeOn(jdbcScheduler);
     }
+
 
     /**
      * Get all the models.
@@ -135,9 +130,13 @@ public class ModelService {
      *
      * @param id the id of the entity.
      */
-    public Mono<Void> delete(UUID id) {
+    public Mono<String> delete(UUID id) {
         log.debug("Request to delete Model : {}", id);
-        modelRepository.deleteById(id);
-        return Mono.empty();
+        DeleteModelCallable deleteModelCallable = context.getBean(DeleteModelCallable.class, id);
+        try {
+            return Mono.justOrEmpty(deleteModelCallable.call()).subscribeOn(jdbcScheduler);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }
