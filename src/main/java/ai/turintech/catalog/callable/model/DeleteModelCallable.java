@@ -1,4 +1,4 @@
-package ai.turintech.catalog.callable;
+package ai.turintech.catalog.callable.model;
 
 import ai.turintech.catalog.repository.ModelRepository;
 import ai.turintech.catalog.service.mapper.ModelMapper;

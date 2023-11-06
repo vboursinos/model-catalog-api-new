@@ -1,8 +1,7 @@
-package ai.turintech.catalog.callable;
+package ai.turintech.catalog.callable.model;
 
 import ai.turintech.catalog.domain.Model;
 import ai.turintech.catalog.repository.ModelRepository;
-import ai.turintech.catalog.service.dto.ModelDTO;
 import ai.turintech.catalog.service.dto.ModelPaginatedListDTO;
 import ai.turintech.catalog.service.mapper.ModelMapper;
 import ai.turintech.catalog.utils.PaginationConverter;
@@ -13,8 +12,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 import java.util.concurrent.Callable;
 
 @Transactional

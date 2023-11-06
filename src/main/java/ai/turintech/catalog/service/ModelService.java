@@ -1,6 +1,6 @@
 package ai.turintech.catalog.service;
 
-import ai.turintech.catalog.callable.*;
+import ai.turintech.catalog.callable.model.*;
 import ai.turintech.catalog.domain.Model;
 import ai.turintech.catalog.repository.ModelRepository;
 import ai.turintech.catalog.service.dto.ModelDTO;
@@ -49,6 +49,7 @@ public class ModelService {
      * @param modelDTO the entity to save.
      * @return the persisted entity.
      */
+    @Transactional
     public Mono<ModelDTO> save(ModelDTO modelDTO) {
         log.debug("Request to save Model : {}", modelDTO);
         return Mono.fromCallable(() -> {
@@ -64,6 +65,7 @@ public class ModelService {
      * @param modelDTO the entity to save.
      * @return the persisted entity.
      */
+    @Transactional
     public Mono<ModelDTO> update(ModelDTO modelDTO) {
         log.debug("Request to update Model : {}", modelDTO);
         UpdateModelCallable updateModelCallable = context.getBean(UpdateModelCallable.class, modelDTO);
@@ -78,6 +80,7 @@ public class ModelService {
      * @param modelDTO the entity to update partially.
      * @return the persisted entity.
      */
+    @Transactional
     public Mono<ModelDTO> partialUpdate(ModelDTO modelDTO) {
         log.debug("Request to partially update Model : {}", modelDTO);
         PartialUpdateModelCallable partialUpdateModelCallable = context.getBean(PartialUpdateModelCallable.class, modelDTO);
@@ -130,6 +133,7 @@ public class ModelService {
      *
      * @param id the id of the entity.
      */
+    @Transactional
     public Mono<String> delete(UUID id) {
         log.debug("Request to delete Model : {}", id);
         DeleteModelCallable deleteModelCallable = context.getBean(DeleteModelCallable.class, id);

@@ -1,5 +1,6 @@
 package ai.turintech.catalog.service;
 
+import ai.turintech.catalog.callable.boolean_parameter.FindAllBooleanParametersCallable;
 import ai.turintech.catalog.domain.BooleanParameter;
 import ai.turintech.catalog.repository.BooleanParameterRepository;
 import ai.turintech.catalog.service.dto.BooleanParameterDTO;
@@ -7,8 +8,12 @@ import ai.turintech.catalog.service.mapper.BooleanParameterMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Scheduler;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -25,15 +30,15 @@ public class BooleanParameterService {
 
     private final Logger log = LoggerFactory.getLogger(BooleanParameterService.class);
 
+    @Autowired
+    private ApplicationContext context;
+    @Autowired
+    private Scheduler jdbcScheduler;
+    @Autowired
     private BooleanParameterRepository booleanParameterRepository;
 
+    @Autowired
     private BooleanParameterMapper booleanParameterMapper;
-
-//    @Autowired
-//    public BooleanParameterService(BooleanParameterRepository booleanParameterRepository, BooleanParameterMapper booleanParameterMapper) {
-//        this.booleanParameterRepository = booleanParameterRepository;
-//        this.booleanParameterMapper = booleanParameterMapper;
-//    }
 
     /**
      * Save a booleanParameter.
@@ -41,11 +46,13 @@ public class BooleanParameterService {
      * @param booleanParameterDTO the entity to save.
      * @return the persisted entity.
      */
-    public BooleanParameterDTO save(BooleanParameterDTO booleanParameterDTO) {
+    public Mono<BooleanParameterDTO> save(BooleanParameterDTO booleanParameterDTO) {
         log.debug("Request to save BooleanParameter : {}", booleanParameterDTO);
-        BooleanParameter booleanParameter = booleanParameterMapper.toEntity(booleanParameterDTO);
-        booleanParameter = booleanParameterRepository.save(booleanParameter);
-        return booleanParameterMapper.toDto(booleanParameter);
+        return Mono.fromCallable(() -> {
+            BooleanParameter booleanParameter = booleanParameterMapper.toEntity(booleanParameterDTO);
+            booleanParameter = booleanParameterRepository.save(booleanParameter);
+            return booleanParameterMapper.toDto(booleanParameter);
+        });
     }
 
     /**
@@ -54,11 +61,13 @@ public class BooleanParameterService {
      * @param booleanParameterDTO the entity to save.
      * @return the persisted entity.
      */
-    public BooleanParameterDTO update(BooleanParameterDTO booleanParameterDTO) {
+    public Mono<BooleanParameterDTO> update(BooleanParameterDTO booleanParameterDTO) {
         log.debug("Request to update BooleanParameter : {}", booleanParameterDTO);
-        BooleanParameter booleanParameter = booleanParameterMapper.toEntity(booleanParameterDTO);
-        booleanParameter = booleanParameterRepository.save(booleanParameter);
-        return booleanParameterMapper.toDto(booleanParameter);
+        return Mono.fromCallable(() -> {
+            BooleanParameter booleanParameter = booleanParameterMapper.toEntity(booleanParameterDTO);
+            booleanParameter = booleanParameterRepository.save(booleanParameter);
+            return booleanParameterMapper.toDto(booleanParameter);
+        });
     }
 
     /**
@@ -67,18 +76,20 @@ public class BooleanParameterService {
      * @param booleanParameterDTO the entity to update partially.
      * @return the persisted entity.
      */
-    public Optional<BooleanParameterDTO> partialUpdate(BooleanParameterDTO booleanParameterDTO) {
+    public Mono<BooleanParameterDTO> partialUpdate(BooleanParameterDTO booleanParameterDTO) {
         log.debug("Request to partially update BooleanParameter : {}", booleanParameterDTO);
+        return Mono.fromCallable(() -> {
+            Optional<BooleanParameterDTO> result = booleanParameterRepository
+                .findById(booleanParameterDTO.getParameterTypeDefinitionId())
+                .map(existingBooleanParameter -> {
+                    booleanParameterMapper.partialUpdate(existingBooleanParameter, booleanParameterDTO);
 
-        return booleanParameterRepository
-            .findById(booleanParameterDTO.getParameterTypeDefinitionId())
-            .map(existingBooleanParameter -> {
-                booleanParameterMapper.partialUpdate(existingBooleanParameter, booleanParameterDTO);
-
-                return existingBooleanParameter;
-            })
-            .map(booleanParameterRepository::save)
-            .map(booleanParameterMapper::toDto);
+                    return existingBooleanParameter;
+                })
+                .map(booleanParameterRepository::save)
+                .map(booleanParameterMapper::toDto);
+            return result.orElse(null);
+        });
     }
 
     /**
@@ -87,13 +98,21 @@ public class BooleanParameterService {
      * @return the list of entities.
      */
     @Transactional(readOnly = true)
-    public List<BooleanParameterDTO> findAll() {
+    public Mono<List<BooleanParameterDTO>> findAll() {
         log.debug("Request to get all BooleanParameters");
-        return booleanParameterRepository
-            .findAll()
-            .stream()
-            .map(booleanParameterMapper::toDto)
-            .collect(Collectors.toCollection(LinkedList::new));
+        FindAllBooleanParametersCallable findAllBooleanParametersCallable = context.getBean(FindAllBooleanParametersCallable.class);
+        return Mono.fromCallable(findAllBooleanParametersCallable)
+                .subscribeOn(jdbcScheduler);
+    }
+
+    @Transactional(readOnly = true)
+    public Flux<BooleanParameterDTO> findAllStream() {
+        log.debug("Request to get all BooleanParameters");
+        return Flux.fromIterable(booleanParameterRepository
+                .findAll()
+                .stream()
+                .map(booleanParameterMapper::toDto)
+                .collect(Collectors.toCollection(LinkedList::new)));
     }
 
     /**
@@ -103,9 +122,12 @@ public class BooleanParameterService {
      * @return the entity.
      */
     @Transactional(readOnly = true)
-    public Optional<BooleanParameterDTO> findOne(UUID id) {
+    public Mono<BooleanParameterDTO> findOne(UUID id) {
         log.debug("Request to get BooleanParameter : {}", id);
-        return booleanParameterRepository.findById(id).map(booleanParameterMapper::toDto);
+        return Mono.fromCallable(() -> {
+            Optional<BooleanParameterDTO> booleanParameterDTO = booleanParameterRepository.findById(id).map(booleanParameterMapper::toDto);
+            return booleanParameterDTO.orElse(null);
+        });
     }
 
     /**
@@ -113,8 +135,12 @@ public class BooleanParameterService {
      *
      * @param id the id of the entity.
      */
-    public void delete(UUID id) {
+    public Mono<Void> delete(UUID id) {
         log.debug("Request to delete BooleanParameter : {}", id);
-        booleanParameterRepository.deleteById(id);
+        Mono.fromCallable(() -> {
+            booleanParameterRepository.deleteById(id);
+            return null;
+        });
+        return null;
     }
 }

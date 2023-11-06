@@ -1,4 +1,4 @@
-package ai.turintech.catalog.callable;
+package ai.turintech.catalog.callable.model;
 
 import ai.turintech.catalog.domain.Model;
 import ai.turintech.catalog.repository.ModelRepository;
@@ -9,16 +9,15 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
 import java.util.concurrent.Callable;
 
 @Transactional
 @Component
 @Scope("prototype")
-public class PartialUpdateModelCallable implements Callable<ModelDTO> {
+public class UpdateModelCallable implements Callable<ModelDTO> {
     private ModelDTO modelDTO;
 
-    public PartialUpdateModelCallable(ModelDTO modelDTO) {
+    public UpdateModelCallable(ModelDTO modelDTO) {
         this.modelDTO = modelDTO;
     }
 
@@ -30,17 +29,8 @@ public class PartialUpdateModelCallable implements Callable<ModelDTO> {
 
     @Override
     public ModelDTO call() throws Exception {
-        Optional<Model> result = modelRepository.findById(modelDTO.getId())
-                .map(existingModel -> {
-                    modelMapper.partialUpdate(existingModel, modelDTO);
-                    return existingModel;
-                })
-                .map(modelRepository::save);
-
-        if (result.isPresent()) {
-            return result.map(modelMapper::toDto).get();
-        } else {
-            return null;
-        }
+        Model model = modelMapper.toEntity(modelDTO);
+        model = modelRepository.save(model);
+        return modelMapper.toDto(model);
     }
 }

@@ -1,4 +1,4 @@
-package ai.turintech.catalog.callable;
+package ai.turintech.catalog.callable.model;
 
 import ai.turintech.catalog.domain.Model;
 import ai.turintech.catalog.repository.ModelRepository;
@@ -9,16 +9,20 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.Callable;
 
 @Transactional
 @Component
 @Scope("prototype")
-public class UpdateModelCallable implements Callable<ModelDTO> {
-    private ModelDTO modelDTO;
+public class FindModelCallable implements Callable<ModelDTO> {
 
-    public UpdateModelCallable(ModelDTO modelDTO) {
-        this.modelDTO = modelDTO;
+    private UUID id;
+
+    // Constructor injection is the recommended way for mandatory dependencies
+    public FindModelCallable(UUID id) {
+        this.id = id;
     }
 
     @Autowired
@@ -29,8 +33,7 @@ public class UpdateModelCallable implements Callable<ModelDTO> {
 
     @Override
     public ModelDTO call() throws Exception {
-        Model model = modelMapper.toEntity(modelDTO);
-        model = modelRepository.save(model);
-        return modelMapper.toDto(model);
+        Optional<Model> model = modelRepository.findOneWithEagerRelationships(id);
+        return model.map(modelMapper::toDto).orElse(null);
     }
 }

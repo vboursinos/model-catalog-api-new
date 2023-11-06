@@ -13,6 +13,7 @@ import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -38,17 +39,11 @@ public class BooleanParameterResource {
     @Value("${jhipster.clientApp.name}")
     private String applicationName;
 
+    @Autowired
     private BooleanParameterService booleanParameterService;
 
+    @Autowired
     private BooleanParameterRepository booleanParameterRepository;
-
-//    public BooleanParameterResource(
-//        BooleanParameterService booleanParameterService,
-//        BooleanParameterRepository booleanParameterRepository
-//    ) {
-//        this.booleanParameterService = booleanParameterService;
-//        this.booleanParameterRepository = booleanParameterRepository;
-//    }
 
     /**
      * {@code POST  /boolean-parameters} : Create a new booleanParameter.
@@ -64,11 +59,20 @@ public class BooleanParameterResource {
         if (booleanParameterDTO.getParameterTypeDefinitionId() != null) {
             throw new BadRequestAlertException("A new booleanParameter cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        BooleanParameterDTO result = booleanParameterService.save(booleanParameterDTO);
-        return Mono.just(ResponseEntity
-                .created(new URI("/api/boolean-parameters/" + result.getParameterTypeDefinitionId()))
-                .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getParameterTypeDefinitionId().toString()))
-                .body(result));
+        Mono<BooleanParameterDTO> result = booleanParameterService.save(booleanParameterDTO);
+        return result
+            .map(
+                newentity -> {
+                    try {
+                        return ResponseEntity
+                            .created(new URI("/api/boolean-parameters/" + newentity.getParameterTypeDefinitionId()))
+                            .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, newentity.getParameterTypeDefinitionId().toString()))
+                            .body(newentity);
+                    } catch (URISyntaxException e) {
+                        throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+                    }
+                }
+            );
     }
 
     /**
@@ -92,11 +96,15 @@ public class BooleanParameterResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
-        BooleanParameterDTO result = booleanParameterService.update(booleanParameterDTO);
-        return Mono.justOrEmpty(ResponseEntity
+        Mono<BooleanParameterDTO> result = booleanParameterService.update(booleanParameterDTO);
+
+        return result.map((updatedBooleanParameterDTO) ->
+            ResponseEntity
                 .ok()
-                .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, result.getParameterTypeDefinitionId().toString()))
-                .body(result));
+                .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, updatedBooleanParameterDTO.getParameterTypeDefinitionId().toString()))
+                .body(updatedBooleanParameterDTO)
+        );
+
     }
 
     /**
@@ -121,12 +129,14 @@ public class BooleanParameterResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
-        Optional<BooleanParameterDTO> result = booleanParameterService.partialUpdate(booleanParameterDTO);
+        Mono<BooleanParameterDTO> result = booleanParameterService.partialUpdate(booleanParameterDTO);
 
-        return Mono.justOrEmpty(tech.jhipster.web.util.ResponseUtil.wrapOrNotFound(
-                result,
-                HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, booleanParameterDTO.getParameterTypeDefinitionId().toString())
-        ));
+        return result.map((updatedBooleanParameterDTO) ->
+            ResponseEntity
+                .ok()
+                .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, updatedBooleanParameterDTO.getParameterTypeDefinitionId().toString()))
+                .body(updatedBooleanParameterDTO)
+        );
     }
 
     /**
@@ -137,7 +147,7 @@ public class BooleanParameterResource {
     @GetMapping(value = "/boolean-parameters", produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<List<BooleanParameterDTO>> getAllBooleanParameters() {
         log.debug("REST request to get all BooleanParameters");
-        return Mono.justOrEmpty(booleanParameterService.findAll());
+        return booleanParameterService.findAll();
     }
 
     /**
@@ -147,7 +157,7 @@ public class BooleanParameterResource {
     @GetMapping(value = "/boolean-parameters", produces = MediaType.APPLICATION_NDJSON_VALUE)
     public Flux<BooleanParameterDTO> getAllBooleanParametersAsStream() {
         log.debug("REST request to get all BooleanParameters as a stream");
-        return Flux.fromIterable(booleanParameterService.findAll());
+        return booleanParameterService.findAllStream();
     }
 
     /**
@@ -159,10 +169,11 @@ public class BooleanParameterResource {
     @GetMapping("/boolean-parameters/{id}")
     public Mono<ResponseEntity<BooleanParameterDTO>> getBooleanParameter(@PathVariable UUID id) {
         log.debug("REST request to get BooleanParameter : {}", id);
-        Optional<BooleanParameterDTO> booleanParameterDTO = booleanParameterService.findOne(id);
-        return Mono.justOrEmpty(ResponseUtil.wrapOrNotFound(booleanParameterDTO));
+        Mono<BooleanParameterDTO> booleanParameterDTO = booleanParameterService.findOne(id);
+        return booleanParameterDTO
+                .map((response) -> ResponseEntity.ok().body(response))
+                .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()));
     }
-
     /**
      * {@code DELETE  /boolean-parameters/:id} : delete the "id" booleanParameter.
      *
@@ -173,9 +184,6 @@ public class BooleanParameterResource {
     public Mono<ResponseEntity<Void>> deleteBooleanParameter(@PathVariable UUID id) {
         log.debug("REST request to delete BooleanParameter : {}", id);
         booleanParameterService.delete(id);
-        return Mono.justOrEmpty(ResponseEntity
-                .noContent()
-                .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
-                .build());
+        return Mono.just(ResponseEntity.noContent().headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString())).build());
     }
 }

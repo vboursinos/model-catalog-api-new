@@ -4,15 +4,9 @@ import ai.turintech.catalog.repository.CategoricalParameterRepository;
 import ai.turintech.catalog.service.CategoricalParameterService;
 import ai.turintech.catalog.service.dto.CategoricalParameterDTO;
 import ai.turintech.catalog.web.rest.errors.BadRequestAlertException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -22,7 +16,12 @@ import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import tech.jhipster.web.util.HeaderUtil;
-import tech.jhipster.web.util.ResponseUtil;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 
 /**
  * REST controller for managing {@link ai.turintech.catalog.domain.CategoricalParameter}.
@@ -38,17 +37,12 @@ public class CategoricalParameterResource {
     @Value("${jhipster.clientApp.name}")
     private String applicationName;
 
+    @Autowired
     private CategoricalParameterService categoricalParameterService;
 
+    @Autowired
     private CategoricalParameterRepository categoricalParameterRepository;
 
-//    public CategoricalParameterResource(
-//        CategoricalParameterService categoricalParameterService,
-//        CategoricalParameterRepository categoricalParameterRepository
-//    ) {
-//        this.categoricalParameterService = categoricalParameterService;
-//        this.categoricalParameterRepository = categoricalParameterRepository;
-//    }
 
     /**
      * {@code POST  /categorical-parameters} : Create a new categoricalParameter.
@@ -59,23 +53,32 @@ public class CategoricalParameterResource {
      */
     @PostMapping("/categorical-parameters")
     public Mono<ResponseEntity<CategoricalParameterDTO>> createCategoricalParameter(
-        @RequestBody CategoricalParameterDTO categoricalParameterDTO
+            @RequestBody CategoricalParameterDTO categoricalParameterDTO
     ) throws URISyntaxException {
         log.debug("REST request to save CategoricalParameter : {}", categoricalParameterDTO);
         if (categoricalParameterDTO.getParameterTypeDefinitionId() != null) {
             throw new BadRequestAlertException("A new categoricalParameter cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        CategoricalParameterDTO result = categoricalParameterService.save(categoricalParameterDTO);
-        return Mono.just(ResponseEntity
-                .created(new URI("/api/categorical-parameters/" + result.getParameterTypeDefinitionId()))
-                .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getParameterTypeDefinitionId().toString()))
-                .body(result));
+        Mono<CategoricalParameterDTO> result = categoricalParameterService.save(categoricalParameterDTO);
+        return result
+                .map(
+                        newentity -> {
+                            try {
+                                return ResponseEntity
+                                        .created(new URI("/api/categorical-parameters/" + newentity.getParameterTypeDefinitionId()))
+                                        .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, newentity.getParameterTypeDefinitionId().toString()))
+                                        .body(newentity);
+                            } catch (URISyntaxException e) {
+                                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+                            }
+                        }
+                );
     }
 
     /**
      * {@code PUT  /categorical-parameters/:id} : Updates an existing categoricalParameter.
      *
-     * @param id the id of the categoricalParameterDTO to save.
+     * @param id                      the id of the categoricalParameterDTO to save.
      * @param categoricalParameterDTO the categoricalParameterDTO to update.
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated categoricalParameterDTO,
      * or with status {@code 400 (Bad Request)} if the categoricalParameterDTO is not valid,
@@ -84,8 +87,8 @@ public class CategoricalParameterResource {
      */
     @PutMapping("/categorical-parameters/{id}")
     public Mono<ResponseEntity<CategoricalParameterDTO>> updateCategoricalParameter(
-        @PathVariable(value = "id", required = false) final UUID id,
-        @RequestBody CategoricalParameterDTO categoricalParameterDTO
+            @PathVariable(value = "id", required = false) final UUID id,
+            @RequestBody CategoricalParameterDTO categoricalParameterDTO
     ) throws URISyntaxException {
         log.debug("REST request to update CategoricalParameter : {}, {}", id, categoricalParameterDTO);
         if (categoricalParameterDTO.getParameterTypeDefinitionId() == null) {
@@ -99,17 +102,19 @@ public class CategoricalParameterResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
-        CategoricalParameterDTO result = categoricalParameterService.update(categoricalParameterDTO);
-        return Mono.just(ResponseEntity
-                .ok()
-                .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, categoricalParameterDTO.getParameterTypeDefinitionId().toString()))
-                .body(result));
+        Mono<CategoricalParameterDTO> result = categoricalParameterService.update(categoricalParameterDTO);
+        return result.map((updatedBooleanParameterDTO) ->
+                ResponseEntity
+                        .ok()
+                        .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, updatedBooleanParameterDTO.getParameterTypeDefinitionId().toString()))
+                        .body(updatedBooleanParameterDTO)
+        );
     }
 
     /**
      * {@code PATCH  /categorical-parameters/:id} : Partial updates given fields of an existing categoricalParameter, field will ignore if it is null
      *
-     * @param id the id of the categoricalParameterDTO to save.
+     * @param id                      the id of the categoricalParameterDTO to save.
      * @param categoricalParameterDTO the categoricalParameterDTO to update.
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated categoricalParameterDTO,
      * or with status {@code 400 (Bad Request)} if the categoricalParameterDTO is not valid,
@@ -117,10 +122,10 @@ public class CategoricalParameterResource {
      * or with status {@code 500 (Internal Server Error)} if the categoricalParameterDTO couldn't be updated.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
-    @PatchMapping(value = "/categorical-parameters/{id}", consumes = { "application/json", "application/merge-patch+json" })
+    @PatchMapping(value = "/categorical-parameters/{id}", consumes = {"application/json", "application/merge-patch+json"})
     public Mono<ResponseEntity<CategoricalParameterDTO>> partialUpdateCategoricalParameter(
-        @PathVariable(value = "id", required = false) final UUID id,
-        @RequestBody CategoricalParameterDTO categoricalParameterDTO
+            @PathVariable(value = "id", required = false) final UUID id,
+            @RequestBody CategoricalParameterDTO categoricalParameterDTO
     ) throws URISyntaxException {
         log.debug("REST request to partial update CategoricalParameter partially : {}, {}", id, categoricalParameterDTO);
         if (categoricalParameterDTO.getParameterTypeDefinitionId() == null) {
@@ -134,11 +139,13 @@ public class CategoricalParameterResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
-        Optional<CategoricalParameterDTO> result = categoricalParameterService.partialUpdate(categoricalParameterDTO);
+        Mono<CategoricalParameterDTO> result = categoricalParameterService.partialUpdate(categoricalParameterDTO);
 
-        return Mono.justOrEmpty(tech.jhipster.web.util.ResponseUtil.wrapOrNotFound(
-                result,
-                HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, categoricalParameterDTO.getParameterTypeDefinitionId().toString()))
+        return result.map((updatedBooleanParameterDTO) ->
+                ResponseEntity
+                        .ok()
+                        .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, updatedBooleanParameterDTO.getParameterTypeDefinitionId().toString()))
+                        .body(updatedBooleanParameterDTO)
         );
     }
 
@@ -150,7 +157,7 @@ public class CategoricalParameterResource {
     @GetMapping(value = "/categorical-parameters", produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<List<CategoricalParameterDTO>> getAllCategoricalParameters() {
         log.debug("REST request to get all CategoricalParameters");
-        return Mono.justOrEmpty(categoricalParameterService.findAll());
+        return categoricalParameterService.findAll();
     }
 
     /**
@@ -160,7 +167,7 @@ public class CategoricalParameterResource {
     @GetMapping(value = "/categorical-parameters", produces = MediaType.APPLICATION_NDJSON_VALUE)
     public Flux<CategoricalParameterDTO> getAllCategoricalParametersAsStream() {
         log.debug("REST request to get all CategoricalParameters as a stream");
-        return Flux.fromIterable(categoricalParameterService.findAll());
+        return categoricalParameterService.findAllStream();
     }
 
     /**
@@ -172,8 +179,10 @@ public class CategoricalParameterResource {
     @GetMapping("/categorical-parameters/{id}")
     public Mono<ResponseEntity<CategoricalParameterDTO>> getCategoricalParameter(@PathVariable UUID id) {
         log.debug("REST request to get CategoricalParameter : {}", id);
-        Optional<CategoricalParameterDTO> categoricalParameterDTO = categoricalParameterService.findOne(id);
-        return Mono.justOrEmpty(ResponseUtil.wrapOrNotFound(categoricalParameterDTO));
+        Mono<CategoricalParameterDTO> categoricalParameterDTO = categoricalParameterService.findOne(id);
+        return categoricalParameterDTO
+                .map((response) -> ResponseEntity.ok().body(response))
+                .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()));
     }
 
     /**
@@ -186,9 +195,6 @@ public class CategoricalParameterResource {
     public Mono<ResponseEntity<Void>> deleteCategoricalParameter(@PathVariable UUID id) {
         log.debug("REST request to delete CategoricalParameter : {}", id);
         categoricalParameterService.delete(id);
-        return Mono.just(ResponseEntity
-                .noContent()
-                .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
-                .build());
+        return Mono.just(ResponseEntity.noContent().headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString())).build());
     }
 }
