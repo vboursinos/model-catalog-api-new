@@ -6,31 +6,26 @@ import ai.turintech.catalog.service.dto.ParameterDTO;
 import ai.turintech.catalog.web.rest.errors.BadRequestAlertException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
 import tech.jhipster.web.util.HeaderUtil;
-import tech.jhipster.web.util.PaginationUtil;
-import tech.jhipster.web.util.ResponseUtil;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
 
 /**
  * REST controller for managing {@link ai.turintech.catalog.domain.Parameter}.
@@ -46,14 +41,11 @@ public class ParameterResource {
     @Value("${jhipster.clientApp.name}")
     private String applicationName;
 
+    @Autowired
     private ParameterService parameterService;
 
+    @Autowired
     private ParameterRepository parameterRepository;
-
-//    public ParameterResource(ParameterService parameterService, ParameterRepository parameterRepository) {
-//        this.parameterService = parameterService;
-//        this.parameterRepository = parameterRepository;
-//    }
 
     /**
      * {@code POST  /parameters} : Create a new parameter.
@@ -68,11 +60,20 @@ public class ParameterResource {
         if (parameterDTO.getId() != null) {
             throw new BadRequestAlertException("A new parameter cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        ParameterDTO result = parameterService.save(parameterDTO);
-        return Mono.just(ResponseEntity
-                .created(new URI("/api/parameters/" + result.getId()))
-                .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
-                .body(result));
+        Mono<ParameterDTO> result = parameterService.save(parameterDTO);
+        return result
+            .map(
+                res -> {
+                    try {
+                        return ResponseEntity
+                            .created(new URI("/api/parameters/" + res.getId()))
+                            .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, res.getId().toString()))
+                            .body(res);
+                    } catch (URISyntaxException e) {
+                        throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+                    }
+                }
+            );
     }
 
     /**
@@ -102,11 +103,14 @@ public class ParameterResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
-        ParameterDTO result = parameterService.update(parameterDTO);
-        return Mono.just(ResponseEntity
-                .ok()
-                .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, parameterDTO.getId().toString()))
-                .body(result));
+        Mono<ParameterDTO> result = parameterService.update(parameterDTO);
+        return result
+            .map(
+                res -> ResponseEntity
+                    .ok()
+                    .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, res.getId().toString()))
+                    .body(res)
+            );
     }
 
     /**
@@ -137,12 +141,27 @@ public class ParameterResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
-        Optional<ParameterDTO> result = parameterService.partialUpdate(parameterDTO);
+        Mono<Optional<ParameterDTO>> result = parameterService.partialUpdate(parameterDTO);
 
-        return Mono.justOrEmpty(tech.jhipster.web.util.ResponseUtil.wrapOrNotFound(
-                result,
-                HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, parameterDTO.getId().toString()))
-        );
+        return result.flatMap(updatedFloatParameterOptional -> {
+            if (updatedFloatParameterOptional.isPresent()) {
+                ParameterDTO updatedParameterDTO = updatedFloatParameterOptional.get();
+                String idString = Optional
+                        .ofNullable(updatedParameterDTO.getId())
+                        .map(UUID::toString)
+                        .orElse(null);
+
+                if (idString == null) throw new RuntimeException("ID cannot be null after update");
+
+                return Mono.just(
+                        ResponseEntity.ok()
+                                .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, idString))
+                                .body(updatedParameterDTO)
+                );
+            } else {
+                return Mono.just(ResponseEntity.notFound().build());
+            }
+        });
     }
 
     /**
@@ -158,9 +177,13 @@ public class ParameterResource {
         ServerHttpRequest request
     ) {
         log.debug("REST request to get a page of Parameters");
-        Page<ParameterDTO> page = parameterService.findAll(pageable);
-        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
-        return Mono.justOrEmpty(ResponseEntity.ok().headers(headers).body(page.getContent()));
+        return parameterService.findAll(pageable)
+                .map(updatedListParameter -> ResponseEntity.ok().body(updatedListParameter))
+                .defaultIfEmpty(ResponseEntity.notFound().build())
+                .onErrorResume(Exception.class, ex -> {
+                    log.error("Error while fetching models: " + ex.getMessage(), ex);
+                    return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
+                });
     }
 
     /**
@@ -172,8 +195,10 @@ public class ParameterResource {
     @GetMapping("/parameters/{id}")
     public Mono<ResponseEntity<ParameterDTO>> getParameter(@PathVariable UUID id) {
         log.debug("REST request to get Parameter : {}", id);
-        Optional<ParameterDTO> parameterDTO = parameterService.findOne(id);
-        return Mono.justOrEmpty(ResponseUtil.wrapOrNotFound(parameterDTO));
+        Mono<ParameterDTO> parameterDTO = parameterService.findOne(id);
+        return parameterDTO
+                .map((response) -> ResponseEntity.ok().body(response))
+                .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()));
     }
 
     /**
@@ -185,7 +210,6 @@ public class ParameterResource {
     @DeleteMapping("/parameters/{id}")
     public Mono<ResponseEntity<Void>> deleteParameter(@PathVariable UUID id) {
         log.debug("REST request to delete Parameter : {}", id);
-        parameterService.delete(id);
         return Mono.justOrEmpty(ResponseEntity
                 .noContent()
                 .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
