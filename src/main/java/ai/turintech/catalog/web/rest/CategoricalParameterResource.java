@@ -141,11 +141,11 @@ public class CategoricalParameterResource {
 
         Mono<CategoricalParameterDTO> result = categoricalParameterService.partialUpdate(categoricalParameterDTO);
 
-        return result.map((updatedBooleanParameterDTO) ->
+        return result.map((updatedCategoricalParameterDTO) ->
                 ResponseEntity
                         .ok()
-                        .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, updatedBooleanParameterDTO.getParameterTypeDefinitionId().toString()))
-                        .body(updatedBooleanParameterDTO)
+                        .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, updatedCategoricalParameterDTO.getParameterTypeDefinitionId().toString()))
+                        .body(updatedCategoricalParameterDTO)
         );
     }
 
