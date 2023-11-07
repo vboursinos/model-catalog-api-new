@@ -44,8 +44,8 @@ public class ModelTypeCallable<T> implements Callable<T> {
     @Autowired
     private ModelTypeMapper modelTypeMapper;
 
-        private List<ModelTypeDTO> findAll(){
-       return modelTypeRepository.findAll().stream().map(modelTypeMapper::toDto).collect(Collectors.toCollection(LinkedList::new));
+    private List<ModelTypeDTO> findAll() {
+        return modelTypeRepository.findAll().stream().map(modelTypeMapper::toDto).collect(Collectors.toCollection(LinkedList::new));
     }
 
     public ModelTypeDTO findById() throws Exception {
@@ -90,13 +90,13 @@ public class ModelTypeCallable<T> implements Callable<T> {
             return (T) create();
         } else if (name.equalsIgnoreCase("findAll")) {
             return (T) findAll();
-        } else if (name.equalsIgnoreCase("findById")){
+        } else if (name.equalsIgnoreCase("findById")) {
             return (T) findById();
-        } else if(name.equalsIgnoreCase("update")) {
+        } else if (name.equalsIgnoreCase("update")) {
             return (T) update();
-        } else if(name.equalsIgnoreCase("partialUpdate")) {
+        } else if (name.equalsIgnoreCase("partialUpdate")) {
             return (T) partialUpdate();
-        } else if(name.equalsIgnoreCase("delete")) {
+        } else if (name.equalsIgnoreCase("delete")) {
             delete();
         }
         return null;
