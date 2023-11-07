@@ -1,18 +1,11 @@
 package ai.turintech.catalog.callable;
 
 import ai.turintech.catalog.domain.MlTaskType;
-import ai.turintech.catalog.domain.Model;
 import ai.turintech.catalog.repository.MlTaskTypeRepository;
-import ai.turintech.catalog.repository.ModelRepository;
 import ai.turintech.catalog.service.dto.MlTaskTypeDTO;
-import ai.turintech.catalog.service.dto.ModelDTO;
-import ai.turintech.catalog.service.dto.ModelPaginatedListDTO;
 import ai.turintech.catalog.service.mapper.MlTaskTypeMapper;
-import ai.turintech.catalog.service.mapper.ModelMapper;
-import ai.turintech.catalog.utils.PaginationConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,8 +24,6 @@ public class MlTaskTypeCallable<T> implements Callable<T> {
     private UUID id;
     private MlTaskTypeDTO mlTaskTypeDTO;
 
-    private Pageable pageable;
-
     public MlTaskTypeCallable(String name) {
         this.name = name;
     }
@@ -47,19 +38,11 @@ public class MlTaskTypeCallable<T> implements Callable<T> {
         this.mlTaskTypeDTO = mlTaskTypeDTO;
     }
 
-    public MlTaskTypeCallable(String name, Pageable pageable) {
-        this.name = name;
-        this.pageable = pageable;
-    }
-
     @Autowired
     private MlTaskTypeRepository mlTaskTypeRepository;
 
     @Autowired
     private MlTaskTypeMapper mlTaskTypeMapper;
-
-    @Autowired
-    private PaginationConverter paginationConverter;
 
     private List<MlTaskTypeDTO> findAll(){
        return mlTaskTypeRepository.findAll().stream().map(mlTaskTypeMapper::toDto).collect(Collectors.toCollection(LinkedList::new));
