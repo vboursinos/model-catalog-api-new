@@ -1,4 +1,4 @@
-package ai.turintech.catalog.callable.model;
+package ai.turintech.catalog.callable;
 
 import ai.turintech.catalog.domain.Model;
 import ai.turintech.catalog.domain.Parameter;

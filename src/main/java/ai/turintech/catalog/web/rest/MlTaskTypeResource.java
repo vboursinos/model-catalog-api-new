@@ -14,6 +14,7 @@ import java.util.Optional;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -39,14 +40,12 @@ public class MlTaskTypeResource {
     @Value("${jhipster.clientApp.name}")
     private String applicationName;
 
+    @Autowired
     private MlTaskTypeService mlTaskTypeService;
 
+    @Autowired
     private MlTaskTypeRepository mlTaskTypeRepository;
 
-//    public MlTaskTypeResource(MlTaskTypeService mlTaskTypeService, MlTaskTypeRepository mlTaskTypeRepository) {
-//        this.mlTaskTypeService = mlTaskTypeService;
-//        this.mlTaskTypeRepository = mlTaskTypeRepository;
-//    }
 
     /**
      * {@code POST  /ml-task-types} : Create a new mlTaskType.
@@ -61,11 +60,19 @@ public class MlTaskTypeResource {
         if (mlTaskTypeDTO.getId() != null) {
             throw new BadRequestAlertException("A new mlTaskType cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        MlTaskTypeDTO result = mlTaskTypeService.save(mlTaskTypeDTO);
-        return Mono.just(ResponseEntity
-                .created(new URI("/api/ml-task-types/" + result.getId()))
-                .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
-                .body(result));
+        Mono<MlTaskTypeDTO> result = mlTaskTypeService.save(mlTaskTypeDTO);
+        return result.map(
+            res -> {
+                try {
+                    return ResponseEntity
+                        .created(new URI("/api/ml-task-types/" + res.getId()))
+                        .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, res.getId().toString()))
+                        .body(res);
+                } catch (URISyntaxException e) {
+                    throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+                }
+            }
+        );
     }
 
     /**
@@ -95,11 +102,13 @@ public class MlTaskTypeResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
-        MlTaskTypeDTO result = mlTaskTypeService.update(mlTaskTypeDTO);
-        return Mono.just(ResponseEntity
+        Mono<MlTaskTypeDTO> result = mlTaskTypeService.update(mlTaskTypeDTO);
+        return result.map(
+            res -> ResponseEntity
                 .ok()
-                .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, mlTaskTypeDTO.getId().toString()))
-                .body(result));
+                .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, res.getId().toString()))
+                .body(res)
+        );
     }
 
     /**
@@ -130,11 +139,13 @@ public class MlTaskTypeResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
-        Optional<MlTaskTypeDTO> result = mlTaskTypeService.partialUpdate(mlTaskTypeDTO);
+        Mono<MlTaskTypeDTO> result = mlTaskTypeService.partialUpdate(mlTaskTypeDTO);
 
-        return Mono.justOrEmpty(tech.jhipster.web.util.ResponseUtil.wrapOrNotFound(
-                result,
-                HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, mlTaskTypeDTO.getId().toString()))
+        return result.map(
+            res -> ResponseEntity
+                .ok()
+                .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, res.getId().toString()))
+                .body(res)
         );
     }
 
@@ -146,7 +157,8 @@ public class MlTaskTypeResource {
     @GetMapping(value = "/ml-task-types", produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<List<MlTaskTypeDTO>> getAllMlTaskTypes() {
         log.debug("REST request to get all MlTaskTypes");
-        return Mono.justOrEmpty(mlTaskTypeService.findAll());
+        Mono<List<MlTaskTypeDTO>> mlTaskTypeDTOList = mlTaskTypeService.findAll();
+        return mlTaskTypeDTOList;
     }
 
     /**
@@ -156,7 +168,7 @@ public class MlTaskTypeResource {
     @GetMapping(value = "/ml-task-types", produces = MediaType.APPLICATION_NDJSON_VALUE)
     public Flux<MlTaskTypeDTO> getAllMlTaskTypesAsStream() {
         log.debug("REST request to get all MlTaskTypes as a stream");
-        return Flux.fromIterable(mlTaskTypeService.findAll());
+        return mlTaskTypeService.findAllStream();
     }
 
     /**
@@ -168,8 +180,12 @@ public class MlTaskTypeResource {
     @GetMapping("/ml-task-types/{id}")
     public Mono<ResponseEntity<MlTaskTypeDTO>> getMlTaskType(@PathVariable UUID id) {
         log.debug("REST request to get MlTaskType : {}", id);
-        Optional<MlTaskTypeDTO> mlTaskTypeDTO = mlTaskTypeService.findOne(id);
-        return Mono.justOrEmpty(ResponseUtil.wrapOrNotFound(mlTaskTypeDTO));
+        Mono<MlTaskTypeDTO> mlTaskTypeDTO = mlTaskTypeService.findOne(id);
+        return mlTaskTypeDTO
+            .map(result -> ResponseEntity
+                .ok()
+                .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
+                .body(result));
     }
 
     /**

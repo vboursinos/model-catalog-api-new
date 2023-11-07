@@ -1,6 +1,6 @@
 package ai.turintech.catalog.service;
 
-import ai.turintech.catalog.callable.model.ModelCallable;
+import ai.turintech.catalog.callable.ModelCallable;
 import ai.turintech.catalog.domain.Model;
 import ai.turintech.catalog.repository.ModelRepository;
 import ai.turintech.catalog.service.dto.ModelDTO;

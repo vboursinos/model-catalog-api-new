@@ -1,4 +1,4 @@
-package ai.turintech.catalog.callable.parameter;
+package ai.turintech.catalog.callable;
 
 import ai.turintech.catalog.domain.Parameter;
 import ai.turintech.catalog.repository.ParameterRepository;

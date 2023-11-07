@@ -1,13 +1,20 @@
 package ai.turintech.catalog.service;
 
+import ai.turintech.catalog.callable.MlTaskTypeCallable;
+import ai.turintech.catalog.callable.ModelCallable;
 import ai.turintech.catalog.domain.MlTaskType;
 import ai.turintech.catalog.repository.MlTaskTypeRepository;
 import ai.turintech.catalog.service.dto.MlTaskTypeDTO;
 import ai.turintech.catalog.service.mapper.MlTaskTypeMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Scheduler;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -24,14 +31,16 @@ public class MlTaskTypeService {
 
     private final Logger log = LoggerFactory.getLogger(MlTaskTypeService.class);
 
+    @Autowired
+    private ApplicationContext context;
+
+    @Autowired
+    private Scheduler jdbcScheduler;
+    @Autowired
     private MlTaskTypeRepository mlTaskTypeRepository;
 
+    @Autowired
     private MlTaskTypeMapper mlTaskTypeMapper;
-
-//    public MlTaskTypeService(MlTaskTypeRepository mlTaskTypeRepository, MlTaskTypeMapper mlTaskTypeMapper) {
-//        this.mlTaskTypeRepository = mlTaskTypeRepository;
-//        this.mlTaskTypeMapper = mlTaskTypeMapper;
-//    }
 
     /**
      * Save a mlTaskType.
@@ -39,11 +48,10 @@ public class MlTaskTypeService {
      * @param mlTaskTypeDTO the entity to save.
      * @return the persisted entity.
      */
-    public MlTaskTypeDTO save(MlTaskTypeDTO mlTaskTypeDTO) {
+    public Mono<MlTaskTypeDTO> save(MlTaskTypeDTO mlTaskTypeDTO) {
         log.debug("Request to save MlTaskType : {}", mlTaskTypeDTO);
-        MlTaskType mlTaskType = mlTaskTypeMapper.toEntity(mlTaskTypeDTO);
-        mlTaskType = mlTaskTypeRepository.save(mlTaskType);
-        return mlTaskTypeMapper.toDto(mlTaskType);
+        MlTaskTypeCallable callable = context.getBean(MlTaskTypeCallable.class, "create", mlTaskTypeDTO);
+        return Mono.fromCallable(callable).publishOn(jdbcScheduler);
     }
 
     /**
@@ -52,11 +60,10 @@ public class MlTaskTypeService {
      * @param mlTaskTypeDTO the entity to save.
      * @return the persisted entity.
      */
-    public MlTaskTypeDTO update(MlTaskTypeDTO mlTaskTypeDTO) {
+    public Mono<MlTaskTypeDTO> update(MlTaskTypeDTO mlTaskTypeDTO) {
         log.debug("Request to update MlTaskType : {}", mlTaskTypeDTO);
-        MlTaskType mlTaskType = mlTaskTypeMapper.toEntity(mlTaskTypeDTO);
-        mlTaskType = mlTaskTypeRepository.save(mlTaskType);
-        return mlTaskTypeMapper.toDto(mlTaskType);
+        MlTaskTypeCallable callable = context.getBean(MlTaskTypeCallable.class, "update", mlTaskTypeDTO);
+        return Mono.fromCallable(callable).publishOn(jdbcScheduler);
     }
 
     /**
@@ -65,18 +72,11 @@ public class MlTaskTypeService {
      * @param mlTaskTypeDTO the entity to update partially.
      * @return the persisted entity.
      */
-    public Optional<MlTaskTypeDTO> partialUpdate(MlTaskTypeDTO mlTaskTypeDTO) {
+    public Mono<MlTaskTypeDTO> partialUpdate(MlTaskTypeDTO mlTaskTypeDTO) {
         log.debug("Request to partially update MlTaskType : {}", mlTaskTypeDTO);
+        MlTaskTypeCallable callable = context.getBean(MlTaskTypeCallable.class, "partialUpdate", mlTaskTypeDTO);
 
-        return mlTaskTypeRepository
-            .findById(mlTaskTypeDTO.getId())
-            .map(existingMlTaskType -> {
-                mlTaskTypeMapper.partialUpdate(existingMlTaskType, mlTaskTypeDTO);
-
-                return existingMlTaskType;
-            })
-            .map(mlTaskTypeRepository::save)
-            .map(mlTaskTypeMapper::toDto);
+        return Mono.fromCallable(callable).publishOn(jdbcScheduler);
     }
 
     /**
@@ -85,9 +85,20 @@ public class MlTaskTypeService {
      * @return the list of entities.
      */
     @Transactional(readOnly = true)
-    public List<MlTaskTypeDTO> findAll() {
+    public Mono<List<MlTaskTypeDTO>> findAll() {
         log.debug("Request to get all MlTaskTypes");
-        return mlTaskTypeRepository.findAll().stream().map(mlTaskTypeMapper::toDto).collect(Collectors.toCollection(LinkedList::new));
+        MlTaskTypeCallable callable = context.getBean(MlTaskTypeCallable.class, "findAll");
+        return Mono.fromCallable(callable).publishOn(jdbcScheduler);
+    }
+
+    @Transactional(readOnly = true)
+    public Flux<MlTaskTypeDTO> findAllStream() {
+        log.debug("Request to get all MlTaskTypes");
+        return Flux.fromIterable(mlTaskTypeRepository
+                .findAll()
+                .stream()
+                .map(mlTaskTypeMapper::toDto)
+                .collect(Collectors.toCollection(LinkedList::new)));
     }
 
     /**
@@ -97,9 +108,10 @@ public class MlTaskTypeService {
      * @return the entity.
      */
     @Transactional(readOnly = true)
-    public Optional<MlTaskTypeDTO> findOne(UUID id) {
+    public Mono<MlTaskTypeDTO> findOne(UUID id) {
         log.debug("Request to get MlTaskType : {}", id);
-        return mlTaskTypeRepository.findById(id).map(mlTaskTypeMapper::toDto);
+        MlTaskTypeCallable callable = context.getBean(MlTaskTypeCallable.class, "findById", id);
+        return Mono.fromCallable(callable).publishOn(jdbcScheduler);
     }
 
     /**
@@ -107,8 +119,15 @@ public class MlTaskTypeService {
      *
      * @param id the id of the entity.
      */
-    public void delete(UUID id) {
+    public Mono<Void> delete(UUID id) {
         log.debug("Request to delete MlTaskType : {}", id);
-        mlTaskTypeRepository.deleteById(id);
+        MlTaskTypeCallable callable = context.getBean(MlTaskTypeCallable.class, "delete", id);
+        Mono delete = Mono.fromCallable(callable);
+        delete.subscribe(result -> {
+            System.out.println(result);
+        }, error -> {
+            System.err.println("An error occurred: " + error.toString());
+        });
+        return delete.subscribeOn(jdbcScheduler);
     }
 }

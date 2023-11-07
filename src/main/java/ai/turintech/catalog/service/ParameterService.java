@@ -1,6 +1,6 @@
 package ai.turintech.catalog.service;
 
-import ai.turintech.catalog.callable.parameter.*;
+import ai.turintech.catalog.callable.ParameterCallable;
 import ai.turintech.catalog.domain.Parameter;
 import ai.turintech.catalog.repository.ParameterRepository;
 import ai.turintech.catalog.service.dto.ParameterDTO;
