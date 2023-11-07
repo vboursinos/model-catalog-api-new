@@ -210,9 +210,7 @@ public class ParameterResource {
     @DeleteMapping("/parameters/{id}")
     public Mono<ResponseEntity<Void>> deleteParameter(@PathVariable UUID id) {
         log.debug("REST request to delete Parameter : {}", id);
-        return Mono.justOrEmpty(ResponseEntity
-                .noContent()
-                .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
-                .build());
+        return parameterService.delete(id)
+                .map((response) -> ResponseEntity.noContent().headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString())).build());
     }
 }

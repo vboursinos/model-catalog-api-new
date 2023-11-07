@@ -1,6 +1,6 @@
 package ai.turintech.catalog.service;
 
-import ai.turintech.catalog.callable.model.*;
+import ai.turintech.catalog.callable.model.ModelCallable;
 import ai.turintech.catalog.domain.Model;
 import ai.turintech.catalog.repository.ModelRepository;
 import ai.turintech.catalog.service.dto.ModelDTO;
@@ -43,6 +43,7 @@ public class ModelService {
 
     @Autowired
     private PaginationConverter paginationConverter;
+
     /**
      * Save a model.
      *
@@ -52,11 +53,9 @@ public class ModelService {
     @Transactional
     public Mono<ModelDTO> save(ModelDTO modelDTO) {
         log.debug("Request to save Model : {}", modelDTO);
-        return Mono.fromCallable(() -> {
-            Model model = modelMapper.toEntity(modelDTO);
-            model = modelRepository.save(model);
-            return modelMapper.toDto(model);
-        });
+        ModelCallable modelCallable = context.getBean(ModelCallable.class, "create", modelDTO);
+        return Mono.fromCallable(modelCallable)
+                .subscribeOn(jdbcScheduler);
     }
 
     /**
@@ -68,9 +67,8 @@ public class ModelService {
     @Transactional
     public Mono<ModelDTO> update(ModelDTO modelDTO) {
         log.debug("Request to update Model : {}", modelDTO);
-        UpdateModelCallable updateModelCallable = context.getBean(UpdateModelCallable.class, modelDTO);
-
-        return Mono.fromCallable(updateModelCallable)
+        ModelCallable modelCallable = context.getBean(ModelCallable.class, "update", modelDTO);
+        return Mono.fromCallable(modelCallable)
                 .subscribeOn(jdbcScheduler);
     }
 
@@ -83,9 +81,8 @@ public class ModelService {
     @Transactional
     public Mono<ModelDTO> partialUpdate(ModelDTO modelDTO) {
         log.debug("Request to partially update Model : {}", modelDTO);
-        PartialUpdateModelCallable partialUpdateModelCallable = context.getBean(PartialUpdateModelCallable.class, modelDTO);
-
-        return Mono.fromCallable(partialUpdateModelCallable)
+        ModelCallable modelCallable = context.getBean(ModelCallable.class, "partialUpdate", modelDTO);
+        return Mono.fromCallable(modelCallable)
                 .subscribeOn(jdbcScheduler);
     }
 
@@ -99,9 +96,8 @@ public class ModelService {
     @Transactional(readOnly = true)
     public Mono<ModelPaginatedListDTO> findAll(Pageable pageable) {
         log.debug("Request to get all Models");
-        FindAllModelsCallable findAllModelsCallable = context.getBean(FindAllModelsCallable.class, pageable);
-
-        return Mono.fromCallable(findAllModelsCallable)
+        ModelCallable modelCallable = context.getBean(ModelCallable.class, "findAll", pageable);
+        return Mono.fromCallable(modelCallable)
                 .subscribeOn(jdbcScheduler);
     }
 
@@ -124,8 +120,8 @@ public class ModelService {
     @Transactional(readOnly = true)
     public Mono<ModelDTO> findOne(UUID id) throws Exception {
         log.debug("Request to get Model : {}", id);
-        FindModelCallable findModelCallable = context.getBean(FindModelCallable.class, id);
-        return Mono.justOrEmpty(findModelCallable.call());
+        ModelCallable modelCallable = context.getBean(ModelCallable.class, "findById", id);
+        return Mono.fromCallable(modelCallable);
     }
 
     /**
@@ -134,13 +130,15 @@ public class ModelService {
      * @param id the id of the entity.
      */
     @Transactional
-    public Mono<String> delete(UUID id) {
+    public Mono<Void> delete(UUID id) {
         log.debug("Request to delete Model : {}", id);
-        DeleteModelCallable deleteModelCallable = context.getBean(DeleteModelCallable.class, id);
-        try {
-            return Mono.justOrEmpty(deleteModelCallable.call()).subscribeOn(jdbcScheduler);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        ModelCallable modelCallable = context.getBean(ModelCallable.class, "delete", id);
+        Mono delete = Mono.fromCallable(modelCallable);
+        delete.subscribe(result -> {
+            System.out.println(result);
+        }, error -> {
+            System.err.println("An error occurred: " + error.toString());
+        });
+        return delete.subscribeOn(jdbcScheduler);
     }
 }

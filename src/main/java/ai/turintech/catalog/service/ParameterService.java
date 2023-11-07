@@ -1,7 +1,6 @@
 package ai.turintech.catalog.service;
 
-import ai.turintech.catalog.callable.parameter.FindAllParametersCallable;
-import ai.turintech.catalog.callable.parameter.FindParameterCallable;
+import ai.turintech.catalog.callable.parameter.*;
 import ai.turintech.catalog.domain.Parameter;
 import ai.turintech.catalog.repository.ParameterRepository;
 import ai.turintech.catalog.service.dto.ParameterDTO;
@@ -32,7 +31,6 @@ public class ParameterService {
 
     @Autowired
     private ApplicationContext context;
-
     @Autowired
     private Scheduler jdbcScheduler;
     @Autowired
@@ -64,11 +62,9 @@ public class ParameterService {
      */
     public Mono<ParameterDTO> update(ParameterDTO parameterDTO) {
         log.debug("Request to update Parameter : {}", parameterDTO);
-        return Mono.fromCallable(() ->  {
-            Parameter parameter = parameterMapper.toEntity(parameterDTO);
-            parameter = parameterRepository.save(parameter);
-            return parameterMapper.toDto(parameter);
-        });
+//        UpdateParameterCallable updateParameterCallable = context.getBean(UpdateParameterCallable.class, parameterDTO);
+        ParameterCallable parameterCallable = context.getBean(ParameterCallable.class, "update", parameterDTO);
+        return Mono.fromCallable(parameterCallable).subscribeOn(jdbcScheduler);
     }
 
     /**
@@ -79,17 +75,9 @@ public class ParameterService {
      */
     public Mono<Optional<ParameterDTO>> partialUpdate(ParameterDTO parameterDTO) {
         log.debug("Request to partially update Parameter : {}", parameterDTO);
-
-        return Mono.fromCallable(() -> parameterRepository
-            .findById(parameterDTO.getId())
-            .map(
-                existingParameter -> {
-                    parameterMapper.partialUpdate(existingParameter, parameterDTO);
-                    return existingParameter;
-                }
-            )
-            .map(parameterRepository::save)
-            .map(parameterMapper::toDto));
+//        PartialUpdateParameterCallable partialUpdateParameterCallable = context.getBean(PartialUpdateParameterCallable.class, parameterDTO);
+        ParameterCallable parameterCallable = context.getBean(ParameterCallable.class, "partialUpdate", parameterDTO);
+        return Mono.fromCallable(parameterCallable).subscribeOn(jdbcScheduler);
     }
 
     /**
@@ -101,9 +89,10 @@ public class ParameterService {
     @Transactional(readOnly = true)
     public Mono<List<ParameterDTO>> findAll(Pageable pageable) {
         log.debug("Request to get all Parameters");
-        FindAllParametersCallable findAllParametersCallable = context.getBean(FindAllParametersCallable.class);
-        return Mono.fromCallable(findAllParametersCallable).subscribeOn(jdbcScheduler);
+        ParameterCallable parameterCallable = context.getBean(ParameterCallable.class, "findAll");
+        return Mono.fromCallable(parameterCallable).subscribeOn(jdbcScheduler);
     }
+
 
     @Transactional(readOnly = true)
     public Flux<ParameterDTO> findAllStream(Pageable pageable) {
@@ -120,8 +109,8 @@ public class ParameterService {
     @Transactional(readOnly = true)
     public Mono<ParameterDTO> findOne(UUID id) {
         log.debug("Request to get Parameter : {}", id);
-        FindParameterCallable findParameterCallable = context.getBean(FindParameterCallable.class, id);
-        return Mono.fromCallable(findParameterCallable).subscribeOn(jdbcScheduler);
+        ParameterCallable parameterCallable = context.getBean(ParameterCallable.class, "findById", id);
+        return Mono.fromCallable(parameterCallable).subscribeOn(jdbcScheduler);
     }
 
     /**
@@ -131,6 +120,7 @@ public class ParameterService {
      */
     public Mono<Void> delete(UUID id) {
         log.debug("Request to delete Parameter : {}", id);
-        return Mono.fromRunnable(() -> parameterRepository.deleteById(id));
+        ParameterCallable parameterCallable = context.getBean(ParameterCallable.class, "delete" , id);
+        return Mono.fromCallable(parameterCallable).subscribeOn(jdbcScheduler);
     }
 }
