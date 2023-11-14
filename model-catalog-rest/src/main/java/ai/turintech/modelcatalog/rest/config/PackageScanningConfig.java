@@ -11,6 +11,7 @@ import ai.turintech.modelcatalog.todtomapper.ModelCatalogToDtoMapperPackage;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @Configuration
 @ComponentScan(basePackageClasses = {ModelCatalogRestPackage.class,
@@ -21,6 +22,7 @@ import org.springframework.context.annotation.Configuration;
         ModelCatalogRepositoryPackage.class,
         ModelCatalogEntityPackage.class,
         ModelCatalogCallablePackage.class})
+@EnableJpaRepositories(basePackageClasses = {ModelCatalogRepositoryPackage.class})
 @EntityScan(basePackageClasses = {ModelCatalogEntityPackage.class})
 public class PackageScanningConfig {
 

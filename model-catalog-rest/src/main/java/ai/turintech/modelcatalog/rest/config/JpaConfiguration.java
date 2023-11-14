@@ -1,19 +1,22 @@
 package ai.turintech.modelcatalog.rest.config;
 
+import ai.turintech.modelcatalog.entity.ModelCatalogEntityPackage;
+import jakarta.persistence.EntityManagerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
-import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.orm.jpa.JpaTransactionManager;
+import org.springframework.orm.jpa.JpaVendorAdapter;
+import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
+import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 
+import javax.naming.NamingException;
 import javax.sql.DataSource;
 
 @Configuration
-@EnableJpaRepositories(basePackages = "ai.turintech.modelcatalog.repository")
 public class JpaConfiguration {
 
     @Value("${spring.datasource.url}")
@@ -28,7 +31,10 @@ public class JpaConfiguration {
     @Value("${spring.datasource.driver-class-name}")
     private String datasourceDriverClassName;
 
-    @Bean
+    @Value("${spring.jpa.properties.hibernate.dialect}")
+    private String postgresDialect;
+
+    @Bean(name = "dataSource")
     public DataSource dataSource() {
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
         dataSource.setDriverClassName(datasourceDriverClassName);
@@ -38,20 +44,29 @@ public class JpaConfiguration {
         return dataSource;
     }
 
-    @Bean(name = "entityManagerFactory")
-    public LocalSessionFactoryBean sessionFactory() {
-        LocalSessionFactoryBean sessionFactory = new LocalSessionFactoryBean();
-        sessionFactory.setPackagesToScan("ai.turintech.modelcatalog");
-        sessionFactory.setDataSource(dataSource());
-
-        return sessionFactory;
+    @Bean
+    public LocalContainerEntityManagerFactoryBean entityManagerFactory() throws NamingException {
+        LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
+        em.setDataSource(dataSource());
+        em.setPackagesToScan(ModelCatalogEntityPackage.class.getPackage().getName());
+        em.setJpaVendorAdapter(vendorAdapter(Boolean.valueOf(true), postgresDialect));
+        return em;
     }
 
     @Primary
     @Bean
-    public PlatformTransactionManager transactionManager() {
+    public PlatformTransactionManager transactionManager(EntityManagerFactory emf) {
         JpaTransactionManager transactionManager = new JpaTransactionManager();
-        transactionManager.setEntityManagerFactory(sessionFactory().getObject());
+        transactionManager.setEntityManagerFactory(emf);
         return transactionManager;
     }
+
+    @Bean
+    public JpaVendorAdapter vendorAdapter(Boolean showSql, String dialect) {
+        HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
+        vendorAdapter.setShowSql(showSql);
+        vendorAdapter.setDatabasePlatform(dialect);
+        return vendorAdapter;
+    }
+
 }
