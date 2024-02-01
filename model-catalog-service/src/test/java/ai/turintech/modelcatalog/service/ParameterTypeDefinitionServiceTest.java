@@ -26,7 +26,7 @@ import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
 
 @ExtendWith({MockitoExtension.class})
-public class ParameterTypeDefinitionServiceTest {
+public class ParameterTypeDefinitionServiceTest extends TestServiceConfig {
 
   private static final String EXISTING_PARAMETER_TYPE_DEFINITION_ID =
       "323e4567-e89b-12d3-a456-426614174001";
