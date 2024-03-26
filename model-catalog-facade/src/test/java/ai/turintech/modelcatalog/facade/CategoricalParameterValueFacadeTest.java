@@ -56,7 +56,6 @@ public class CategoricalParameterValueFacadeTest extends BasicFacadeTest {
     CategoricalParameter categoricalParameter = new CategoricalParameter();
     categoricalParameter.setId(UUID.fromString("323e4567-e89b-12d3-a456-426614174001"));
     categoricalParameter.setDefaultValue("test_defaultValue");
-    categoricalParameter.setParameterTypeDefinition(parameterTypeDefinition);
     return categoricalParameter;
   }
 

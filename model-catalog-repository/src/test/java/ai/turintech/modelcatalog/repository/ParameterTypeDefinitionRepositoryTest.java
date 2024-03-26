@@ -103,14 +103,14 @@ public class ParameterTypeDefinitionRepositoryTest {
     parameterTypeDefinitionRepository.delete(savedParameterTypeDefinition);
   }
 
-	@Test
-	void testUpdateParameterTypeDefinitionRepository() {
-		ParameterTypeDefinition parameterTypeDefinition = getParameterTypeDefinition();
-		ParameterTypeDefinition savedParameterTypeDefinition = parameterTypeDefinitionRepository
-				.save(parameterTypeDefinition);
-		savedParameterTypeDefinition.setOrdering(80);
-		ParameterTypeDefinition updateParameterTypeDefinition = parameterTypeDefinitionRepository
-				.save(savedParameterTypeDefinition);
-		Assertions.assertEquals(updateParameterTypeDefinition.getOrdering(), 80);
-	}
+  @Test
+  void testUpdateParameterTypeDefinitionRepository() {
+    ParameterTypeDefinition parameterTypeDefinition = getParameterTypeDefinition();
+    ParameterTypeDefinition savedParameterTypeDefinition =
+        parameterTypeDefinitionRepository.save(parameterTypeDefinition);
+    savedParameterTypeDefinition.setOrdering(80);
+    ParameterTypeDefinition updateParameterTypeDefinition =
+        parameterTypeDefinitionRepository.save(savedParameterTypeDefinition);
+    Assertions.assertEquals(updateParameterTypeDefinition.getOrdering(), 80);
+  }
 }

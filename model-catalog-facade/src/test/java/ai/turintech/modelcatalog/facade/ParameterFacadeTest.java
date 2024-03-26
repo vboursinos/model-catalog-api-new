@@ -62,7 +62,7 @@ public class ParameterFacadeTest extends BasicFacadeTest {
         .ifPresent(
             parameterDTOS -> {
               assertEquals(
-                  1, parameterDTOS.size(), "Returned parameters do not match expected size");
+                  4, parameterDTOS.size(), "Returned parameters do not match expected size");
             });
   }
 

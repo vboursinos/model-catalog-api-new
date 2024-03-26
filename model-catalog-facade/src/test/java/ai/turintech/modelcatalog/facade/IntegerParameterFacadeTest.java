@@ -22,7 +22,7 @@ public class IntegerParameterFacadeTest extends BasicFacadeTest {
 
   private static final String PARAMETER_TYPE_ID = "323e4567-e89b-12d3-a456-426614174003";
   private static final String EXISTING_INTEGER_PARAMETER_ID =
-      "323e4567-e89b-12d3-a456-426614174001";
+      "323e4567-e89b-12d3-a456-426614174005";
 
   private IntegerParameterDTO getIntegerParameterDTO() {
     ParameterTypeDefinitionDTO parameterTypeDefinitionDTO = createParameterTypeDefinition();

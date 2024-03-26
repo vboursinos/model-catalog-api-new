@@ -58,7 +58,7 @@ public class ParameterTypeFacadeTest extends BasicFacadeTest {
 
     parameterTypeDTOMono.subscribe(
         parameterTypeDTO -> {
-          Assert.assertEquals("parametertype1", parameterTypeDTO.getName());
+          Assert.assertEquals("boolean", parameterTypeDTO.getName());
         });
   }
 

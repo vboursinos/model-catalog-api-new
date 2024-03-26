@@ -2,8 +2,6 @@ package ai.turintech.modelcatalog.dto;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -55,7 +53,8 @@ public class ParameterDTOTest {
   @Test
   public void testToString() {
     String expectedToString =
-        "ParameterDTO{id='"+parameterDTO.getId()
+        "ParameterDTO{id='"
+            + parameterDTO.getId()
             + "', name='TestParameter', label='TestLabel', description='TestDescription', "
             + "enabled=true, fixedValue=true, ordering=1, modelId="
             + parameterDTO.getModelId()
@@ -63,7 +62,7 @@ public class ParameterDTOTest {
             + ", categoricalParameters=[]"
             + ", floatParameters=[]"
             + ", integerParameters=[]"
-  			+"}";
+            + "}";
     assertEquals(expectedToString, parameterDTO.toString());
   }
 

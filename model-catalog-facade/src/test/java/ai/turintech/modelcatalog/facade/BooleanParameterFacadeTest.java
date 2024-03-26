@@ -3,7 +3,6 @@ package ai.turintech.modelcatalog.facade;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import ai.turintech.modelcatalog.dto.BooleanParameterDTO;
-import ai.turintech.modelcatalog.dto.ParameterTypeDefinitionDTO;
 import jakarta.transaction.Transactional;
 import java.util.NoSuchElementException;
 import java.util.UUID;
@@ -24,11 +23,6 @@ public class BooleanParameterFacadeTest extends BasicFacadeTest {
   private final String PARAMETER_TYPE_DEFINITION_ID = "323e4567-e89b-12d3-a456-426614174003";
 
   private BooleanParameterDTO getBooleanParameterDTO() {
-
-    ParameterTypeDefinitionDTO parameterTypeDefinitionDTO = new ParameterTypeDefinitionDTO();
-    parameterTypeDefinitionDTO.setId(UUID.fromString(PARAMETER_TYPE_DEFINITION_ID));
-    parameterTypeDefinitionDTO.setOrdering(10);
-
     BooleanParameterDTO booleanParameterDTO = new BooleanParameterDTO();
     booleanParameterDTO.setId(UUID.fromString(NEW_BOOLEAN_PARAMETER_ID));
     booleanParameterDTO.setDefaultValue(false);
@@ -36,6 +30,7 @@ public class BooleanParameterFacadeTest extends BasicFacadeTest {
   }
 
   @Test
+  @Transactional // So wrong but without this the test fails, we need to double-check the reason
   void testFindAllBooleanParameterFacade() {
     Flux<BooleanParameterDTO> booleanParametersMono = booleanParameterFacade.findAll();
     booleanParametersMono
@@ -51,6 +46,7 @@ public class BooleanParameterFacadeTest extends BasicFacadeTest {
   }
 
   @Test
+  @Transactional
   void testFindByIdBooleanParameterFacade() {
     Mono<BooleanParameterDTO> booleanParameterDTOMono =
         booleanParameterFacade.findOne(UUID.fromString(BOOLEAN_PARAMETER_ID));
@@ -82,21 +78,17 @@ public class BooleanParameterFacadeTest extends BasicFacadeTest {
   @Test
   @Transactional
   void testDeleteBooleanParameterFacade() {
-    Mono<BooleanParameterDTO> savedBooleanParameter =
-        booleanParameterFacade.save(getBooleanParameterDTO());
+    UUID NEW_BOOLEAN_PARAMETER_ID = UUID.fromString("323e4567-e89b-12d3-a456-426614174002");
 
-    savedBooleanParameter.subscribe(
-        booleanParameterDTO -> {
-          Mono<Void> deleteResult = booleanParameterFacade.delete(booleanParameterDTO.getId());
-          deleteResult.subscribe(
-              result -> {
-                Assert.assertNull(result);
-                Mono<BooleanParameterDTO> findResult =
-                    booleanParameterFacade.findOne(booleanParameterDTO.getId());
-                findResult.subscribe(
-                    notFoundBooleanParameterDTO -> Assert.assertNull(notFoundBooleanParameterDTO),
-                    throwable -> Assert.assertTrue(throwable instanceof NoSuchElementException));
-              });
+    Mono<Void> deleteResult = booleanParameterFacade.delete(NEW_BOOLEAN_PARAMETER_ID);
+    deleteResult.subscribe(
+        result -> {
+          Assert.assertNull(result);
+          Mono<BooleanParameterDTO> findResult =
+              booleanParameterFacade.findOne(NEW_BOOLEAN_PARAMETER_ID);
+          findResult.subscribe(
+              notFoundBooleanParameterDTO -> Assert.assertNull(notFoundBooleanParameterDTO),
+              throwable -> Assert.assertTrue(throwable instanceof NoSuchElementException));
         });
   }
 

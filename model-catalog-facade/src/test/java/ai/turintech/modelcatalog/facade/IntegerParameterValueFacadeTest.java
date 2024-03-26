@@ -52,7 +52,6 @@ public class IntegerParameterValueFacadeTest extends BasicFacadeTest {
     IntegerParameter integerParameter = new IntegerParameter();
     integerParameter.setId(UUID.fromString(EXISTING_INTEGER_PARAMETER_VALUE_ID));
     integerParameter.setDefaultValue(1);
-    integerParameter.setParameterTypeDefinition(parameterTypeDefinition);
     return integerParameter;
   }
 

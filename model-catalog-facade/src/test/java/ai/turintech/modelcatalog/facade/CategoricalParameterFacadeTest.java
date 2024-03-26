@@ -19,7 +19,7 @@ public class CategoricalParameterFacadeTest extends BasicFacadeTest {
   @Autowired private CategoricalParameterFacade categoricalParameterFacade;
 
   private static final String PARAMETER_TYPE_ID = "323e4567-e89b-12d3-a456-426614174003";
-  private static final String EXISTING_PARAMETER_ID = "323e4567-e89b-12d3-a456-426614174001";
+  private static final String EXISTING_PARAMETER_ID = "323e4567-e89b-12d3-a456-426614174003";
 
   private CategoricalParameterDTO getCategoricalParameterDTO() {
     ParameterTypeDefinitionDTO parameterTypeDefinitionDTO = new ParameterTypeDefinitionDTO();

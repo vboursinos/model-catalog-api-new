@@ -20,7 +20,7 @@ public class FloatParameterFacadeTest extends BasicFacadeTest {
   @Autowired private FloatParameterFacade floatParameterFacade;
 
   private static final String PARAMETER_TYPE_ID = "323e4567-e89b-12d3-a456-426614174003";
-  private static final String EXISTING_FLOAT_PARAMETER_ID = "323e4567-e89b-12d3-a456-426614174001";
+  private static final String EXISTING_FLOAT_PARAMETER_ID = "323e4567-e89b-12d3-a456-426614174007";
 
   private FloatParameterDTO getFloatParameterDTO() {
     ParameterTypeDefinitionDTO parameterTypeDefinitionDTO = createParameterTypeDefinition();

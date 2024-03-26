@@ -62,7 +62,6 @@ public class FloatParameterValueFacadeTest extends BasicFacadeTest {
     FloatParameter floatParameter = new FloatParameter();
     floatParameter.setId(UUID.fromString("323e4567-e89b-12d3-a456-426614174002"));
     floatParameter.setDefaultValue(1.0);
-    floatParameter.setParameterTypeDefinition(createParameterTypeDefinition());
     return floatParameter;
   }
 

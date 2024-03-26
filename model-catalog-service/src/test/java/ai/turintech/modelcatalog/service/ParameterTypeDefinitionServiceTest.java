@@ -101,5 +101,4 @@ public class ParameterTypeDefinitionServiceTest extends TestServiceConfig {
         .expectNextCount(mockParameterTypeDefinitions.size())
         .verifyComplete();
   }
-
 }
