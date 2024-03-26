@@ -88,11 +88,11 @@ public class ParameterTypeDefinitionFacadeTest extends BasicFacadeTest {
   void testFindByIdParameterTypeDefinitionFacade() {
     Mono<ParameterTypeDefinitionDTO> parameterTypeDefinitionDTOMono =
         parameterTypeDefinitionFacade.findOne(
-            UUID.fromString(EXISTING_PARAMETER_TYPE_DEFINITION_ID));
+            UUID.fromString("323e4567-e89b-12d3-a456-426614174008"));
 
     parameterTypeDefinitionDTOMono.subscribe(
         parameterTypeDefinitionDTO -> {
-          Assert.assertTrue(1 == parameterTypeDefinitionDTO.getOrdering());
+          Assert.assertTrue(2 == parameterTypeDefinitionDTO.getOrdering());
         });
   }
 
@@ -130,18 +130,18 @@ public class ParameterTypeDefinitionFacadeTest extends BasicFacadeTest {
         });
   }
 
-//  @Test
-//  @Transactional
-//  void testUpdateParameterTypeDefinitionFacade() {
-//    Mono<ParameterTypeDefinitionDTO> updateParameterTypeDefinitionDTO =
-//        parameterTypeDefinitionFacade.update(getUpdatedParameterTypeDefinitionDTO());
-//    updateParameterTypeDefinitionDTO.subscribe(
-//        parameterTypeDefinitionDTO -> {
-//          Assert.assertEquals(
-//              getUpdatedParameterTypeDefinitionDTO().getOrdering(),
-//              parameterTypeDefinitionDTO.getOrdering());
-//        });
-//  }
+  @Test
+  @Transactional
+  void testUpdateParameterTypeDefinitionFacade() {
+    Mono<ParameterTypeDefinitionDTO> updateParameterTypeDefinitionDTO =
+        parameterTypeDefinitionFacade.update(getUpdatedParameterTypeDefinitionDTO());
+    updateParameterTypeDefinitionDTO.subscribe(
+        parameterTypeDefinitionDTO -> {
+          Assert.assertEquals(
+              getUpdatedParameterTypeDefinitionDTO().getOrdering(),
+              parameterTypeDefinitionDTO.getOrdering());
+        });
+  }
 
   @Test
   @Transactional
