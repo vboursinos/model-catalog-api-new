@@ -214,7 +214,8 @@ public class Parameter extends AbstractUUIDIdentityEntity {
   @Override
   public String toString() {
     return "Parameter{"
-        + "name='"
+    	+ "id='"+super.getId()
+        + "', name='"
         + name
         + '\''
         + ", label='"

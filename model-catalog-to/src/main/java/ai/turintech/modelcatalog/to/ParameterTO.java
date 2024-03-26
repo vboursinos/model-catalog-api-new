@@ -152,7 +152,8 @@ public class ParameterTO extends AbstractUUIDIdentityTO {
   @Override
   public String toString() {
     return "ParameterTO{"
-        + "name='"
+    	+ "id="+super.getId()
+        + ", name='"
         + name
         + '\''
         + ", label='"

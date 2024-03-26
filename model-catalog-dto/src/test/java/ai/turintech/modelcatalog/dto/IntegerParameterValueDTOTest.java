@@ -21,6 +21,32 @@ public class IntegerParameterValueDTOTest {
   }
 
   @Test
+  public void testEquals() {
+    IntegerParameterValueDTO sameIdIntegerParameterValueDTO = new IntegerParameterValueDTO();
+    sameIdIntegerParameterValueDTO.setId(integerParameterValueDTO.getId());
+
+    IntegerParameterValueDTO differentIdIntegerParameterValueDTO = new IntegerParameterValueDTO();
+    differentIdIntegerParameterValueDTO.setId(UUID.randomUUID());
+
+    assertEquals(integerParameterValueDTO, sameIdIntegerParameterValueDTO);
+    assertNotEquals(integerParameterValueDTO, differentIdIntegerParameterValueDTO);
+    assertNotEquals(integerParameterValueDTO, null);
+  }
+
+  @Test
+  public void testHashCode() {
+    IntegerParameterValueDTO sameIdIntegerParameterValueDTO = new IntegerParameterValueDTO();
+    sameIdIntegerParameterValueDTO.setId(integerParameterValueDTO.getId());
+
+    IntegerParameterValueDTO differentIdIntegerParameterValueDTO = new IntegerParameterValueDTO();
+    differentIdIntegerParameterValueDTO.setId(UUID.randomUUID());
+
+    assertEquals(integerParameterValueDTO.hashCode(), sameIdIntegerParameterValueDTO.hashCode());
+    assertNotEquals(
+        integerParameterValueDTO.hashCode(), differentIdIntegerParameterValueDTO.hashCode());
+  }
+
+  @Test
   public void testToString() {
     String expectedToString =
         "IntegerParameterValueDTO{"

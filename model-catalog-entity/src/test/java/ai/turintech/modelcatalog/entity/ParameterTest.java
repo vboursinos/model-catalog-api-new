@@ -103,7 +103,9 @@ public class ParameterTest {
     String result = parameterUnderTest.toString();
     assertThat(result)
         .isEqualTo(
-            "Parameter{name='"
+            "Parameter{id='"
+                + parameterUnderTest.getId()
+                + "', name='"
                 + parameterUnderTest.getName()
                 + "', label='"
                 + parameterUnderTest.getLabel()
@@ -115,16 +117,6 @@ public class ParameterTest {
                 + parameterUnderTest.getFixedValue()
                 + ", ordering="
                 + parameterUnderTest.getOrdering()
-                + ", booleanParameters="
-                + parameterUnderTest.getBooleanParameters()
-                + ", categoricalParameters="
-                + parameterUnderTest.getCategoricalParameters()
-                + ", floatParameters="
-                + parameterUnderTest.getFloatParameters()
-                + ", integerParameters="
-                + parameterUnderTest.getIntegerParameters()
-                + ", model="
-                + parameterUnderTest.getModel()
-                + "}");
+                + ", booleanParameters=[], categoricalParameters=[], floatParameters=[], integerParameters=[], model=null}");
   }
 }

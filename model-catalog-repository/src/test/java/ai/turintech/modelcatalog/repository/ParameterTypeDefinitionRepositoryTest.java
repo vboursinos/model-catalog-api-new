@@ -82,7 +82,7 @@ public class ParameterTypeDefinitionRepositoryTest {
   void testFindAllParameterTypeDefinitionRepository() {
     List<ParameterTypeDefinition> parameterTypeDefinitions =
         parameterTypeDefinitionRepository.findAll();
-    Assertions.assertEquals(3, parameterTypeDefinitions.size());
+    Assertions.assertEquals(4, parameterTypeDefinitions.size());
   }
 
   @Test
@@ -103,12 +103,14 @@ public class ParameterTypeDefinitionRepositoryTest {
     parameterTypeDefinitionRepository.delete(savedParameterTypeDefinition);
   }
 
-  @Test
-  void testUpdateParameterTypeDefinitionRepository() {
-    ParameterTypeDefinition updateParameterTypeDefinition =
-        parameterTypeDefinitionRepository.save(getUpdatedParameterTypeDefinition());
-    Assertions.assertEquals(
-        getUpdatedParameterTypeDefinition().getOrdering(),
-        updateParameterTypeDefinition.getOrdering());
-  }
+	@Test
+	void testUpdateParameterTypeDefinitionRepository() {
+		ParameterTypeDefinition parameterTypeDefinition = getParameterTypeDefinition();
+		ParameterTypeDefinition savedParameterTypeDefinition = parameterTypeDefinitionRepository
+				.save(parameterTypeDefinition);
+		savedParameterTypeDefinition.setOrdering(80);
+		ParameterTypeDefinition updateParameterTypeDefinition = parameterTypeDefinitionRepository
+				.save(savedParameterTypeDefinition);
+		Assertions.assertEquals(updateParameterTypeDefinition.getOrdering(), 80);
+	}
 }

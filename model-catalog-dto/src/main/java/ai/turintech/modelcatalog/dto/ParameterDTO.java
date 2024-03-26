@@ -150,31 +150,33 @@ public class ParameterDTO extends AbstractUUIDIdentityDTO {
   @Override
   public String toString() {
     return "ParameterDTO{"
-        + "name='"
-        + name
+    		+ "id='"
+    		+ this.getId()
+        + "', name='"
+        + this.name
         + '\''
         + ", label='"
-        + label
+        + this.label
         + '\''
         + ", description='"
-        + description
+        + this.description
         + '\''
         + ", enabled="
-        + enabled
+        + this.enabled
         + ", fixedValue="
-        + fixedValue
+        + this.fixedValue
         + ", ordering="
-        + ordering
+        + this.ordering
         + ", modelId="
-        + modelId
+        + this.modelId
         + ", booleanParameters="
-        + booleanParameters
+        + this.booleanParameters
         + ", categoricalParameters="
-        + categoricalParameters
+        + this.categoricalParameters
         + ", floatParameters="
-        + floatParameters
+        + this.floatParameters
         + ", integerParameters="
-        + integerParameters
+        + this.integerParameters
         + '}';
   }
 }
