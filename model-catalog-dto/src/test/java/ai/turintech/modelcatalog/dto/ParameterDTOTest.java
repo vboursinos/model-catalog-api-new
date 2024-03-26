@@ -2,7 +2,6 @@ package ai.turintech.modelcatalog.dto;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeAll;
@@ -25,9 +24,14 @@ public class ParameterDTOTest {
     parameterDTO.setFixedValue(true);
     parameterDTO.setOrdering(1);
     parameterDTO.setModelId(UUID.randomUUID());
-    List<ParameterTypeDefinitionDTO> definitions = new ArrayList<>();
-    definitions.add(new ParameterTypeDefinitionDTO());
-    parameterDTO.setDefinitions(definitions);
+    List<BooleanParameterDTO> booleanParameters = List.of(new BooleanParameterDTO());
+    parameterDTO.setBooleanParameters(booleanParameters);
+    List<CategoricalParameterDTO> categoricalParameters = List.of(new CategoricalParameterDTO());
+    parameterDTO.setCategoricalParameters(categoricalParameters);
+    List<FloatParameterDTO> floatParameters = List.of(new FloatParameterDTO());
+    parameterDTO.setFloatParameters(floatParameters);
+    List<IntegerParameterDTO> integerParameters = List.of(new IntegerParameterDTO());
+    parameterDTO.setIntegerParameters(integerParameters);
   }
 
   @Test
@@ -58,14 +62,18 @@ public class ParameterDTOTest {
   @Test
   public void testToString() {
     String expectedToString =
-        "ParameterDTO{id="
-            + parameterDTO.getId()
-            + ", name='TestParameter', label='TestLabel', description='TestDescription', "
+        "ParameterDTO{name='TestParameter', label='TestLabel', description='TestDescription', "
             + "enabled=true, fixedValue=true, ordering=1, modelId="
             + parameterDTO.getModelId()
-            + ", definitions=["
-            + parameterDTO.getDefinitions().get(0)
-            + "]}";
+            + ", booleanParameters="
+            + parameterDTO.getBooleanParameters()
+            + ", categoricalParameters="
+            + parameterDTO.getCategoricalParameters()
+            + ", floatParameters="
+            + parameterDTO.getFloatParameters()
+            + ", integerParameters="
+            + parameterDTO.getIntegerParameters()
+            + "}";
     assertEquals(expectedToString, parameterDTO.toString());
   }
 

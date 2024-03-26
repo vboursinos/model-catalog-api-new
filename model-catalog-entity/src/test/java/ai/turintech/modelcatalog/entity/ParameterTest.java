@@ -1,7 +1,9 @@
 package ai.turintech.modelcatalog.entity;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,8 +12,6 @@ import org.junit.jupiter.api.Test;
 public class ParameterTest {
 
   private final Parameter parameterUnderTest = new Parameter();
-  private final Model model = new Model();
-  private final ParameterTypeDefinition definition = new ParameterTypeDefinition();
 
   @BeforeEach
   public void setUp() {
@@ -48,12 +48,39 @@ public class ParameterTest {
   }
 
   @Test
-  public void testGetSetModelsAndDefinitions() {
-    parameterUnderTest.setDefinitions(Set.of(definition));
-    assertThat(parameterUnderTest.getDefinitions()).contains(definition);
+  public void testGetSetBooleanParameters() {
+    Set<BooleanParameter> booleanParameters = new HashSet<>();
+    BooleanParameter booleanParameter = new BooleanParameter();
+    booleanParameters.add(booleanParameter);
+    parameterUnderTest.setBooleanParameters(booleanParameters);
+    assertEquals(booleanParameters, parameterUnderTest.getBooleanParameters());
+  }
 
-    parameterUnderTest.setModel(model);
-    assertThat(parameterUnderTest.getModel()).isEqualTo(model);
+  @Test
+  public void testGetSetCategoricalParameters() {
+    Set<CategoricalParameter> categoricalParameters = new HashSet<>();
+    CategoricalParameter categoricalParameter = new CategoricalParameter();
+    categoricalParameters.add(categoricalParameter);
+    parameterUnderTest.setCategoricalParameters(categoricalParameters);
+    assertEquals(categoricalParameters, parameterUnderTest.getCategoricalParameters());
+  }
+
+  @Test
+  public void testGetSetFloatParameters() {
+    Set<FloatParameter> floatParameters = new HashSet<>();
+    FloatParameter floatParameter = new FloatParameter();
+    floatParameters.add(floatParameter);
+    parameterUnderTest.setFloatParameters(floatParameters);
+    assertEquals(floatParameters, parameterUnderTest.getFloatParameters());
+  }
+
+  @Test
+  public void testGetSetIntegerParameters() {
+    Set<IntegerParameter> integerParameters = new HashSet<>();
+    IntegerParameter integerParameter = new IntegerParameter();
+    integerParameters.add(integerParameter);
+    parameterUnderTest.setIntegerParameters(integerParameters);
+    assertEquals(integerParameters, parameterUnderTest.getIntegerParameters());
   }
 
   @Test
@@ -76,20 +103,28 @@ public class ParameterTest {
     String result = parameterUnderTest.toString();
     assertThat(result)
         .isEqualTo(
-            "Parameter{id="
-                + parameterUnderTest.getId()
-                + ", name='"
+            "Parameter{name='"
                 + parameterUnderTest.getName()
                 + "', label='"
                 + parameterUnderTest.getLabel()
                 + "', description='"
                 + parameterUnderTest.getDescription()
-                + "', enabled='"
+                + "', enabled="
                 + parameterUnderTest.getEnabled()
-                + "', fixedValue='"
+                + ", fixedValue="
                 + parameterUnderTest.getFixedValue()
-                + "', ordering="
+                + ", ordering="
                 + parameterUnderTest.getOrdering()
+                + ", booleanParameters="
+                + parameterUnderTest.getBooleanParameters()
+                + ", categoricalParameters="
+                + parameterUnderTest.getCategoricalParameters()
+                + ", floatParameters="
+                + parameterUnderTest.getFloatParameters()
+                + ", integerParameters="
+                + parameterUnderTest.getIntegerParameters()
+                + ", model="
+                + parameterUnderTest.getModel()
                 + "}");
   }
 }

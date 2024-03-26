@@ -7,7 +7,6 @@ import ai.turintech.modelcatalog.entity.ParameterTypeDefinition;
 import ai.turintech.modelcatalog.repository.ParameterTypeDefinitionRepository;
 import java.util.LinkedList;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +15,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Scheduler;
-import reactor.core.scheduler.Schedulers;
 
 /** Service Implementation for managing {@link ParameterTypeDefinition}. */
 @Service

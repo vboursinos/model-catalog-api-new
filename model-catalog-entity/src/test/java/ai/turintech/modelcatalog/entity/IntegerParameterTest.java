@@ -67,12 +67,7 @@ public class IntegerParameterTest {
     integerParameterUnderTest.defaultValue(defaultVal);
 
     String expectedString =
-        "IntegerParameter{"
-            + "defaultValue="
-            + defaultVal
-            + ", parameterTypeDefinition="
-            + integerParameterUnderTest.getParameterTypeDefinition()
-            + '}';
+        "IntegerParameter{" + "defaultValue=" + defaultVal + ", integerParameterValues=[]" + '}';
 
     assertEquals(
         expectedString,

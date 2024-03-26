@@ -28,15 +28,8 @@ public class FloatParameterTest {
   @Test
   public void testToString() {
     UUID id = UUID.randomUUID();
-    ParameterTypeDefinition parameterTypeDefinition = new ParameterTypeDefinition();
-    parameterTypeDefinition.setId(id);
-    parameterTypeDefinition.setOrdering(1);
     floatParameter.setDefaultValue(0.1);
-    floatParameter.setParameterTypeDefinition(parameterTypeDefinition);
-    String expectedStringValue =
-        "FloatParameter{defaultValue=0.1, parameterTypeDefinition=ParameterTypeDefinition{id="
-            + id
-            + ", ordering=1}}";
+    String expectedStringValue = "FloatParameter{defaultValue=0.1, floatParameterRanges=[]}";
     Assertions.assertEquals(expectedStringValue, floatParameter.toString());
   }
 }

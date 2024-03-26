@@ -15,17 +15,9 @@ public class BooleanParameterTest {
   }
 
   @Test
-  public void testParameterTypeDefinition() {
-    ParameterTypeDefinition parameterTypeDefinition = new ParameterTypeDefinition();
-    booleanParameter.setParameterTypeDefinition(parameterTypeDefinition);
-    Assertions.assertEquals(parameterTypeDefinition, booleanParameter.getParameterTypeDefinition());
-  }
-
-  @Test
   public void testToString() {
     // assuming defaultValue initially set to null
-    String expectedStringValue =
-        "BooleanParameter{defaultValue=null, parameterTypeDefinition=null}";
+    String expectedStringValue = "BooleanParameter{defaultValue=null}";
     Assertions.assertEquals(expectedStringValue, booleanParameter.toString());
   }
 }

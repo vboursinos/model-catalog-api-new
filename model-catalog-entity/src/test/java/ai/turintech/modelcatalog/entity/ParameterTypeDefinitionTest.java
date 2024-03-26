@@ -16,35 +16,6 @@ public class ParameterTypeDefinitionTest {
   }
 
   @Test
-  public void testIntegerParameter() {
-    IntegerParameter integerParameter = new IntegerParameter();
-    parameterTypeDefinition.setIntegerParameter(integerParameter);
-    Assertions.assertEquals(integerParameter, parameterTypeDefinition.getIntegerParameter());
-  }
-
-  @Test
-  public void testFloatParameter() {
-    FloatParameter floatParameter = new FloatParameter();
-    parameterTypeDefinition.setFloatParameter(floatParameter);
-    Assertions.assertEquals(floatParameter, parameterTypeDefinition.getFloatParameter());
-  }
-
-  @Test
-  public void testCategoricalParameter() {
-    CategoricalParameter categoricalParameter = new CategoricalParameter();
-    parameterTypeDefinition.setCategoricalParameter(categoricalParameter);
-    Assertions.assertEquals(
-        categoricalParameter, parameterTypeDefinition.getCategoricalParameter());
-  }
-
-  @Test
-  public void testBooleanParameter() {
-    BooleanParameter booleanParameter = new BooleanParameter();
-    parameterTypeDefinition.setBooleanParameter(booleanParameter);
-    Assertions.assertEquals(booleanParameter, parameterTypeDefinition.getBooleanParameter());
-  }
-
-  @Test
   public void testDistribution() {
     ParameterDistributionType distribution = new ParameterDistributionType();
     parameterTypeDefinition.setDistribution(distribution);
