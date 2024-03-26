@@ -30,7 +30,6 @@ public class FloatParameterValueRepositoryTest {
     FloatParameter floatParameter = new FloatParameter();
     floatParameter.setId(UUID.fromString(FLOAT_PARAMETER_ID));
     floatParameter.setDefaultValue(1.0);
-    floatParameter.setParameterTypeDefinition(parameterTypeDefinition);
 
     FloatParameterRange floatParameterRange = new FloatParameterRange();
     floatParameterRange.setFloatParameter(floatParameter);
@@ -49,7 +48,6 @@ public class FloatParameterValueRepositoryTest {
     FloatParameter floatParameter = new FloatParameter();
     floatParameter.setId(UUID.fromString(FLOAT_PARAMETER_ID));
     floatParameter.setDefaultValue(1.0);
-    floatParameter.setParameterTypeDefinition(parameterTypeDefinition);
 
     FloatParameterRange floatParameterRange = new FloatParameterRange();
     floatParameterRange.setId(UUID.fromString(NEW_FLOAT_PARAMETER_RANGE_ID));

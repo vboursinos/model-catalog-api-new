@@ -31,7 +31,6 @@ public class IntegerParameterValueRepositoryTest {
     IntegerParameter integerParameter = new IntegerParameter();
     integerParameter.setId(UUID.fromString(INTEGER_PARAMETER_ID));
     integerParameter.setDefaultValue(1);
-    integerParameter.setParameterTypeDefinition(parameterTypeDefinition);
 
     IntegerParameterValue integerParameterValue = new IntegerParameterValue();
     integerParameterValue.setIntegerParameter(integerParameter);
@@ -48,7 +47,6 @@ public class IntegerParameterValueRepositoryTest {
     IntegerParameter integerParameter = new IntegerParameter();
     integerParameter.setId(UUID.fromString(INTEGER_PARAMETER_ID));
     integerParameter.setDefaultValue(1);
-    integerParameter.setParameterTypeDefinition(parameterTypeDefinition);
 
     IntegerParameterValue integerParameterValue = new IntegerParameterValue();
     integerParameterValue.setId(UUID.fromString(INTEGER_PARAMETER_VALUE_ID));
