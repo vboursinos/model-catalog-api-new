@@ -48,7 +48,6 @@ public class FloatParameterValueServiceTest {
     FloatParameter floatParameter = new FloatParameter();
     floatParameter.setId(UUID.fromString("323e4567-e89b-12d3-a456-426614174002"));
     floatParameter.setDefaultValue(1.0);
-    floatParameter.setParameterTypeDefinition(parameterTypeDefinition);
 
     FloatParameterRangeDTO floatParameterRangeDTO = new FloatParameterRangeDTO();
     floatParameterRangeDTO.setLower(1.0);
@@ -66,7 +65,6 @@ public class FloatParameterValueServiceTest {
     FloatParameter floatParameter = new FloatParameter();
     floatParameter.setId(UUID.fromString("323e4567-e89b-12d3-a456-426614174002"));
     floatParameter.setDefaultValue(1.0);
-    floatParameter.setParameterTypeDefinition(parameterTypeDefinition);
 
     FloatParameterRangeDTO floatParameterRangeDTO = new FloatParameterRangeDTO();
     floatParameterRangeDTO.setId(UUID.fromString("423e4567-e89b-12d3-a456-426614174003"));
@@ -85,7 +83,6 @@ public class FloatParameterValueServiceTest {
     FloatParameter floatParameter = new FloatParameter();
     floatParameter.setId(UUID.fromString("323e4567-e89b-12d3-a456-426614174002"));
     floatParameter.setDefaultValue(1.0);
-    floatParameter.setParameterTypeDefinition(parameterTypeDefinition);
 
     FloatParameterRangeDTO floatParameterRangeDTO = new FloatParameterRangeDTO();
     floatParameterRangeDTO.setId(UUID.fromString("423e4567-e89b-12d3-a456-426614174003"));

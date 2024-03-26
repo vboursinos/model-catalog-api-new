@@ -50,7 +50,6 @@ public class IntegerParameterValueServiceTest {
     IntegerParameter integerParameter = new IntegerParameter();
     integerParameter.setId(UUID.fromString("323e4567-e89b-12d3-a456-426614174001"));
     integerParameter.setDefaultValue(1);
-    integerParameter.setParameterTypeDefinition(parameterTypeDefinition);
 
     IntegerParameterValueDTO integerParameterValueDTO = new IntegerParameterValueDTO();
     integerParameterValueDTO.setLower(1);
@@ -66,7 +65,6 @@ public class IntegerParameterValueServiceTest {
     IntegerParameter integerParameter = new IntegerParameter();
     integerParameter.setId(UUID.fromString("323e4567-e89b-12d3-a456-426614174001"));
     integerParameter.setDefaultValue(1);
-    integerParameter.setParameterTypeDefinition(parameterTypeDefinition);
 
     IntegerParameterValueDTO integerParameterValueDTO = new IntegerParameterValueDTO();
     integerParameterValueDTO.setId(UUID.fromString(EXISTING_INTEGER_PARAMETER_VALUE_ID));
@@ -83,7 +81,6 @@ public class IntegerParameterValueServiceTest {
     IntegerParameter integerParameter = new IntegerParameter();
     integerParameter.setId(UUID.fromString("323e4567-e89b-12d3-a456-426614174001"));
     integerParameter.setDefaultValue(1);
-    integerParameter.setParameterTypeDefinition(parameterTypeDefinition);
 
     IntegerParameterValueDTO integerParameterValueDTO = new IntegerParameterValueDTO();
     integerParameterValueDTO.setId(UUID.fromString(EXISTING_INTEGER_PARAMETER_VALUE_ID));

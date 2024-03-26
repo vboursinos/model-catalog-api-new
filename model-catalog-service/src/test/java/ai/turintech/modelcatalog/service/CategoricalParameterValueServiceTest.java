@@ -51,7 +51,6 @@ public class CategoricalParameterValueServiceTest {
     CategoricalParameter categoricalParameter = new CategoricalParameter();
     categoricalParameter.setId(UUID.fromString("323e4567-e89b-12d3-a456-426614174001"));
     categoricalParameter.setDefaultValue("test_defaultValue");
-    categoricalParameter.setParameterTypeDefinition(parameterTypeDefinition);
 
     CategoricalParameterValueDTO categoricalParameterValueDTO = new CategoricalParameterValueDTO();
     categoricalParameterValueDTO.setValue("test_value");
@@ -66,7 +65,6 @@ public class CategoricalParameterValueServiceTest {
     CategoricalParameter categoricalParameter = new CategoricalParameter();
     categoricalParameter.setId(UUID.fromString("323e4567-e89b-12d3-a456-426614174001"));
     categoricalParameter.setDefaultValue("test_defaultValue");
-    categoricalParameter.setParameterTypeDefinition(parameterTypeDefinition);
 
     CategoricalParameterValueDTO categoricalParameterValueDTO = new CategoricalParameterValueDTO();
     categoricalParameterValueDTO.setId(UUID.fromString("423e4567-e89b-12d3-a456-426614174004"));
@@ -82,7 +80,6 @@ public class CategoricalParameterValueServiceTest {
     CategoricalParameter categoricalParameter = new CategoricalParameter();
     categoricalParameter.setId(UUID.fromString("323e4567-e89b-12d3-a456-426614174001"));
     categoricalParameter.setDefaultValue("test_defaultValue");
-    categoricalParameter.setParameterTypeDefinition(parameterTypeDefinition);
 
     CategoricalParameterValueDTO categoricalParameterValueDTO = new CategoricalParameterValueDTO();
     categoricalParameterValueDTO.setId(UUID.fromString("423e4567-e89b-12d3-a456-426614174004"));
