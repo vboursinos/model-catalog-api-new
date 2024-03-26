@@ -21,7 +21,10 @@ public class ParameterTOTest {
     parameterTO.setFixedValue(true);
     parameterTO.setOrdering(1);
     parameterTO.setModelId(UUID.randomUUID());
-    parameterTO.setDefinitions(Collections.singletonList(new ParameterTypeDefinitionTO()));
+    parameterTO.setBooleanParameters(Collections.singletonList(new BooleanParameterTO()));
+    parameterTO.setCategoricalParameters(Collections.singletonList(new CategoricalParameterTO()));
+    parameterTO.setFloatParameters(Collections.singletonList(new FloatParameterTO()));
+    parameterTO.setIntegerParameters(Collections.singletonList(new IntegerParameterTO()));
   }
 
   @Test
@@ -35,7 +38,11 @@ public class ParameterTOTest {
     sameIdParameterTO.setFixedValue(true);
     sameIdParameterTO.setOrdering(1);
     sameIdParameterTO.setModelId(UUID.randomUUID());
-    sameIdParameterTO.setDefinitions(Collections.singletonList(new ParameterTypeDefinitionTO()));
+    sameIdParameterTO.setBooleanParameters(Collections.singletonList(new BooleanParameterTO()));
+    sameIdParameterTO.setCategoricalParameters(
+        Collections.singletonList(new CategoricalParameterTO()));
+    sameIdParameterTO.setFloatParameters(Collections.singletonList(new FloatParameterTO()));
+    sameIdParameterTO.setIntegerParameters(Collections.singletonList(new IntegerParameterTO()));
 
     ParameterTO differentIdParameterTO = new ParameterTO();
     differentIdParameterTO.setId(UUID.randomUUID());
@@ -46,9 +53,13 @@ public class ParameterTOTest {
     differentIdParameterTO.setFixedValue(false);
     differentIdParameterTO.setOrdering(2);
     differentIdParameterTO.setModelId(UUID.randomUUID());
-    differentIdParameterTO.setDefinitions(
-        Collections.singletonList(new ParameterTypeDefinitionTO()));
-
+    differentIdParameterTO.setBooleanParameters(
+        Collections.singletonList(new BooleanParameterTO()));
+    differentIdParameterTO.setCategoricalParameters(
+        Collections.singletonList(new CategoricalParameterTO()));
+    differentIdParameterTO.setFloatParameters(Collections.singletonList(new FloatParameterTO()));
+    differentIdParameterTO.setIntegerParameters(
+        Collections.singletonList(new IntegerParameterTO()));
     assertEquals(parameterTO, sameIdParameterTO);
     assertNotEquals(parameterTO, differentIdParameterTO);
     assertNotEquals(parameterTO, null);
@@ -65,7 +76,11 @@ public class ParameterTOTest {
     sameIdParameterTO.setFixedValue(true);
     sameIdParameterTO.setOrdering(1);
     sameIdParameterTO.setModelId(UUID.randomUUID());
-    sameIdParameterTO.setDefinitions(Collections.singletonList(new ParameterTypeDefinitionTO()));
+    sameIdParameterTO.setBooleanParameters(Collections.singletonList(new BooleanParameterTO()));
+    sameIdParameterTO.setCategoricalParameters(
+        Collections.singletonList(new CategoricalParameterTO()));
+    sameIdParameterTO.setFloatParameters(Collections.singletonList(new FloatParameterTO()));
+    sameIdParameterTO.setIntegerParameters(Collections.singletonList(new IntegerParameterTO()));
 
     ParameterTO differentIdParameterTO = new ParameterTO();
     differentIdParameterTO.setId(UUID.randomUUID());
@@ -76,8 +91,13 @@ public class ParameterTOTest {
     differentIdParameterTO.setFixedValue(false);
     differentIdParameterTO.setOrdering(2);
     differentIdParameterTO.setModelId(UUID.randomUUID());
-    differentIdParameterTO.setDefinitions(
-        Collections.singletonList(new ParameterTypeDefinitionTO()));
+    differentIdParameterTO.setBooleanParameters(
+        Collections.singletonList(new BooleanParameterTO()));
+    differentIdParameterTO.setCategoricalParameters(
+        Collections.singletonList(new CategoricalParameterTO()));
+    differentIdParameterTO.setFloatParameters(Collections.singletonList(new FloatParameterTO()));
+    differentIdParameterTO.setIntegerParameters(
+        Collections.singletonList(new IntegerParameterTO()));
 
     assertEquals(parameterTO.hashCode(), sameIdParameterTO.hashCode());
     assertNotEquals(parameterTO.hashCode(), differentIdParameterTO.hashCode());
@@ -86,10 +106,7 @@ public class ParameterTOTest {
   @Test
   public void testToString() {
     String expectedToString =
-        "ParameterDTO{"
-            + "id="
-            + parameterTO.getId()
-            + ", name='TestParameter'"
+        "ParameterTO{name='TestParameter'"
             + ", label='Test Label'"
             + ", description='Test Description'"
             + ", enabled=true"
@@ -97,8 +114,14 @@ public class ParameterTOTest {
             + ", ordering=1"
             + ", modelId="
             + parameterTO.getModelId()
-            + ", definitions="
-            + parameterTO.getDefinitions()
+            + ", booleanParameters="
+            + parameterTO.getBooleanParameters()
+            + ", categoricalParameters="
+            + parameterTO.getCategoricalParameters()
+            + ", floatParameters="
+            + parameterTO.getFloatParameters()
+            + ", integerParameters="
+            + parameterTO.getIntegerParameters()
             + '}';
     assertEquals(expectedToString, parameterTO.toString());
   }
