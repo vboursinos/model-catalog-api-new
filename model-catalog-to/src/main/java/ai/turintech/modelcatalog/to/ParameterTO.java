@@ -31,7 +31,12 @@ public class ParameterTO extends AbstractUUIDIdentityTO {
 
   @NotNull private UUID modelId;
 
-  @NotNull private List<ParameterTypeDefinitionTO> definitions = new ArrayList<>();
+  @NotNull private List<BooleanParameterTO> booleanParameters = new ArrayList<>();
+  @NotNull private List<CategoricalParameterTO> categoricalParameters = new ArrayList<>();
+
+  @NotNull private List<FloatParameterTO> floatParameters = new ArrayList<>();
+
+  @NotNull private List<IntegerParameterTO> integerParameters = new ArrayList<>();
 
   public String getName() {
     return name;
@@ -89,12 +94,36 @@ public class ParameterTO extends AbstractUUIDIdentityTO {
     this.modelId = modelId;
   }
 
-  public List<ParameterTypeDefinitionTO> getDefinitions() {
-    return definitions;
+  public List<BooleanParameterTO> getBooleanParameters() {
+    return booleanParameters;
   }
 
-  public void setDefinitions(List<ParameterTypeDefinitionTO> definitions) {
-    this.definitions = definitions;
+  public void setBooleanParameters(List<BooleanParameterTO> booleanParameters) {
+    this.booleanParameters = booleanParameters;
+  }
+
+  public List<FloatParameterTO> getFloatParameters() {
+    return floatParameters;
+  }
+
+  public void setFloatParameters(List<FloatParameterTO> floatParameters) {
+    this.floatParameters = floatParameters;
+  }
+
+  public List<IntegerParameterTO> getIntegerParameters() {
+    return integerParameters;
+  }
+
+  public void setIntegerParameters(List<IntegerParameterTO> integerParameters) {
+    this.integerParameters = integerParameters;
+  }
+
+  public List<CategoricalParameterTO> getCategoricalParameters() {
+    return categoricalParameters;
+  }
+
+  public void setCategoricalParameters(List<CategoricalParameterTO> categoricalParameters) {
+    this.categoricalParameters = categoricalParameters;
   }
 
   @Override
@@ -119,12 +148,11 @@ public class ParameterTO extends AbstractUUIDIdentityTO {
   }
 
   // prettier-ignore
+
   @Override
   public String toString() {
-    return "ParameterDTO{"
-        + "id="
-        + getId()
-        + ", name='"
+    return "ParameterTO{"
+        + "name='"
         + name
         + '\''
         + ", label='"
@@ -141,8 +169,14 @@ public class ParameterTO extends AbstractUUIDIdentityTO {
         + ordering
         + ", modelId="
         + modelId
-        + ", definitions="
-        + definitions
+        + ", booleanParameters="
+        + booleanParameters
+        + ", categoricalParameters="
+        + categoricalParameters
+        + ", floatParameters="
+        + floatParameters
+        + ", integerParameters="
+        + integerParameters
         + '}';
   }
 }

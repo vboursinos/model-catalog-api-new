@@ -1,12 +1,11 @@
 package ai.turintech.modelcatalog.to;
 
-import ai.turintech.components.data.common.to.AbstractUUIDIdentityTO;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 @SuppressWarnings("common-java:DuplicatedBlocks")
-public class FloatParameterTO extends AbstractUUIDIdentityTO {
+public class FloatParameterTO extends ParameterTypeDefinitionTO {
 
   private static final long serialVersionUID = -6709359691936403897L;
   private Double defaultValue;

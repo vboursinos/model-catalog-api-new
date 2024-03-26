@@ -42,7 +42,19 @@ public class Parameter extends AbstractUUIDIdentityEntity {
 
   @OneToMany(fetch = FetchType.LAZY, mappedBy = "parameter")
   @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-  private Set<ParameterTypeDefinition> definitions = new HashSet<>();
+  private Set<BooleanParameter> booleanParameters = new HashSet<>();
+
+  @OneToMany(fetch = FetchType.LAZY, mappedBy = "parameter")
+  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+  private Set<CategoricalParameter> categoricalParameters = new HashSet<>();
+
+  @OneToMany(fetch = FetchType.LAZY, mappedBy = "parameter")
+  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+  private Set<FloatParameter> floatParameters = new HashSet<>();
+
+  @OneToMany(fetch = FetchType.LAZY, mappedBy = "parameter")
+  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+  private Set<IntegerParameter> integerParameters = new HashSet<>();
 
   @ManyToOne(fetch = FetchType.LAZY)
   private Model model;
@@ -127,35 +139,28 @@ public class Parameter extends AbstractUUIDIdentityEntity {
     this.ordering = ordering;
   }
 
-  public Set<ParameterTypeDefinition> getDefinitions() {
-    return this.definitions;
+  public Set<BooleanParameter> getBooleanParameters() {
+    return booleanParameters;
   }
 
-  public void setDefinitions(Set<ParameterTypeDefinition> parameterTypeDefinitions) {
-    if (this.definitions != null) {
-      this.definitions.forEach(i -> i.setParameter(null));
-    }
-    if (parameterTypeDefinitions != null) {
-      parameterTypeDefinitions.forEach(i -> i.setParameter(this));
-    }
-    this.definitions = parameterTypeDefinitions;
+  public void setBooleanParameters(Set<BooleanParameter> booleanParameters) {
+    this.booleanParameters = booleanParameters;
   }
 
-  public Parameter definitions(Set<ParameterTypeDefinition> parameterTypeDefinitions) {
-    this.setDefinitions(parameterTypeDefinitions);
-    return this;
+  public Set<FloatParameter> getFloatParameters() {
+    return floatParameters;
   }
 
-  public Parameter addDefinitions(ParameterTypeDefinition parameterTypeDefinition) {
-    this.definitions.add(parameterTypeDefinition);
-    parameterTypeDefinition.setParameter(this);
-    return this;
+  public void setFloatParameters(Set<FloatParameter> floatParameters) {
+    this.floatParameters = floatParameters;
   }
 
-  public Parameter removeDefinitions(ParameterTypeDefinition parameterTypeDefinition) {
-    this.definitions.remove(parameterTypeDefinition);
-    parameterTypeDefinition.setParameter(null);
-    return this;
+  public Set<IntegerParameter> getIntegerParameters() {
+    return integerParameters;
+  }
+
+  public void setIntegerParameters(Set<IntegerParameter> integerParameters) {
+    this.integerParameters = integerParameters;
   }
 
   public Model getModel() {
@@ -171,6 +176,19 @@ public class Parameter extends AbstractUUIDIdentityEntity {
     return this;
   }
 
+  public Set<CategoricalParameter> getCategoricalParameters() {
+    return this.categoricalParameters;
+  }
+
+  public void setCategoricalParameters(Set<CategoricalParameter> categoricalParameters) {
+    if (this.categoricalParameters != null) {
+      this.categoricalParameters.forEach(i -> i.setParameter(null));
+    }
+    if (categoricalParameters != null) {
+      categoricalParameters.forEach(i -> i.setParameter(this));
+    }
+    this.categoricalParameters = categoricalParameters;
+  }
   // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
 
   @Override
@@ -192,28 +210,35 @@ public class Parameter extends AbstractUUIDIdentityEntity {
   }
 
   // prettier-ignore
+
   @Override
   public String toString() {
     return "Parameter{"
-        + "id="
-        + getId()
-        + ", name='"
-        + getName()
-        + "'"
+        + "name='"
+        + name
+        + '\''
         + ", label='"
-        + getLabel()
-        + "'"
+        + label
+        + '\''
         + ", description='"
-        + getDescription()
-        + "'"
-        + ", enabled='"
-        + getEnabled()
-        + "'"
-        + ", fixedValue='"
-        + getFixedValue()
-        + "'"
+        + description
+        + '\''
+        + ", enabled="
+        + enabled
+        + ", fixedValue="
+        + fixedValue
         + ", ordering="
-        + getOrdering()
-        + "}";
+        + ordering
+        + ", booleanParameters="
+        + booleanParameters
+        + ", categoricalParameters="
+        + categoricalParameters
+        + ", floatParameters="
+        + floatParameters
+        + ", integerParameters="
+        + integerParameters
+        + ", model="
+        + model
+        + '}';
   }
 }

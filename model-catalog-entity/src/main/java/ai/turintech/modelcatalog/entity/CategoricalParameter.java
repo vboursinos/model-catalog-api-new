@@ -9,9 +9,8 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 /** A CategoricalParameter. */
 @Entity
 @Table(name = "categorical_parameter")
-@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @SuppressWarnings("common-java:DuplicatedBlocks")
-public class CategoricalParameter extends BaseTypeParameter {
+public class CategoricalParameter extends ParameterTypeDefinition {
 
   private static final long serialVersionUID = 1L;
 
@@ -35,12 +34,6 @@ public class CategoricalParameter extends BaseTypeParameter {
 
   public void setDefaultValue(String defaultValue) {
     this.defaultValue = defaultValue;
-  }
-
-  public CategoricalParameter parameterTypeDefinition(
-      ParameterTypeDefinition parameterTypeDefinition) {
-    this.setParameterTypeDefinition(parameterTypeDefinition);
-    return this;
   }
 
   public Set<CategoricalParameterValue> getCategoricalParameterValues() {
@@ -84,8 +77,8 @@ public class CategoricalParameter extends BaseTypeParameter {
         + "defaultValue='"
         + defaultValue
         + '\''
-        + ", parameterTypeDefinition="
-        + super.getParameterTypeDefinition()
+        + ", categoricalParameterValues="
+        + categoricalParameterValues
         + '}';
   }
 }

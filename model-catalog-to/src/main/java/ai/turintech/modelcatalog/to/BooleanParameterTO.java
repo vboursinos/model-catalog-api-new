@@ -1,10 +1,9 @@
 package ai.turintech.modelcatalog.to;
 
-import ai.turintech.components.data.common.to.AbstractUUIDIdentityTO;
 import java.util.Objects;
 
 @SuppressWarnings("common-java:DuplicatedBlocks")
-public class BooleanParameterTO extends AbstractUUIDIdentityTO {
+public class BooleanParameterTO extends ParameterTypeDefinitionTO {
 
   private static final long serialVersionUID = 1087247945141281117L;
   private Boolean defaultValue;

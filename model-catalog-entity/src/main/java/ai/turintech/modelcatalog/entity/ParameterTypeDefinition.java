@@ -10,6 +10,7 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 @Entity
 @Table(name = "parameter_type_definition")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+@Inheritance(strategy = InheritanceType.JOINED)
 @SuppressWarnings("common-java:DuplicatedBlocks")
 public class ParameterTypeDefinition extends AbstractUUIDIdentityEntity {
 
@@ -18,22 +19,6 @@ public class ParameterTypeDefinition extends AbstractUUIDIdentityEntity {
   @NotNull
   @Column(name = "ordering", nullable = false)
   private Integer ordering;
-
-  @OneToOne(fetch = FetchType.LAZY, mappedBy = "parameterTypeDefinition")
-  @JoinColumn(name = "parameter_type_definition_id", referencedColumnName = "id")
-  private IntegerParameter integerParameter;
-
-  @OneToOne(fetch = FetchType.LAZY, mappedBy = "parameterTypeDefinition")
-  @JoinColumn(name = "parameter_type_definition_id", referencedColumnName = "id")
-  private FloatParameter floatParameter;
-
-  @OneToOne(fetch = FetchType.LAZY, mappedBy = "parameterTypeDefinition")
-  @JoinColumn(name = "parameter_type_definition_id", referencedColumnName = "id")
-  private CategoricalParameter categoricalParameter;
-
-  @OneToOne(fetch = FetchType.LAZY, mappedBy = "parameterTypeDefinition")
-  @JoinColumn(name = "parameter_type_definition_id", referencedColumnName = "id")
-  private BooleanParameter booleanParameter;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "parameter_distribution_type_id", referencedColumnName = "id")
@@ -60,82 +45,6 @@ public class ParameterTypeDefinition extends AbstractUUIDIdentityEntity {
 
   public void setOrdering(Integer ordering) {
     this.ordering = ordering;
-  }
-
-  public IntegerParameter getIntegerParameter() {
-    return this.integerParameter;
-  }
-
-  public void setIntegerParameter(IntegerParameter integerParameter) {
-    if (this.integerParameter != null) {
-      this.integerParameter.setParameterTypeDefinition(null);
-    }
-    if (integerParameter != null) {
-      integerParameter.setParameterTypeDefinition(this);
-    }
-    this.integerParameter = integerParameter;
-  }
-
-  public ParameterTypeDefinition integerParameter(IntegerParameter integerParameter) {
-    this.setIntegerParameter(integerParameter);
-    return this;
-  }
-
-  public FloatParameter getFloatParameter() {
-    return this.floatParameter;
-  }
-
-  public void setFloatParameter(FloatParameter floatParameter) {
-    if (this.floatParameter != null) {
-      this.floatParameter.setParameterTypeDefinition(null);
-    }
-    if (floatParameter != null) {
-      floatParameter.setParameterTypeDefinition(this);
-    }
-    this.floatParameter = floatParameter;
-  }
-
-  public ParameterTypeDefinition floatParameter(FloatParameter floatParameter) {
-    this.setFloatParameter(floatParameter);
-    return this;
-  }
-
-  public CategoricalParameter getCategoricalParameter() {
-    return this.categoricalParameter;
-  }
-
-  public void setCategoricalParameter(CategoricalParameter categoricalParameter) {
-    if (this.categoricalParameter != null) {
-      this.categoricalParameter.setParameterTypeDefinition(null);
-    }
-    if (categoricalParameter != null) {
-      categoricalParameter.setParameterTypeDefinition(this);
-    }
-    this.categoricalParameter = categoricalParameter;
-  }
-
-  public ParameterTypeDefinition categoricalParameter(CategoricalParameter categoricalParameter) {
-    this.setCategoricalParameter(categoricalParameter);
-    return this;
-  }
-
-  public BooleanParameter getBooleanParameter() {
-    return this.booleanParameter;
-  }
-
-  public void setBooleanParameter(BooleanParameter booleanParameter) {
-    if (this.booleanParameter != null) {
-      this.booleanParameter.setParameterTypeDefinition(null);
-    }
-    if (booleanParameter != null) {
-      booleanParameter.setParameterTypeDefinition(this);
-    }
-    this.booleanParameter = booleanParameter;
-  }
-
-  public ParameterTypeDefinition booleanParameter(BooleanParameter booleanParameter) {
-    this.setBooleanParameter(booleanParameter);
-    return this;
   }
 
   public ParameterDistributionType getDistribution() {

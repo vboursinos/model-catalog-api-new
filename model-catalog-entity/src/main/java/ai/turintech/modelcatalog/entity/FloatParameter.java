@@ -9,9 +9,8 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 /** A FloatParameter. */
 @Entity
 @Table(name = "float_parameter")
-@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @SuppressWarnings("common-java:DuplicatedBlocks")
-public class FloatParameter extends BaseTypeParameter {
+public class FloatParameter extends ParameterTypeDefinition {
 
   private static final long serialVersionUID = 1L;
 
@@ -75,8 +74,8 @@ public class FloatParameter extends BaseTypeParameter {
     return "FloatParameter{"
         + "defaultValue="
         + defaultValue
-        + ", parameterTypeDefinition="
-        + super.getParameterTypeDefinition()
+        + ", floatParameterRanges="
+        + floatParameterRanges
         + '}';
   }
 }
