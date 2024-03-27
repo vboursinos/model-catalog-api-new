@@ -1,58 +1,70 @@
 
 Table model {
-  id integer [pk]
-  model_type_id integer [ref: > model_type.id]
-  ml_task_id integer [ref: > ml_task.id, not null]
+  id uuid [pk]
+  model_type_id uuid [ref: > model_type.id]
+  ml_task_id uuid [ref: > ml_task.id, not null]
   name varchar [not null, unique]
   display_name varchar [not null]
-  structure_id integer [ref: > model_structure_type.id, not null]
+  structure_id uuid [ref: > model_structure_type.id, not null]
   description varchar
   advantages array
   disadvantages array
   enabled boolean [not null]
+  decision_tree boolean
+  ensemble_type_id uuid [ref: > model_ensemble_type.id]
+  family_type_id uuid [ref: > model_family_type.id]
+  dependency_group_id uuid [ref: > dependency_group_type.id]
 }
 
 Table model_structure_type {
-  id integer [pk]
+  id uuid [pk]
   name varchar [not null, unique]
 }
 
-Table ml_task {  
-  id integer [pk]
+Table ml_task {
+  id uuid [pk]
   name varchar [not null, unique]
 }
 
-Table model_dependency {
-  id integer [pk]
-  model_id integer [ref: > model.id]
+Table dependency_group_type {
+  id uuid [pk]
   name varchar [not null]
 }
 
-Table model_group {
-  model_id integer [ref: > model.id]
-  group_id integer [ref: > group.id]
+Table dependency_type {
+  id uuid [pk]
+  name varchar [not null]
+  dependency_group_id integer [ref: > dependency_group_type.id]
+}
+
+Table model_family_type {
+  id uuid [pk]
+  name varchar [not null]
+}
+
+Table model_ensemble_type {
+   id uuid [pk]
+  name varchar [not null]
+}
+
+Table rel_model__groups {
+  model_id uuid [ref: > model.id]
+  group_id uuid [ref: > group.id]
 }
 
 Table group {
-  id integer [pk]
+  id uuid [pk]
   name varchar [not null]
-}
-
-Table model_metadata {
-  model_id integer [pk, ref: - model.id]
-  decision_tree varchar
-  ensemble_type varchar
-  family varchar
 }
 
 Table model_type {
-  id integer [pk] 
+  id uuid [pk]
   name varchar [not null]
 }
 
-Table incompatible_metric {
-  model_id integer [ref: > model.id]
-  metric_id integer [ref: > metric.id]
+Table rel_model__incompatible_metrics {
+  model_id uuid [ref: > model.id]
+  metric_id uuid [ref: > metric.id]
 
   indexes {
     (model_id, metric_id) [pk]
@@ -60,15 +72,13 @@ Table incompatible_metric {
 }
 
 Table metric {
-  id integer [pk]
+  id uuid [pk]
   name varchar [not null, unique]
-
-  Note: "TBD: This entity seems to be outside the boundaries of this microservice"
 }
 
 Table parameter {
-  id integer [pk]
-  model_id integer [ref: > model.id]
+  id uuid [pk]
+  model_id uuid [ref: > model.id]
   name varchar [not null]
   label varchar [not null]
   description varchar
@@ -82,111 +92,111 @@ Table parameter {
 }
 
 Table parameter_type {
-  id integer [pk] 
+  id uuid [pk]
   name varchar [not null, unique]
 }
 
 Table parameter_type_definition {
-  id integer [pk]
-  parameter_id integer [ref: > parameter.id, not null]
-  parameter_type_id integer [ref: > parameter_type.id, not null]
-  parameter_distribution_type_id integer [ref: > parameter_distribution_type.id, not null]
+  id uuid [pk]
+  parameter_id uuid [ref: > parameter.id, not null]
+  parameter_type_id uuid [ref: > parameter_type.id, not null]
+  parameter_distribution_type_id uuid [ref: > parameter_distribution_type.id, not null]
   ordering integer [not null]
 }
 
 Table categorical_parameter {
-  parameter_type_definition_id integer [pk, ref: - parameter_type_definition.id]
+  id uuid [pk, ref: - parameter_type_definition.id]
   default_value varchar
 }
 
 Table categorical_parameter_value {
-  id integer [pk]
-  parameter_type_definition_id integer [ref: > categorical_parameter.parameter_type_definition_id, not null]
+  id uuid [pk]
+  parameter_type_definition_id uuid [ref: > categorical_parameter.id, not null]
   value varchar [not null]
 }
 
 Table integer_parameter {
-  parameter_type_definition_id integer [pk, ref: - parameter_type_definition.id]
+  id uuid [pk, ref: - parameter_type_definition.id]
   default_value integer
 }
 
 Table integer_parameter_range {
-  id integer [pk]
-  parameter_type_definition_id integer [ref: > integer_parameter.parameter_type_definition_id, not null]
-  start integer [not null]
-  stop integer [not null]
+  id uuid [pk]
+  parameter_type_definition_id uuid [ref: > integer_parameter.id, not null]
+  lower integer [not null]
+  upper integer [not null]
 }
 
 Table float_parameter {
-  parameter_type_definition_id integer [pk, ref: - parameter_type_definition.id]
+  id uuid [pk, ref: - parameter_type_definition.id]
   default_value double
 }
 
 Table float_parameter_range {
-  id integer [pk]
-  parameter_type_definition_id integer [ref: > float_parameter.parameter_type_definition_id, not null]
-  left boolean [not null]
-  right boolean [not null]
+  id uuid [pk]
+  parameter_type_definition_id uuid [ref: > float_parameter.id, not null]
+  is_left_open boolean [not null]
+  is_right_open boolean [not null]
   lower double [not null]
   upper double [not null]
 }
 
 
 Table boolean_parameter {
-  parameter_type_definition_id integer [pk, ref: - parameter_type_definition.id]
+  id uuid [pk, ref: - parameter_type_definition.id]
   default_value boolean
 }
 
 
 Table parameter_distribution_type {
-  id integer [pk]
+  id uuid [pk]
   name varchar [not null, unique]
 }
 
 
 Table constraint_edge {
-  id integer [pk]
-  model_id integer [ref: > model.id]
-  source_id integer [ref: - parameter.id]
-  target_id integer [ref: - parameter.id]
+  id uuid [pk]
+  model_id uuid [ref: > model.id]
+  source_id uuid [ref: - parameter.id]
+  target_id uuid [ref: - parameter.id]
   description varchar
 }
 
 Table mapping {
-  id integer [pk]
-  constraint_edge_id integer [ref: > constraint_edge.id]
+  id uuid [pk]
+  constraint_edge_id uuid [ref: > constraint_edge.id]
   source_type varchar
   target_type varchar
 }
 
 Table categorical_constraint {
-  id integer [pk]
-  source_mapping_id integer [ref: - mapping.id]
-  target_mapping_id integer [ref: - mapping.id]
+  id uuid [pk]
+  source_mapping_id uuid [ref: - mapping.id]
+  target_mapping_id uuid [ref: - mapping.id]
 }
 
 Table float_constraint {
-  id integer [pk]
-  source_mapping_id integer [ref: - mapping.id]
-  target_mapping_id integer [ref: - mapping.id]
+  id uuid [pk]
+  source_mapping_id uuid [ref: - mapping.id]
+  target_mapping_id uuid [ref: - mapping.id]
 }
 
 Table integer_constraint {
-  id integer [pk]
-  source_mapping_id integer [ref: - mapping.id]
-  target_mapping_id integer [ref: - mapping.id]
+  id uuid [pk]
+  source_mapping_id uuid [ref: - mapping.id]
+  target_mapping_id uuid [ref: - mapping.id]
 }
 
 Table category_constraint{
-  id integer [pk]
-  categorical_constraint_id integer [ref: > categorical_constraint.id]
+  id uuid [pk]
+  categorical_constraint_id uuid [ref: > categorical_constraint.id]
   string_value varchar
   boolean_value boolean
 }
 
 Table interval_constraint {
-  id integer [pk]
-  float_constraint_id integer [ref: > float_constraint.id]
+  id uuid [pk]
+  float_constraint_id uuid [ref: > float_constraint.id]
   left boolean
   right boolean
   lower double
@@ -194,8 +204,8 @@ Table interval_constraint {
 }
 
 Table range_constraint {
-  id integer [pk]
-  integer_constraint_id integer [ref: > integer_constraint.id]
+  id uuid [pk]
+  integer_constraint_id uuid [ref: > integer_constraint.id]
   start integer
   stop integer
 }
