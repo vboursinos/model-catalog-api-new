@@ -45,7 +45,7 @@ public class ParameterTypeRepositoryTest {
         parameterTypeRepository
             .findById(UUID.fromString(PARAMETER_TYPE_ID))
             .orElseThrow(() -> new NoSuchElementException("Parameter type not found"));
-    Assertions.assertEquals("parametertype3", parameterType.getName());
+    Assertions.assertEquals("integer", parameterType.getName());
   }
 
   @Test

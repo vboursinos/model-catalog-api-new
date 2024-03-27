@@ -107,7 +107,7 @@ public class ParameterRepositoryTest {
   @Test
   void testFindAllParameterRepository() {
     List<Parameter> parameters = parameterRepository.findAll();
-    Assertions.assertEquals(1, parameters.size());
+    Assertions.assertEquals(4, parameters.size());
   }
 
   @Test

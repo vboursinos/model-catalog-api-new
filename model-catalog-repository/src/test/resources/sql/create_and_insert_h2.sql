@@ -224,10 +224,10 @@ values
 
 insert into parameter_type (id, name)
 values
-    ('1b6f7a9a-4a2d-4e9a-8f2a-6d6bb9c66d27', 'parametertype1'),
-    ('2b6f7a9a-4a2d-4e9a-8f2a-6d6bb9c66d28', 'parametertype2'),
-    ('3b6f7a9a-4a2d-4e9a-8f2a-6d6bb9c66d29', 'parametertype3'),
-    ('4b6f7a9a-4a2d-4e9a-8f2a-6d6bb9c66d21', 'parametertype4');
+    ('1b6f7a9a-4a2d-4e9a-8f2a-6d6bb9c66d27', 'boolean'),
+    ('2b6f7a9a-4a2d-4e9a-8f2a-6d6bb9c66d28', 'categorcal'),
+    ('3b6f7a9a-4a2d-4e9a-8f2a-6d6bb9c66d29', 'integer'),
+    ('4b6f7a9a-4a2d-4e9a-8f2a-6d6bb9c66d21', 'float');
 
 insert into parameter_distribution_type (id, name)
 values
@@ -243,13 +243,22 @@ values
 
 INSERT INTO parameter (id, model_id, name, label, description, enabled, fixed_value, ordering)
 VALUES
-  ('523e4567-e89b-12d3-a456-426614174001', '123e4567-e89b-12d3-a456-426614174001', 'parameter_name', 'parameter_label', 'parameter_description', true, false, 1);
+  ('523e4567-e89b-12d3-a456-426614174001', '123e4567-e89b-12d3-a456-426614174001', 'parameter_name', 'parameter_label', 'parameter_description', true, false, 1),
+  ('523e4567-e89b-12d3-a456-426614174002', '123e4567-e89b-12d3-a456-426614174001', 'parameter_name2', 'parameter_label2', 'parameter_description2', true, false, 2),
+  ('523e4567-e89b-12d3-a456-426614174003', '123e4567-e89b-12d3-a456-426614174001', 'parameter_name3', 'parameter_label3', 'parameter_description3', true, false, 3),
+  ('523e4567-e89b-12d3-a456-426614174004', '123e4567-e89b-12d3-a456-426614174001', 'parameter_name4', 'parameter_label4', 'parameter_description4', true, false, 4);
 
 insert into parameter_type_definition (id, parameter_id, parameter_type_id, parameter_distribution_type_id, ordering)
 values
   ('323e4567-e89b-12d3-a456-426614174001', '523e4567-e89b-12d3-a456-426614174001', '1b6f7a9a-4a2d-4e9a-8f2a-6d6bb9c66d27', '1b6f7a9a-4a2d-4e9a-8f2a-6d6bb9c66d27', 1),
-  ('323e4567-e89b-12d3-a456-426614174002', '523e4567-e89b-12d3-a456-426614174001', '1b6f7a9a-4a2d-4e9a-8f2a-6d6bb9c66d27', '2b6f7a9a-4a2d-4e9a-8f2a-6d6bb9c66d28', 2),
-  ('323e4567-e89b-12d3-a456-426614174003', '523e4567-e89b-12d3-a456-426614174001', '1b6f7a9a-4a2d-4e9a-8f2a-6d6bb9c66d27', '2b6f7a9a-4a2d-4e9a-8f2a-6d6bb9c66d28', 2);
+  ('323e4567-e89b-12d3-a456-426614174002', '523e4567-e89b-12d3-a456-426614174002', '1b6f7a9a-4a2d-4e9a-8f2a-6d6bb9c66d27', '2b6f7a9a-4a2d-4e9a-8f2a-6d6bb9c66d28', 2),
+  ('323e4567-e89b-12d3-a456-426614174003', '523e4567-e89b-12d3-a456-426614174003', '2b6f7a9a-4a2d-4e9a-8f2a-6d6bb9c66d28', '2b6f7a9a-4a2d-4e9a-8f2a-6d6bb9c66d28', 2),
+  ('323e4567-e89b-12d3-a456-426614174004', '523e4567-e89b-12d3-a456-426614174003', '2b6f7a9a-4a2d-4e9a-8f2a-6d6bb9c66d28', '2b6f7a9a-4a2d-4e9a-8f2a-6d6bb9c66d28', 2),
+  ('323e4567-e89b-12d3-a456-426614174005', '523e4567-e89b-12d3-a456-426614174003', '3b6f7a9a-4a2d-4e9a-8f2a-6d6bb9c66d29', '2b6f7a9a-4a2d-4e9a-8f2a-6d6bb9c66d28', 2),
+  ('323e4567-e89b-12d3-a456-426614174006', '523e4567-e89b-12d3-a456-426614174001', '3b6f7a9a-4a2d-4e9a-8f2a-6d6bb9c66d29', '2b6f7a9a-4a2d-4e9a-8f2a-6d6bb9c66d28', 2),
+  ('323e4567-e89b-12d3-a456-426614174007', '523e4567-e89b-12d3-a456-426614174001', '1b6f7a9a-4a2d-4e9a-8f2a-6d6bb9c66d27', '2b6f7a9a-4a2d-4e9a-8f2a-6d6bb9c66d28', 2),
+  ('323e4567-e89b-12d3-a456-426614174008', '523e4567-e89b-12d3-a456-426614174001', '4b6f7a9a-4a2d-4e9a-8f2a-6d6bb9c66d21', '2b6f7a9a-4a2d-4e9a-8f2a-6d6bb9c66d28', 2);
+
 
 insert into boolean_parameter (id, default_value)
 values
@@ -258,29 +267,29 @@ values
 
 insert into categorical_parameter (id, default_value)
 values
-  ('323e4567-e89b-12d3-a456-426614174001', 'value1'),
-  ('323e4567-e89b-12d3-a456-426614174002', 'value2');
+  ('323e4567-e89b-12d3-a456-426614174003', 'value1'),
+  ('323e4567-e89b-12d3-a456-426614174004', 'value2');
 
 insert into integer_parameter (id, default_value)
 values
-  ('323e4567-e89b-12d3-a456-426614174001', 10),
-  ('323e4567-e89b-12d3-a456-426614174002', 20);
+  ('323e4567-e89b-12d3-a456-426614174005', 10),
+  ('323e4567-e89b-12d3-a456-426614174006', 20);
 
 insert into float_parameter (id, default_value)
 values
-  ('323e4567-e89b-12d3-a456-426614174001', 10.1),
-  ('323e4567-e89b-12d3-a456-426614174002', 20.2);
+  ('323e4567-e89b-12d3-a456-426614174007', 10.1),
+  ('323e4567-e89b-12d3-a456-426614174008', 20.2);
 
-INSERT INTO integer_parameter_value (id, parameter_type_definition_id, lower, upper)
-VALUES
-  ('423e4567-e89b-12d3-a456-426614174001', '323e4567-e89b-12d3-a456-426614174001', 10, 20),
-  ('423e4567-e89b-12d3-a456-426614174002', '323e4567-e89b-12d3-a456-426614174001', 5, 15),
-  ('423e4567-e89b-12d3-a456-426614174003', '323e4567-e89b-12d3-a456-426614174002', 30, 40),
-  ('423e4567-e89b-12d3-a456-426614174004', '323e4567-e89b-12d3-a456-426614174002', 25, 35);
+insert into integer_parameter_value (id, parameter_type_definition_id, lower, upper)
+values
+  ('423e4567-e89b-12d3-a456-426614174001', '323e4567-e89b-12d3-a456-426614174005', 10, 20),
+  ('423e4567-e89b-12d3-a456-426614174002', '323e4567-e89b-12d3-a456-426614174005', 5, 15),
+  ('423e4567-e89b-12d3-a456-426614174003', '323e4567-e89b-12d3-a456-426614174006', 30, 40),
+  ('423e4567-e89b-12d3-a456-426614174004', '323e4567-e89b-12d3-a456-426614174006', 25, 35);
 
-INSERT INTO float_parameter_range (id, parameter_type_definition_id, is_left_open, is_right_open, lower, upper)
-VALUES
-  ('423e4567-e89b-12d3-a456-426614174001', '323e4567-e89b-12d3-a456-426614174001', true, false, 10.5, 20.5),
-  ('423e4567-e89b-12d3-a456-426614174002', '323e4567-e89b-12d3-a456-426614174001', false, true, 5.2, 15.7),
-  ('423e4567-e89b-12d3-a456-426614174003', '323e4567-e89b-12d3-a456-426614174002', false, false, 30.0, 40.0),
-  ('423e4567-e89b-12d3-a456-426614174004', '323e4567-e89b-12d3-a456-426614174002', true, true, 25.3, 35.8);
+insert into float_parameter_range (id, parameter_type_definition_id, is_left_open, is_right_open, lower, upper)
+values
+  ('423e4567-e89b-12d3-a456-426614174001', '323e4567-e89b-12d3-a456-426614174007', true, false, 10.5, 20.5),
+  ('423e4567-e89b-12d3-a456-426614174002', '323e4567-e89b-12d3-a456-426614174007', false, true, 5.2, 15.7),
+  ('423e4567-e89b-12d3-a456-426614174003', '323e4567-e89b-12d3-a456-426614174008', false, false, 30.0, 40.0),
+  ('423e4567-e89b-12d3-a456-426614174004', '323e4567-e89b-12d3-a456-426614174008', true, true, 25.3, 35.8);

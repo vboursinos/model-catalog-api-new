@@ -82,7 +82,7 @@ public class ParameterTypeDefinitionRepositoryTest {
   void testFindAllParameterTypeDefinitionRepository() {
     List<ParameterTypeDefinition> parameterTypeDefinitions =
         parameterTypeDefinitionRepository.findAll();
-    Assertions.assertEquals(4, parameterTypeDefinitions.size());
+    Assertions.assertEquals(9, parameterTypeDefinitions.size());
   }
 
   @Test

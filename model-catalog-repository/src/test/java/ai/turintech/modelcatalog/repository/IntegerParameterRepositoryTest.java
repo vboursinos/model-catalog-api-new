@@ -17,12 +17,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 public class IntegerParameterRepositoryTest {
   @Autowired private IntegerParameterRepository integerParameterRepository;
 
-  private static final String INTEGER_PARAMETER_ID = "323e4567-e89b-12d3-a456-426614174001";
-  private static final String PARAMETER_ID = "523e4567-e89b-12d3-a456-426614174001";
-  private static final String PARAMETER_TYPE_ID = "1b6f7a9a-4a2d-4e9a-8f2a-6d6bb9c66d27";
-  private static final String PARAMETER_DISTRIBUTION_TYPE_ID =
-      "1b6f7a9a-4a2d-4e9a-8f2a-6d6bb9c66d27";
-  private static final String PARAMETER_TYPE_DEFINITION_ID = "323e4567-e89b-12d3-a456-426614174003";
+  private static final String INTEGER_PARAMETER_ID = "323e4567-e89b-12d3-a456-426614174005";
 
   @Test
   void testFindAllIntegerParameterRepository() {

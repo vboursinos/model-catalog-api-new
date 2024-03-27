@@ -19,8 +19,8 @@ public class FloatParameterValueRepositoryTest {
 
   private static final String FLOAT_PARAMETER_RANGE_ID = "423e4567-e89b-12d3-a456-426614174004";
   private static final String NEW_FLOAT_PARAMETER_RANGE_ID = "423e4567-e89b-12d3-a456-426614174003";
-  private static final String FLOAT_PARAMETER_ID = "323e4567-e89b-12d3-a456-426614174002";
-  private static final String PARAMETER_TYPE_DEFINITION_ID = "323e4567-e89b-12d3-a456-426614174001";
+  private static final String FLOAT_PARAMETER_ID = "323e4567-e89b-12d3-a456-426614174008";
+  private static final String PARAMETER_TYPE_DEFINITION_ID = "323e4567-e89b-12d3-a456-426614174008";
 
   private FloatParameterRange getFloatParameterRange() {
     ParameterTypeDefinition parameterTypeDefinition = new ParameterTypeDefinition();
